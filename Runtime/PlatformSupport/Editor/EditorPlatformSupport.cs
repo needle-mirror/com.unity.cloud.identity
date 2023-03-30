@@ -1,0 +1,168 @@
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Unity.Cloud.Common;
+using Unity.Cloud.Common.Runtime;
+using UnityEngine;
+
+namespace Unity.Cloud.Identity.Runtime
+{
+    /// <summary>
+    /// This class contains Unity Editor platform-specific logic to handle app activation from an url or key value pairs.
+    /// </summary>
+    public class EditorActivatePlatformSupport : BasePkcePlatformSupport
+    {
+        static readonly UCLogger s_Logger = LoggerProvider.GetLogger<EditorActivatePlatformSupport>();
+
+        /// <summary>
+        /// Creates a EditorActivatePlatformSupport that handles app activation from an url or key value pairs.
+        /// </summary>
+        /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
+        public EditorActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor) : base(urlRedirectionInterceptor)
+        {
+            var activateAppFromUrl = UnityEngine.Object.FindObjectOfType(typeof(ActivateAppFromUrl)) as ActivateAppFromUrl;
+            if (activateAppFromUrl != null && activateAppFromUrl.ActivateAtStartUp && Uri.TryCreate(activateAppFromUrl.ActivationUrl, UriKind.Absolute, out Uri _))
+            {
+                s_Logger.LogInfo($"User provided activation Url: {activateAppFromUrl.ActivationUrl}");
+                ActivationUrl = activateAppFromUrl.ActivationUrl;
+            }
+            else
+            {
+                ActivationUrl = string.Empty;
+            }
+            ActivationKeyValue = new Dictionary<string, string>();
+        }
+    }
+
+    /// <summary>
+    /// This class handles Unity Editor platform-specific features in the authentication flow.
+    /// </summary>
+    public class EditorPkcePlatformSupport : EditorActivatePlatformSupport
+    {
+        static readonly UCLogger s_Logger = LoggerProvider.GetLogger<EditorPkcePlatformSupport>();
+
+        // Only allowed for development/playmode
+        static readonly string k_LocalHostHttp = "http://";
+        static readonly string k_LocalHostCancellationUri = "?&code=none&state=cancelled";
+        static readonly List<string> k_AwaitedArguments = new List<string>() { "state", "code" };
+
+        string m_UniqueResponseRoute;
+        readonly Action<string> m_OpenUrlAction;
+        string m_LocalHostRedirectUri = "";
+
+        /// <summary>
+        /// Creates a EditorPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
+        /// </summary>
+        /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
+        public EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor) : base(urlRedirectionInterceptor)
+        {
+        }
+
+        internal EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, Action<string> openUrlAction) : base(urlRedirectionInterceptor)
+        {
+            m_OpenUrlAction = openUrlAction;
+            GenerateUniquePath();
+        }
+
+        void OpenUrlAction(string url)
+        {
+            if (m_OpenUrlAction != null)
+            {
+                m_OpenUrlAction(url);
+            }
+            else
+            {
+                Application.OpenURL(url);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
+        {
+            var httpListener = new HttpListener();
+            httpListener.Prefixes.Add($"{k_LocalHostHttp}{m_LocalHostRedirectUri}{m_UniqueResponseRoute}/");
+            try
+            {
+                httpListener.Start();
+                httpListener.BeginGetContext(OnHttpListenerRequest, httpListener);
+
+                OpenUrlAction(url);
+
+                var urlRedirectResult = await UrlRedirectionInterceptor.AwaitRedirectAsync(awaitedQueryArguments);
+                return urlRedirectResult;
+            }
+            finally
+            {
+                httpListener.Close();
+            }
+        }
+
+        /// <inheritdoc/>
+        public override string GetRedirectUri()
+        {
+            GenerateUniquePath();
+            return $"{k_LocalHostHttp}{m_LocalHostRedirectUri}{m_UniqueResponseRoute}";
+        }
+
+        void GenerateUniquePath()
+        {
+            // Generate unique path to increase obfuscation of response url
+            var bytes = new byte[64];
+            var randomNumber = RandomNumberGenerator.Create();
+            randomNumber.GetBytes(bytes);
+            m_LocalHostRedirectUri = $"localhost:{GetRandomUnusedPort()}";
+            m_UniqueResponseRoute = $"/{UrlEncodeBase64String(Convert.ToBase64String(bytes))}";
+        }
+
+        static string UrlEncodeBase64String(string base64String)
+        {
+            return base64String.TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        }
+
+        static int GetRandomUnusedPort()
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            return port;
+        }
+
+        /// <inheritdoc/>
+        public override string GetCancellationUri()
+        {
+            return $"{k_LocalHostHttp}{m_LocalHostRedirectUri}{m_UniqueResponseRoute}{k_LocalHostCancellationUri}";
+        }
+
+        /// <inheritdoc/>
+        public override void ProcessActivationUrl(List<string> awaitedQueryArguments = null)
+        {
+            if (!string.IsNullOrEmpty(ActivationUrl))
+            {
+                s_Logger.LogInfo("Activation Url not currently supported in PlayMode.");
+                // Only process once
+                ActivationUrl = string.Empty;
+            }
+        }
+
+        void OnHttpListenerRequest(IAsyncResult result)
+        {
+            var httpListener = (HttpListener)result.AsyncState;
+            var context = httpListener.EndGetContext(result);
+
+            // Write HTML response
+            var responseString = HttpListenerHtmlResponse.HtmlResponse;
+            var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+            context.Response.ContentLength64 = buffer.Length;
+            var output = context.Response.OutputStream;
+            output.Write(buffer, 0, buffer.Length);
+            output.Close();
+
+            // Process Url
+            UrlRedirectionInterceptor.InterceptAwaitedUrl(context.Request.Url.OriginalString, k_AwaitedArguments);
+        }
+    }
+}

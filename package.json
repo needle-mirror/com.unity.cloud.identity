@@ -1,0 +1,37 @@
+{
+  "name": "com.unity.cloud.identity",
+  "version": "0.15.0",
+  "displayName": "Unity Cloud Identity",
+  "description": "The identity package provides client support for all Identity and Access Management (IAM) service features",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.cloud.common": "0.11.0"
+  },
+  "relatedPackages": {
+    "com.unity.cloud.identity.tests": "0.15.0"
+  },
+  "_upm": {
+    "changelog": "### Added\n- Added Api version info to package\n\n### Changed\n- [Breaking] Change identifier types from Guid to SceneId, WorkspaceId, DatasetId, OrganizationId and VersionId.\n\n### Fixed\n- Disable code using Moq when the package is not present."
+  },
+  "upmCi": {
+    "footprint": "2afe144e6703cb25beea7720bea435e44fe637cb"
+  },
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@0.15/manual/index.html",
+  "repository": {
+    "url": "https://github.cds.internal.unity3d.com/unity/digital-twins-sdk.git",
+    "type": "git",
+    "revision": "ca6014d4e89169bbe42c9eff626b73e584301a81"
+  },
+  "samples": [
+    {
+      "displayName": "Authentication",
+      "description": "Initialize an authenticator to demonstrate how to log in a user.",
+      "path": "Samples~/Authentication"
+    },
+    {
+      "displayName": "Get User Information",
+      "description": "Use an authenticator to retrieve information about the logged-in user.",
+      "path": "Samples~/GetUserInformation"
+    }
+  ]
+}

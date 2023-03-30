@@ -1,0 +1,38 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace Unity.Cloud.Identity.Samples
+{
+    public class ActiveUserController : UnityEngine.MonoBehaviour
+    {
+        public ActiveUserController() {}
+        public void CancelLogin();
+        public void Login();
+        public void Logout();
+    }
+
+    public static class PlatformServices
+    {
+        public static IAuthenticationStateProvider AuthenticationStateProvider { get; }
+        public static ICompositeAuthenticator CompositeAuthenticator { get; }
+        public static IUserInfoProvider UserInfoProvider { get; }
+        public static void Create();
+        public static System.Threading.Tasks.Task InitializeAsync();
+        public static void ShutDownServices();
+    }
+
+    [UnityEngine.DefaultExecutionOrder(-2147483648)] public class PlatformServicesInitialization : UnityEngine.MonoBehaviour
+    {
+        public PlatformServicesInitialization() {}
+    }
+
+    [UnityEngine.DefaultExecutionOrder(2147483647)] public class PlatformServicesShutdown : UnityEngine.MonoBehaviour
+    {
+        public PlatformServicesShutdown() {}
+    }
+
+    public class UIController : UnityEngine.MonoBehaviour
+    {
+        public UIController() {}
+    }
+}

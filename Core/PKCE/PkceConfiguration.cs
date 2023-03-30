@@ -1,0 +1,93 @@
+using System;
+
+namespace Unity.Cloud.Identity
+{
+    /// <summary>
+    /// This class holds all information required to perform Proof Key Code Exchange (PKCE) authentication.
+    /// </summary>
+    [Serializable]
+    public class PkceConfiguration
+    {
+#pragma warning disable S1104 // Fields should not have public accessibility
+        /// <summary>
+        /// The unique name of the app. Used to bind the app to browser redirection in login operation.
+        /// </summary>
+        public string AppName = "";
+        /// <summary>
+        /// The unique client identifier as registered with the authentication service.
+        /// </summary>
+        public string ClientId = "";
+        /// <summary>
+        /// The login page url on the authentication service.
+        /// </summary>
+        public string LoginUrl = "";
+        /// <summary>
+        /// The endpoint url on the authentication service to reach to exchange returned login code for a valid set of tokens.
+        /// </summary>
+        public string TokenUrl = "";
+        /// <summary>
+        /// The endpoint url on the authentication service to reach to refresh current set of tokens.
+        /// </summary>
+        public string RefreshTokenUrl = "";
+        /// <summary>
+        /// The endpoint url on the authentication service to reach to revoke the set of tokens.
+        /// </summary>
+        public string LogoutUrl = "";
+        /// <summary>
+        /// The additional custom url formatted parameters to append to the LoginUrl.
+        /// </summary>
+        /// <remarks>
+        /// See documentation of your authentication service to learn what additional parameters can be required.
+        /// </remarks>
+        public string CustomLoginParams = "";
+        /// <summary>
+        /// Boolean value holding the capabilities of the app to cache the refresh token.
+        /// </summary>
+        /// <remarks>
+        /// Caching the refresh token allows to skip authentication and resume a user session when the app is restarted.
+        /// Set this value to false if your app requires a high security level. User will then be forced to login each time the application is started.
+        /// </remarks>
+        public bool CacheRefreshToken = true;
+        /// <summary>
+        /// Boolean value holding the capabilities of the app to support guest user access.
+        /// </summary>
+        public bool AllowAnonymous = true;
+#pragma warning restore S1104
+
+        /// <summary>
+        /// This class holds all information required to perform authentication on default Unity authentication service.
+        /// </summary>
+        public static PkceConfiguration DefaultConfiguration
+        {
+            get
+            {
+                return new PkceConfiguration
+                {
+                    AppName = "default",
+                    AllowAnonymous = false,
+                    CacheRefreshToken = true,
+                    ClientId = "digital_twins",
+                    LoginUrl = "https://api.unity.com/v1/oauth2/authorize",
+                    TokenUrl = "https://dt.unity.com/api/auth/token/refresh",
+                    RefreshTokenUrl = "https://dt.unity.com/api/auth/token/refresh",
+                    LogoutUrl = "https://dt.unity.com/api/auth/token/revoke",
+                    CustomLoginParams = ""
+                };
+            }
+        }
+
+    /// <summary>
+    /// This functions can be used after deserialization, to ensure the format is correct.
+    /// </summary>
+    public void Sanitize()
+        {
+            AppName = AppName?.Trim();
+            ClientId = ClientId?.Trim();
+            LoginUrl = LoginUrl?.Trim();
+            TokenUrl = TokenUrl?.Trim();
+            RefreshTokenUrl = RefreshTokenUrl?.Trim();
+            LogoutUrl = LogoutUrl?.Trim();
+            CustomLoginParams = CustomLoginParams?.Trim();
+        }
+    }
+}

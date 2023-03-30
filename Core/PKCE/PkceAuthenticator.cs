@@ -1,0 +1,529 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.IO;
+using Unity.Cloud.Common;
+
+namespace Unity.Cloud.Identity
+{
+
+    /// <summary>
+    /// An authenticator implementation that provides authentication through PKCE (Proof Key Code Exchange) standards.
+    /// </summary>
+    /// <code source="../../Samples/Documentation/Scripting/PkceAuthenticatorExample.cs" region="PkceAuthenticator"/>
+    public class PkceAuthenticator : IUrlRedirectionAuthenticator, IDisposable
+    {
+        static readonly UCLogger s_Logger = LoggerProvider.GetLogger<PkceAuthenticator>();
+
+        static readonly string s_DeviceTokenFileName = "devicetoken.data";
+        static readonly string s_CodeVerifierFileName = "codeVerifier";
+        static readonly string s_CachedActivationUrl = "cached_activation_url";
+
+        static readonly string s_InvalidQueryArgumentsMessage = "The redirect query arguments are invalid; they must include a state and code.";
+        static readonly string s_StateMismatchMessage = "Request returned state does not match original request state.";
+        static readonly string s_AuthorizationFailedMessage = "Authorization failed with exception: ";
+
+        static readonly List<string> s_AwaitedQueryArguments = new List<string>() { "code", "state" };
+        static readonly string s_StateCancelled = "cancelled";
+
+        /// <inheritdoc/>
+        public event Action<AuthenticationState> AuthenticationStateChanged;
+
+        LazyPkceAccessTokenRefresher m_AccessTokenRefresher = null;
+
+        AuthenticationState m_AuthenticationState = AuthenticationState.AwaitingInitialization;
+
+        /// <inheritdoc/>
+        public AuthenticationState AuthenticationState
+        {
+            get => m_AuthenticationState;
+            private set
+            {
+                m_AuthenticationState = value;
+                AuthenticationStateChanged?.Invoke(m_AuthenticationState);
+            }
+        }
+
+        readonly IPkceConfigurationProvider m_PkceConfigurationProvider;
+        readonly IAuthenticationPlatformSupport m_AuthenticationPlatformSupport;
+        readonly IPkceRequestHandler m_PkceRequestHandler;
+
+        /// <summary>
+        /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow using built-in PkceRequestHandler and PkceConfigurationProvider.
+        /// </summary>
+        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
+        /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
+        /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier required on App settings cloud endpoints.</param>
+        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider)
+            : this(
+                  authenticationPlatformSupport,
+                  httpClient,
+                  appIdProvider,
+                  appNameProvider,
+                  null,
+                  null
+                )
+        { }
+
+        /// <summary>
+        /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow using custom <see cref="IPkceRequestHandler"/> and <see cref="IPkceConfigurationProvider"/>.
+        /// </summary>
+        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
+        /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
+        /// <param name="pkceRequestHandler">An <see cref="IPkceRequestHandler"/> to customize http requests used in the authentication flow.</param>
+        /// <param name="pkceConfigurationProvider">An alternate <see cref="IPkceConfigurationProvider"/> to override the built-in one.</param>
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
+           : this(
+                 authenticationPlatformSupport,
+                 httpClient,
+                 null,
+                 null,
+                 pkceRequestHandler,
+                 pkceConfigurationProvider
+               )
+        { }
+
+        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
+        {
+            if (pkceConfigurationProvider == null)
+            {
+                pkceConfigurationProvider = new PkceConfigurationProvider(httpClient, this, appIdProvider, appNameProvider);
+            }
+            if (pkceRequestHandler == null)
+            {
+                pkceRequestHandler = new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
+            }
+
+            m_PkceConfigurationProvider = pkceConfigurationProvider;
+            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
+            m_PkceRequestHandler = pkceRequestHandler;
+        }
+
+        /// <summary>
+        /// Ensure disposal of any IDisposable references.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Ensure internal disposal of any IDisposable references.
+        /// </summary>
+        /// <param name="disposing">Dispose pattern boolean value received from public Dispose method.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                m_AccessTokenRefresher?.Dispose();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task InitializeAsync()
+        {
+            AuthenticationState = AuthenticationState.AwaitingInitialization;
+
+            var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
+
+            // From fresh recovered appConfiguration we should now decide if reviving a session is allowed
+            if (pkceConfiguration.CacheRefreshToken)
+            {
+                try
+                {
+                    await TryReviveSessionAsync(pkceConfiguration);
+                }
+                catch (Exception ex)
+                {
+                    s_Logger.LogInfo($"Failed to revive session. User will need to login manually. {ex.Message}");
+                    await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
+                }
+            }
+
+            // Process ActivationUrl, if any
+            var activationUrl = m_AuthenticationPlatformSupport.ActivationUrl;
+            if (!string.IsNullOrEmpty(activationUrl))
+            {
+                s_Logger.LogInfo($"ActivationUrl detected: {activationUrl}");
+
+                // If no user and url is a login response (WebGL context)
+                if (m_AccessTokenRefresher == null && ActivationUrlHasCodeAndStateParams(activationUrl))
+                {
+                    await CompleteLoginFromActivationUrlAsync(activationUrl, pkceConfiguration);
+
+                    // After login, look at awaiting cached activation url
+                    try
+                    {
+                        var cachedActivationUrl = await m_AuthenticationPlatformSupport.SecretCacheStore.ReadCacheAsync(s_CachedActivationUrl);
+
+                        if (!string.IsNullOrEmpty(cachedActivationUrl))
+                        {
+                            // Remove as soon as detected
+                            await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_CachedActivationUrl);
+                            s_Logger.LogInfo($"ActivationUrl detected from cache: {cachedActivationUrl}");
+
+                            m_AuthenticationPlatformSupport.UrlRedirectionInterceptor.InterceptAwaitedUrl(cachedActivationUrl);
+                        }
+                    }
+                    catch (FileNotFoundException e)
+                    {
+                        s_Logger.LogInfo("ActivationUrl could not be found in cache.");
+                    }
+                }
+                else
+                {
+                    m_AuthenticationPlatformSupport.UrlRedirectionInterceptor.InterceptAwaitedUrl(activationUrl);
+                }
+            }
+
+            if (AuthenticationState == AuthenticationState.AwaitingInitialization)
+            {
+                AuthenticationState = AuthenticationState.LoggedOut;
+            }
+        }
+
+        async Task CompleteLoginFromActivationUrlAsync(string activationUrl, PkceConfiguration pkceConfiguration)
+        {
+            s_Logger.LogInfo($"Completing login...");
+
+            if (m_AuthenticationPlatformSupport.CodeVerifierCacheStore == null)
+                return;
+
+            string codeVerifier = null;
+            try
+            {
+                codeVerifier = await m_AuthenticationPlatformSupport.CodeVerifierCacheStore.ReadCacheAsync(s_CodeVerifierFileName);
+            }
+            catch (FileNotFoundException e)
+            {
+                s_Logger.LogInfo("CodeVerifier could not be found in cache.");
+            }
+
+            if (string.IsNullOrEmpty(codeVerifier))
+                return;
+
+            AuthenticationState = AuthenticationState.AwaitingLogin;
+
+            if (Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri activationUri))
+            {
+                var queryArguments = QueryArgumentsParser.GetDictionaryFromString(activationUri.Query.Substring(1));
+
+                var redirectResultCode = string.Empty;
+                queryArguments?.TryGetValue("code", out redirectResultCode);
+
+                var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri();
+
+                var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(redirectResultCode, codeVerifier, redirectUri, pkceConfiguration);
+
+                await OnReceivedNonceCodeAsync(pkceConfiguration, requestStringParam);
+            }
+        }
+
+        bool ActivationUrlHasCodeAndStateParams(string activationUrl)
+        {
+            var uriQuery = new Uri(activationUrl).Query;
+            if (string.IsNullOrEmpty(uriQuery))
+            {
+                return false;
+            }
+            var queryArgs = QueryArgumentsParser.GetDictionaryFromString(uriQuery.Substring(1));
+            return queryArgs.ContainsKey("state") && queryArgs.ContainsKey("code");
+        }
+
+        async Task TryReviveSessionAsync(PkceConfiguration pkceConfiguration)
+        {
+            if (m_AuthenticationPlatformSupport.SecretCacheStore == null)
+                return;
+
+            string refreshToken = null;
+            try
+            {
+                refreshToken = await m_AuthenticationPlatformSupport.SecretCacheStore.ReadCacheAsync(s_DeviceTokenFileName);
+            }
+            catch (FileNotFoundException e)
+            {
+                s_Logger.LogInfo($"Token could not be found in cache: {e.Message}");
+            }
+
+            if (string.IsNullOrEmpty(refreshToken))
+                return;
+
+            DeviceToken newDeviceToken = null;
+            newDeviceToken = await m_PkceRequestHandler.RefreshTokenAsync(PkceHelper.CreateRefreshTokenUrlRequestStringContent(refreshToken, pkceConfiguration), refreshToken);
+
+            if (newDeviceToken != null && !string.IsNullOrEmpty(newDeviceToken.AccessToken))
+            {
+                s_Logger.LogInfo("Revived access token from cached refresh token.");
+                await RegisterNewDeviceTokenAsync(pkceConfiguration, newDeviceToken);
+            }
+            else
+            {
+                s_Logger.LogInfo("Invalid refresh token from cache. Awaiting manual logging.");
+                await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task LoginAsync()
+        {
+            if (AuthenticationState == AuthenticationState.AwaitingInitialization)
+                throw new InvalidOperationException("PkceAuthenticator was not properly initialized");
+
+            if (AuthenticationState != AuthenticationState.LoggedOut)
+                throw new InvalidOperationException("Attempting login when already logged in.");
+
+            AuthenticationState = AuthenticationState.AwaitingLogin;
+
+            var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
+
+            PkceHelper.GenerateChallengeVerifier(out var codeVerifier, out var codeChallenge);
+
+            if (m_AuthenticationPlatformSupport.CodeVerifierCacheStore != null)
+                await m_AuthenticationPlatformSupport.CodeVerifierCacheStore.WriteToCacheAsync(s_CodeVerifierFileName, codeVerifier);
+
+            var stateOverride = m_AuthenticationPlatformSupport.GetAppStateOverride();
+            var state = string.IsNullOrEmpty(stateOverride)
+                ? PkceHelper.GenerateState()
+                : stateOverride;
+
+            var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri();
+            var url = PkceHelper.CreateAuthenticateUrl(state, codeChallenge, redirectUri, pkceConfiguration, stateOverride);
+
+            UrlRedirectResult urlRedirectResult;
+
+            try
+            {
+                urlRedirectResult = await m_AuthenticationPlatformSupport.OpenUrlAndWaitForRedirectAsync(url, s_AwaitedQueryArguments);
+            }
+            catch (TimeoutException e)
+            {
+                AuthenticationState = AuthenticationState.LoggedOut;
+                throw new AuthenticationFailedException(s_AuthorizationFailedMessage, e);
+            }
+            catch (Exception)
+            {
+                // If any exception occurs, the user should be considered logged out
+                AuthenticationState = AuthenticationState.LoggedOut;
+                throw;
+            }
+
+            switch (urlRedirectResult.Status)
+            {
+                case UrlRedirectStatus.NotApplicable:
+                    break;
+                case UrlRedirectStatus.Success:
+                    ValidateQueryArguments(urlRedirectResult.QueryArguments);
+                    var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(urlRedirectResult.QueryArguments["code"], codeVerifier, redirectUri, pkceConfiguration, stateOverride);
+                    await OnUrlRedirectSuccess(pkceConfiguration, urlRedirectResult, state, requestStringParam);
+                    break;
+            }
+        }
+
+        void ValidateQueryArguments(Dictionary<string, string> queryArguments)
+        {
+            if ( queryArguments == null || !queryArguments.ContainsKey("state") || !queryArguments.ContainsKey("code"))
+            {
+                AuthenticationState = AuthenticationState.LoggedOut;
+                throw new AuthenticationFailedException(s_InvalidQueryArgumentsMessage);
+            }
+        }
+
+        async Task OnUrlRedirectSuccess(PkceConfiguration pkceConfiguration, UrlRedirectResult urlRedirectResult, string state, string requestStringParam)
+        {
+            if (!urlRedirectResult.QueryArguments["state"].Equals(state))
+            {
+                AuthenticationState = AuthenticationState.LoggedOut;
+                if (urlRedirectResult.QueryArguments["state"].Equals(s_StateCancelled))
+                {
+                    s_Logger.LogInfo($"User manually cancelled the login operation.");
+                }
+                else
+                {
+                    throw new AuthenticationFailedException(s_StateMismatchMessage);
+                }
+            }
+            else
+            {
+                await OnReceivedNonceCodeAsync(pkceConfiguration, requestStringParam);
+            }
+        }
+
+
+        /// <inheritdoc/>
+        public void CancelLogin()
+        {
+            if (AuthenticationState == AuthenticationState.AwaitingInitialization)
+                throw new InvalidOperationException("PkceAuthenticator was not properly initialized");
+
+            if (AuthenticationState != AuthenticationState.AwaitingLogin)
+                throw new InvalidOperationException("Attempting cancellation when not awaiting login.");
+
+            m_AuthenticationPlatformSupport.UrlRedirectionInterceptor.InterceptAwaitedUrl(m_AuthenticationPlatformSupport.GetCancellationUri(), s_AwaitedQueryArguments);
+        }
+
+        /// <inheritdoc/>
+        public async Task LogoutAsync()
+        {
+            if (AuthenticationState == AuthenticationState.AwaitingInitialization)
+                throw new InvalidOperationException("PkceAuthenticator was not properly initialized");
+
+            if (AuthenticationState != AuthenticationState.LoggedIn)
+                throw new InvalidOperationException("Attempting logout when already logged out.");
+
+            AuthenticationState = AuthenticationState.AwaitingLogout;
+
+            var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
+
+            try
+            {
+                await RevokeRefreshTokenAsync(pkceConfiguration, m_AccessTokenRefresher?.DeviceToken.RefreshToken);
+            }
+            catch (Exception ex)
+            {
+                // Silent fail, token was not revoked, but we still want to log the user out
+                s_Logger.LogInfo($"EX: {ex}");
+            }
+
+            if (m_AuthenticationPlatformSupport.SecretCacheStore != null)
+                await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
+
+            m_AccessTokenRefresher?.Dispose();
+            m_AccessTokenRefresher = null;
+
+            AuthenticationState = AuthenticationState.LoggedOut;
+        }
+
+        async Task OnReceivedNonceCodeAsync(PkceConfiguration pkceConfiguration, string exchangeCodeForDeviceTokenParams)
+        {
+            DeviceToken newDeviceToken;
+            try
+            {
+                newDeviceToken = await m_PkceRequestHandler.ExchangeCodeForDeviceTokenAsync(exchangeCodeForDeviceTokenParams);
+            }
+            catch (Exception)
+            {
+                AuthenticationState = AuthenticationState.LoggedOut;
+                throw;
+            }
+
+            s_Logger.LogInfo($"Access Token provided from successful PKCE authentication flow.");
+            await RegisterNewDeviceTokenAsync(pkceConfiguration, newDeviceToken);
+        }
+
+        async Task RegisterNewDeviceTokenAsync(PkceConfiguration pkceConfiguration, DeviceToken deviceToken)
+        {
+            if (pkceConfiguration.CacheRefreshToken && m_AuthenticationPlatformSupport.SecretCacheStore != null)
+                await m_AuthenticationPlatformSupport.SecretCacheStore?.WriteToCacheAsync(s_DeviceTokenFileName, deviceToken.RefreshToken);
+
+            m_AccessTokenRefresher = new LazyPkceAccessTokenRefresher(deviceToken, m_PkceRequestHandler, pkceConfiguration);
+
+            AuthenticationState = AuthenticationState.LoggedIn;
+        }
+
+        async Task RevokeRefreshTokenAsync(PkceConfiguration pkceConfiguration, string refreshToken)
+        {
+            await m_PkceRequestHandler.RevokeRefreshTokenAsync(PkceHelper.CreateRevokeRefreshTokenUrlRequestStringContent(refreshToken, pkceConfiguration));
+        }
+
+        /// <inheritdoc/>
+        public Task<string> GetAccessTokenAsync()
+        {
+            if (m_AccessTokenRefresher == null)
+                return Task.FromResult<string>(null);
+
+            return m_AccessTokenRefresher.GetOrRefreshAccessTokenAsync();
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> HasValidPreconditionsAsync()
+        {
+            return Task.FromResult(true);
+        }
+    }
+
+    class LazyPkceAccessTokenRefresher : IDisposable
+    {
+        static readonly UCLogger s_Logger = LoggerProvider.GetLogger<LazyPkceAccessTokenRefresher>();
+
+        public DeviceToken DeviceToken { get; private set; }
+        DateTime m_DeviceTokenRetrievalTime;
+
+        readonly IPkceRequestHandler m_PkceRequestHandler;
+        readonly PkceConfiguration m_PkceConfiguration;
+        readonly SemaphoreSlim m_GetAccessTokenSemaphore;
+
+        public event Action<DeviceToken> DeviceTokenRefreshed;
+
+        public LazyPkceAccessTokenRefresher(DeviceToken deviceToken, IPkceRequestHandler pkceRequestHandler, PkceConfiguration pkceConfiguration)
+        {
+            m_PkceRequestHandler = pkceRequestHandler;
+            m_PkceConfiguration = pkceConfiguration;
+
+            DeviceToken = deviceToken;
+            m_DeviceTokenRetrievalTime = DateTime.Now;
+
+            m_GetAccessTokenSemaphore = new SemaphoreSlim(1, 1);
+        }
+
+        public async Task<string> GetOrRefreshAccessTokenAsync()
+        {
+            await m_GetAccessTokenSemaphore.WaitAsync();
+
+            // The token should be refreshed within 1 minute of its expiration time
+            var shouldRefresh = DateTime.Now > m_DeviceTokenRetrievalTime + DeviceToken.AccessTokenExpiresIn - TimeSpan.FromSeconds(60);
+
+            try
+            {
+                if (shouldRefresh)
+                {
+                    DeviceToken = await RefreshDeviceTokenAsync(DeviceToken.RefreshToken);
+                    m_DeviceTokenRetrievalTime = DateTime.Now;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                s_Logger.LogInfo(ex.Message);
+            }
+            finally
+            {
+                m_GetAccessTokenSemaphore.Release();
+            }
+
+            return DeviceToken.AccessToken;
+        }
+
+        async Task<DeviceToken> RefreshDeviceTokenAsync(string refreshToken)
+        {
+            var deviceToken = await m_PkceRequestHandler.RefreshTokenAsync(PkceHelper.CreateRefreshTokenUrlRequestStringContent(refreshToken, m_PkceConfiguration), refreshToken);
+
+            DeviceTokenRefreshed?.Invoke(deviceToken);
+
+            return deviceToken;
+        }
+
+        /// <summary>
+        /// Ensure disposal of any IDisposable references.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Ensure internal disposal of any IDisposable references.
+        /// </summary>
+        /// <param name="disposing">Dispose pattern boolean value received from public Dispose method.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                m_GetAccessTokenSemaphore?.Dispose();
+            }
+        }
+    }
+}

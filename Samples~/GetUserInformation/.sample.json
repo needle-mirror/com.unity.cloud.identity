@@ -1,0 +1,4 @@
+{
+     "displayName": "Get User Information",        
+     "description": "Use an authenticator to retrieve information about the logged-in user."
+}

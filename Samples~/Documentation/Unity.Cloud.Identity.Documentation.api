@@ -1,0 +1,61 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace Unity.Cloud.Identity.Documentation
+{
+    public class AuthenticationStateExample : UnityEngine.MonoBehaviour
+    {
+        public AuthenticationStateExample() {}
+    }
+
+    public class AuthenticationStateProviderExample : UnityEngine.MonoBehaviour
+    {
+        public AuthenticationStateProviderExample() {}
+    }
+
+    public class BrowserAuthenticatedAccessTokenProviderExample : UnityEngine.MonoBehaviour
+    {
+        public BrowserAuthenticatedAccessTokenProviderExample() {}
+    }
+
+    public class CommandLineAccessTokenProviderExample : UnityEngine.MonoBehaviour
+    {
+        public CommandLineAccessTokenProviderExample() {}
+    }
+
+    public class CompositeAuthenticatorExample : UnityEngine.MonoBehaviour
+    {
+        public CompositeAuthenticatorExample() {}
+    }
+
+    public class PersonalAccessTokenProviderExample : UnityEngine.MonoBehaviour
+    {
+        public PersonalAccessTokenProviderExample() {}
+    }
+
+    public class PkceAuthenticatorExample : UnityEngine.MonoBehaviour
+    {
+        public PkceAuthenticatorExample() {}
+    }
+
+    public class UserInfoProviderExample : UnityEngine.MonoBehaviour
+    {
+        public UserInfoProviderExample() {}
+    }
+}
+
+namespace Unity.Cloud.Identity.Documentation.IntegrateAuthentication
+{
+    public class LoginManager : UnityEngine.MonoBehaviour
+    {
+        public LoginManager() {}
+    }
+
+    public static class PlatformServices
+    {
+        public static Unity.Cloud.Common.IAccessTokenProvider AccessTokenProvider { get; }
+        public static ICompositeAuthenticator CompositeAuthenticator { get; }
+        public static System.Threading.Tasks.Task InitializeAsync();
+        public static void Shutdown();
+    }
+}

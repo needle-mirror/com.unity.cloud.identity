@@ -1,0 +1,146 @@
+using System;
+
+namespace Unity.Cloud.Identity
+{
+    /// <summary>
+    /// This class holds the token information related to a user authenticated session.
+    /// </summary>
+    public class DeviceToken
+    {
+        readonly DateTime m_AccessTokenExpiry;
+
+        /// <summary>
+        /// The token used to request authenticated access to cloud endpoints.
+        /// </summary>
+        public string AccessToken { get; }
+
+        /// <summary>
+        /// The token used on the refresh token cloud endpoint to generate a new <see cref="DeviceToken"/>.
+        /// </summary>
+        public string RefreshToken { get; }
+
+        /// <summary>
+        /// The TimeSpan value before the current <see cref="DeviceToken"/> expires.
+        /// </summary>
+        public TimeSpan AccessTokenExpiresIn => m_AccessTokenExpiry - DateTime.UtcNow;
+
+        /// <summary>
+        /// Creates a DeviceToken.
+        /// </summary>
+        /// <param name="accessToken">The string value of the issued access token.</param>
+        /// <param name="refreshToken">The string value of the issued refresh token.</param>
+        /// <param name="accessTokenExpiryDateTime">The DateTime value of the expiry date of the issued access token.</param>
+        public DeviceToken(string accessToken, string refreshToken, DateTime accessTokenExpiryDateTime)
+        {
+            AccessToken = accessToken;
+            RefreshToken = refreshToken;
+            m_AccessTokenExpiry = accessTokenExpiryDateTime;
+        }
+
+        /// <summary>
+        /// Creates a DeviceToken.
+        /// </summary>
+        /// <param name="accessToken">The string value of the issued access token.</param>
+        /// <param name="refreshToken">The string value of the issued refresh token.</param>
+        /// <param name="accessTokenExpiryInSeconds">The int value in seconds of the remaining time before expiratoion of the issued access token.</param>
+        public DeviceToken(string accessToken, string refreshToken, int accessTokenExpiryInSeconds)
+        {
+            AccessToken = accessToken;
+            RefreshToken = refreshToken;
+            m_AccessTokenExpiry = ConvertExpiryInSecondsToDateTime(accessTokenExpiryInSeconds);
+        }
+
+        /// <summary>
+        /// Creates a DeviceToken.
+        /// </summary>
+        /// <param name="accessToken">The string value of the issued access token.</param>
+        /// <param name="refreshToken">The string value of the issued refresh token.</param>
+        /// <param name="accessTokenExpiryDateTime">The DateTime value of the expiry date of the issued access token.</param>
+        /// <param name="oldRefreshToken">The string value of the previously issued refresh token. This value will be used if provided refreshToken is null or empty.</param>
+        public DeviceToken(string accessToken, string refreshToken, DateTime accessTokenExpiryDateTime, string oldRefreshToken)
+        {
+            AccessToken = accessToken;
+            RefreshToken = string.IsNullOrEmpty(refreshToken) ? oldRefreshToken : refreshToken;
+            m_AccessTokenExpiry = accessTokenExpiryDateTime;
+        }
+
+        /// <summary>
+        /// Creates a DeviceToken.
+        /// </summary>
+        /// <param name="accessToken">The string value of the issued access token.</param>
+        /// <param name="refreshToken">The string value of the issued refresh token.</param>
+        /// <param name="accessTokenExpiryInSeconds">The int value in seconds of the remaining time before expiratoion of the issued access token.</param>
+        /// <param name="oldRefreshToken">The string value of the previously issued refresh token. This value will be used if provided refreshToken is null or empty.</param>
+        public DeviceToken(string accessToken, string refreshToken, int accessTokenExpiryInSeconds, string oldRefreshToken)
+        {
+            AccessToken = accessToken;
+            RefreshToken = string.IsNullOrEmpty(refreshToken) ? oldRefreshToken : refreshToken;
+            m_AccessTokenExpiry = ConvertExpiryInSecondsToDateTime(accessTokenExpiryInSeconds);
+        }
+
+        DateTime ConvertExpiryInSecondsToDateTime(int accessTokenExpiryInSeconds)
+        {
+            return DateTime.UtcNow + TimeSpan.FromSeconds(accessTokenExpiryInSeconds);
+        }
+    }
+
+    /// <summary>
+    /// This class holds information about a <see cref="ExchangeCodeToken"/>.
+    /// </summary>
+    [Serializable]
+    class ExchangeCodeToken
+    {
+#pragma warning disable S1104 // Fields should not have public accessibility
+        /// <summary>
+        /// The type of token.
+        /// </summary>
+        public string token_type;
+        /// <summary>
+        /// The access token.
+        /// </summary>
+        public string access_token;
+        /// <summary>
+        /// The id token.
+        /// </summary>
+        public string id_token;
+        /// <summary>
+        /// The refresh token.
+        /// </summary>
+        public string refresh_token;
+        /// <summary>
+        /// The expiry date in seconds.
+        /// </summary>
+        public int expires_in;
+#pragma warning restore S1104
+    }
+
+    /// <summary>
+    /// This class holds information about a <see cref="RefreshDeviceToken"/>.
+    /// </summary>
+    [Serializable]
+    class RefreshDeviceToken
+    {
+#pragma warning disable S1104 // Fields should not have public accessibility
+        /// <summary>
+        /// The type of token.
+        /// </summary>
+        public string token_type;
+        /// <summary>
+        /// The access token.
+        /// </summary>
+        public string access_token;
+        /// <summary>
+        /// The refresh token.
+        /// </summary>
+        public string refresh_token;
+        /// <summary>
+        /// The id token.
+        /// </summary>
+        public string id_token;
+        /// <summary>
+        /// The expiry date in seconds.
+        /// </summary>
+        public int expires_in;
+#pragma warning restore S1104
+    }
+}

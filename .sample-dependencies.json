@@ -1,0 +1,13 @@
+{
+  "SharedAssetDependencies": [
+    "Shared"
+  ],
+  "SampleEntries": [
+    {
+      "Path": "Authentication"
+    },
+    {
+      "Path": "GetUserInformation"
+    }
+  ]
+}

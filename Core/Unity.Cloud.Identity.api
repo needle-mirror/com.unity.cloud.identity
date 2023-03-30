@@ -1,0 +1,238 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace Unity.Cloud.Identity
+{
+    public enum AuthenticationState
+    {
+        AwaitingInitialization = 0,
+        AwaitingLogin = 3,
+        AwaitingLogout = 4,
+        LoggedIn = 1,
+        LoggedOut = 2,
+    }
+
+    public class BrowserAuthenticatedAccessTokenProvider : IAuthenticationStateProvider, IAuthenticator, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public event System.Action<AuthenticationState> AuthenticationStateChanged;
+        public AuthenticationState AuthenticationState { get; }
+        public BrowserAuthenticatedAccessTokenProvider(IAuthenticationPlatformSupport authenticationPlatformSupport, System.Collections.Generic.Dictionary<string, string> localStorageKeyNames) {}
+        public System.Threading.Tasks.Task<string> GetAccessTokenAsync();
+        public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
+        public System.Threading.Tasks.Task InitializeAsync();
+    }
+
+    public class CommandLineAccessTokenProvider : IAuthenticationStateProvider, IAuthenticator, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public static readonly string s_AccessTokenKeyName = @"UNITY_CLOUD_ACCESS_TOKEN";
+        public event System.Action<AuthenticationState> AuthenticationStateChanged;
+        public AuthenticationState AuthenticationState { get; }
+        public CommandLineAccessTokenProvider(IAuthenticationPlatformSupport authenticationPlatformSupport) {}
+        public System.Threading.Tasks.Task<string> GetAccessTokenAsync();
+        public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
+        public System.Threading.Tasks.Task InitializeAsync();
+    }
+
+    public class CompositeAuthenticator : IAuthenticationStateProvider, IAuthenticator, ICompositeAuthenticator, IUrlRedirectionAuthenticator, System.IDisposable, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public event System.Action<AuthenticationState> AuthenticationStateChanged;
+        public AuthenticationState AuthenticationState { get; }
+        public bool RequiresGUI { get; }
+        public CompositeAuthenticator(CompositeAuthenticatorSettings compositeAuthenticatorSettings) {}
+        public void CancelLogin();
+        public void Dispose();
+        protected virtual void Dispose(bool disposing);
+        public System.Threading.Tasks.Task<string> GetAccessTokenAsync();
+        public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
+        public System.Threading.Tasks.Task InitializeAsync();
+        public System.Threading.Tasks.Task LoginAsync();
+        public System.Threading.Tasks.Task LogoutAsync();
+    }
+
+    public readonly struct CompositeAuthenticatorSettings
+    {
+    }
+
+    public class CompositeAuthenticatorSettingsBuilder
+    {
+        public CompositeAuthenticatorSettingsBuilder(Unity.Cloud.Common.IHttpClient httpClient, IAuthenticationPlatformSupport authenticationPlatformSupport) {}
+        public CompositeAuthenticatorSettingsBuilder AddAuthenticator(IAuthenticator authenticator);
+        public CompositeAuthenticatorSettingsBuilder AddDefaultBrowserAuthenticatedAccessTokenProvider(System.Collections.Generic.Dictionary<string, string> localStorageKeyNames = default(System.Collections.Generic.Dictionary<string, string>));
+        public CompositeAuthenticatorSettingsBuilder AddDefaultPersonalAccessTokenProvider();
+        public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(Unity.Cloud.Common.IAppIdProvider appIdProvider, Unity.Cloud.Common.IAppNameProvider appNameProvider);
+        public CompositeAuthenticatorSettings Build();
+    }
+
+    public class DeviceToken
+    {
+        public string AccessToken { get; }
+        public System.TimeSpan AccessTokenExpiresIn { get; }
+        public string RefreshToken { get; }
+        public DeviceToken(string accessToken, string refreshToken, System.DateTime accessTokenExpiryDateTime) {}
+        public DeviceToken(string accessToken, string refreshToken, int accessTokenExpiryInSeconds) {}
+        public DeviceToken(string accessToken, string refreshToken, System.DateTime accessTokenExpiryDateTime, string oldRefreshToken) {}
+        public DeviceToken(string accessToken, string refreshToken, int accessTokenExpiryInSeconds, string oldRefreshToken) {}
+    }
+
+    public class HttpPkceRequestHandler : IPkceRequestHandler
+    {
+        public HttpPkceRequestHandler(Unity.Cloud.Common.IHttpClient httpClient, IPkceConfigurationProvider pkceConfigurationProvider) {}
+        public System.Threading.Tasks.Task<DeviceToken> ExchangeCodeForDeviceTokenAsync(string tokenEndPointParams);
+        public System.Threading.Tasks.Task<DeviceToken> RefreshTokenAsync(string tokenEndPointParams, string refreshToken);
+        public System.Threading.Tasks.Task RevokeRefreshTokenAsync(string revokeEndPointParams);
+    }
+
+    public interface IActivatePlatformSupport
+    {
+        public System.Collections.Generic.Dictionary<string, string> ActivationKeyValue { get; }
+        public string ActivationUrl { get; }
+    }
+
+    public interface IAuthenticationPlatformSupport : IActivatePlatformSupport
+    {
+        public Unity.Cloud.Common.IKeyValueStore CodeVerifierCacheStore { get; }
+        public Unity.Cloud.Common.IKeyValueStore SecretCacheStore { get; }
+        public Unity.Cloud.Common.IUrlRedirectionInterceptor UrlRedirectionInterceptor { get; }
+        public string GetAppStateOverride();
+        public string GetCancellationUri();
+        public System.Nullable<Unity.Cloud.Common.UrlRedirectResult> GetRedirectionResult();
+        public string GetRedirectUri();
+        public System.Threading.Tasks.Task<Unity.Cloud.Common.UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
+        public void ProcessActivationUrl(System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
+    }
+
+    public interface IAuthenticationStateProvider
+    {
+        public event System.Action<AuthenticationState> AuthenticationStateChanged;
+        public AuthenticationState AuthenticationState { get; }
+    }
+
+    public interface IAuthenticator : IAuthenticationStateProvider, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
+        public System.Threading.Tasks.Task InitializeAsync();
+    }
+
+    public interface ICompositeAuthenticator : IAuthenticationStateProvider, IAuthenticator, IUrlRedirectionAuthenticator, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public bool RequiresGUI { get; }
+    }
+
+    public interface IPkceConfigurationProvider
+    {
+        public System.Threading.Tasks.Task<PkceConfiguration> GetPkceConfigurationAsync();
+    }
+
+    public interface IPkceRequestHandler
+    {
+        public System.Threading.Tasks.Task<DeviceToken> ExchangeCodeForDeviceTokenAsync(string tokenEndPointParams);
+        public System.Threading.Tasks.Task<DeviceToken> RefreshTokenAsync(string tokenEndPointParams, string refreshToken);
+        public System.Threading.Tasks.Task RevokeRefreshTokenAsync(string revokeEndPointParams);
+    }
+
+    public interface IUrlRedirectionAuthenticator : IAuthenticationStateProvider, IAuthenticator, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public void CancelLogin();
+        public System.Threading.Tasks.Task LoginAsync();
+        public System.Threading.Tasks.Task LogoutAsync();
+    }
+
+    public interface IUserInfoProvider
+    {
+        public System.Threading.Tasks.Task<UserInfo> GetUserInfoAsync();
+    }
+
+    public class LicenseInfo
+    {
+        public string EntitlementId = @"";
+        public long ExpiryTicks;
+        public LicenseType Type;
+        public LicenseInfo() {}
+    }
+
+    public enum LicenseType
+    {
+        Floating = 3,
+        None = 0,
+        Paid = 2,
+        Trial = 1,
+    }
+
+    public class OrganizationInfo
+    {
+        public bool AllowCreateNewProject = false;
+        public bool AllowRequestLicense = false;
+        public Unity.Cloud.Common.OrganizationId Id;
+        public bool IsPrimaryOrg = false;
+        public string Name = @"";
+        public OrganizationInfo() {}
+    }
+
+    public class PersonalAccessTokenProvider : IAuthenticationStateProvider, IAuthenticator, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public static readonly string s_PersonalAccessTokenKeyName = @"UNITY_CLOUD_PERSONAL_ACCESS_TOKEN";
+        public event System.Action<AuthenticationState> AuthenticationStateChanged;
+        public AuthenticationState AuthenticationState { get; }
+        public PersonalAccessTokenProvider(IAuthenticationPlatformSupport authenticationPlatformSupport) {}
+        public System.Threading.Tasks.Task<string> GetAccessTokenAsync();
+        public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
+        public System.Threading.Tasks.Task InitializeAsync();
+    }
+
+    public class PkceAuthenticator : IAuthenticationStateProvider, IAuthenticator, IUrlRedirectionAuthenticator, System.IDisposable, Unity.Cloud.Common.IAccessTokenProvider
+    {
+        public event System.Action<AuthenticationState> AuthenticationStateChanged;
+        public AuthenticationState AuthenticationState { get; }
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, Unity.Cloud.Common.IHttpClient httpClient, Unity.Cloud.Common.IAppIdProvider appIdProvider, Unity.Cloud.Common.IAppNameProvider appNameProvider) {}
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, Unity.Cloud.Common.IHttpClient httpClient, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider) {}
+        public void CancelLogin();
+        public void Dispose();
+        protected virtual void Dispose(bool disposing);
+        public System.Threading.Tasks.Task<string> GetAccessTokenAsync();
+        public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
+        public System.Threading.Tasks.Task InitializeAsync();
+        public System.Threading.Tasks.Task LoginAsync();
+        public System.Threading.Tasks.Task LogoutAsync();
+    }
+
+    public class PkceConfiguration
+    {
+        public bool AllowAnonymous = true;
+        public string AppName = @"";
+        public bool CacheRefreshToken = true;
+        public string ClientId = @"";
+        public string CustomLoginParams = @"";
+        public string LoginUrl = @"";
+        public string LogoutUrl = @"";
+        public string RefreshTokenUrl = @"";
+        public string TokenUrl = @"";
+        public static PkceConfiguration DefaultConfiguration { get; }
+        public PkceConfiguration() {}
+        public void Sanitize();
+    }
+
+    public class PkceConfigurationProvider : IPkceConfigurationProvider
+    {
+        public PkceConfigurationProvider(Unity.Cloud.Common.IHttpClient httpClient, Unity.Cloud.Common.IAccessTokenProvider accessTokenProvider, Unity.Cloud.Common.IAppIdProvider appIdProvider, Unity.Cloud.Common.IAppNameProvider appNameProvider = default(Unity.Cloud.Common.IAppNameProvider)) {}
+        public System.Threading.Tasks.Task<PkceConfiguration> GetPkceConfigurationAsync();
+    }
+
+    public class UserInfo
+    {
+        public string Email = @"";
+        public System.Collections.Generic.List<LicenseInfo> Entitlements;
+        public string Id = @"";
+        public LicenseInfo License;
+        public string LogoutUrl = @"";
+        public string Name = @"";
+        public System.Collections.Generic.List<OrganizationInfo> Organizations;
+        public long SessionExpiryTicks;
+        public UserInfo() {}
+    }
+
+    public class UserInfoProvider : IUserInfoProvider
+    {
+        public UserInfoProvider(Unity.Cloud.Common.IServiceHttpClient serviceHttpClient, Unity.Cloud.Common.ServiceHostConfiguration serviceHostConfiguration) {}
+        public System.Threading.Tasks.Task<UserInfo> GetUserInfoAsync();
+    }
+}
