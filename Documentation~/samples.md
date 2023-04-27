@@ -1,6 +1,7 @@
 # Samples | Integrate Identity samples in a Unity project
 
-You can use the Identity samples to retrieve a valid access token for a user and manage UI states. The Authentication sample outlines how to listen to Authentication state changes in your application to manage the visibility and interactabilty of GameObjects, and the [Get User Information](use-case-getting-user-information.md) sample outlines how to use an access token to retrieve information about the user.
+You can use the Identity samples to retrieve a valid access token for a user and manage UI states. <li>The Authentication sample outlines how to listen to Authentication state changes in your application to manage the visibility and interactabilty of GameObjects.</li>
+<li>The [Get User Information](use-case-getting-user-information.md) sample outlines how to use an access token to retrieve information about the user.</li>
 
 ## Prerequisites
 

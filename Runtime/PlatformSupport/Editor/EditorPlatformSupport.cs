@@ -47,11 +47,13 @@ namespace Unity.Cloud.Identity.Runtime
         // Only allowed for development/playmode
         static readonly string k_LocalHostHttp = "http://";
         static readonly string k_LocalHostCancellationUri = "?&code=none&state=cancelled";
-        static readonly List<string> k_AwaitedArguments = new List<string>() { "state", "code" };
 
         string m_UniqueResponseRoute;
         readonly Action<string> m_OpenUrlAction;
         string m_LocalHostRedirectUri = "";
+
+        string m_RedirectOperation = "";
+        List<string> m_AwaitedArguments;
 
         /// <summary>
         /// Creates a EditorPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
@@ -82,6 +84,7 @@ namespace Unity.Cloud.Identity.Runtime
         /// <inheritdoc/>
         public override async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
         {
+            m_AwaitedArguments = awaitedQueryArguments;
             var httpListener = new HttpListener();
             httpListener.Prefixes.Add($"{k_LocalHostHttp}{m_LocalHostRedirectUri}{m_UniqueResponseRoute}/");
             try
@@ -91,7 +94,7 @@ namespace Unity.Cloud.Identity.Runtime
 
                 OpenUrlAction(url);
 
-                var urlRedirectResult = await UrlRedirectionInterceptor.AwaitRedirectAsync(awaitedQueryArguments);
+                var urlRedirectResult = await UrlRedirectionInterceptor.AwaitRedirectAsync(m_AwaitedArguments);
                 return urlRedirectResult;
             }
             finally
@@ -101,8 +104,9 @@ namespace Unity.Cloud.Identity.Runtime
         }
 
         /// <inheritdoc/>
-        public override string GetRedirectUri()
+        public override string GetRedirectUri(string operation = null)
         {
+            m_RedirectOperation = operation;
             GenerateUniquePath();
             return $"{k_LocalHostHttp}{m_LocalHostRedirectUri}{m_UniqueResponseRoute}";
         }
@@ -154,7 +158,7 @@ namespace Unity.Cloud.Identity.Runtime
             var context = httpListener.EndGetContext(result);
 
             // Write HTML response
-            var responseString = HttpListenerHtmlResponse.HtmlResponse;
+            var responseString = HttpListenerHtmlResponse.GetHtmlResponse(m_RedirectOperation);
             var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
             context.Response.ContentLength64 = buffer.Length;
             var output = context.Response.OutputStream;
@@ -162,7 +166,7 @@ namespace Unity.Cloud.Identity.Runtime
             output.Close();
 
             // Process Url
-            UrlRedirectionInterceptor.InterceptAwaitedUrl(context.Request.Url.OriginalString, k_AwaitedArguments);
+            UrlRedirectionInterceptor.InterceptAwaitedUrl(context.Request.Url.OriginalString, m_AwaitedArguments);
         }
     }
 }

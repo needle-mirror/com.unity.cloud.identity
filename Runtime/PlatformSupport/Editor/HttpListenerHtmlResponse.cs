@@ -4,10 +4,20 @@ namespace Unity.Cloud.Identity.Runtime
 {
     static class HttpListenerHtmlResponse
     {
-        public readonly static string HtmlResponse = @"<!DOCTYPE html>
+        public static string GetHtmlResponse(string redirectOperation)
+        {
+            var message = "Login completed successfully.";
+            if (redirectOperation.Equals("signout"))
+            {
+                message = "Sign out completed successfully.";
+            }
+            return s_HtmlResponse.Replace("_MESSAGE_", message);
+        }
+
+        static readonly string s_HtmlResponse = @"<!DOCTYPE html>
             <html lang=""en"">
             <head>
-            <title>Unity Cloud Login Completed</title>
+            <title>Unity Cloud Operation Completed</title>
             <meta name=""viewport"" content=""width=device-width, initial-scale=1.0""/>
             <meta charset=""utf-8"">
             <style>
@@ -50,10 +60,10 @@ namespace Unity.Cloud.Identity.Runtime
             <div class=""container"">
             <div style=""margin-top:80px;"">
             <p style=""font-weight:100;font-size:40px;line-height:60px;"">
-            Login completed successfully.
+            _MESSAGE_
             </p>
             <p style=""font-size:16px"">
-            You can return to the <b>Unity Editor</b> to complete login operation.
+            You can return to the <b>Unity Editor</b>.
             </p>
             </div>
             </div>

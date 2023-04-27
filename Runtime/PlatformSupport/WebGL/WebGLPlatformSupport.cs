@@ -112,7 +112,7 @@ namespace Unity.Cloud.Identity.Runtime
         /// <returns>
         /// The redirection Uri expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.
         /// </returns>
-        public override string GetRedirectUri()
+        public override string GetRedirectUri(string operation = null)
         {
             var urlString = string.Empty;
 #if UNITY_WEBGL

@@ -30,3 +30,9 @@ The Editor installs the latest available version of the package and any dependen
 
 * [Package Manager](https://docs.unity3d.com/Manual/class-PackageManager.html)
 * [Package states and lifecycle](https://docs.unity3d.com/Manual/upm-lifecycle.html)
+
+## Build settings
+
+When making builds that include this package, the **Managed Stripping Level** should be set to "Disabled" if the option is available for the chosen platform, else set to "Minimal".
+
+![Managed Stripping Level dropdown](images/stripping-level.png)

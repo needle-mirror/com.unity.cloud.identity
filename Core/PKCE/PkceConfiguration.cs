@@ -34,6 +34,10 @@ namespace Unity.Cloud.Identity
         /// </summary>
         public string LogoutUrl = "";
         /// <summary>
+        /// The endpoint url on the authentication service to reach to sign out.
+        /// </summary>
+        public string SignOutUrl = "";
+        /// <summary>
         /// The additional custom url formatted parameters to append to the LoginUrl.
         /// </summary>
         /// <remarks>
@@ -71,6 +75,7 @@ namespace Unity.Cloud.Identity
                     TokenUrl = "https://dt.unity.com/api/auth/token/refresh",
                     RefreshTokenUrl = "https://dt.unity.com/api/auth/token/refresh",
                     LogoutUrl = "https://dt.unity.com/api/auth/token/revoke",
+                    SignOutUrl = "https://api.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
                     CustomLoginParams = ""
                 };
             }

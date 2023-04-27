@@ -83,12 +83,12 @@ namespace Unity.Cloud.Identity
         }
 
         /// <inheritdoc/>
-        public Task LogoutAsync()
+        public Task LogoutAsync(bool clearBrowserCache = false)
         {
             if (!RequiresGUI)
                 throw new InvalidOperationException("Current instance does not require graphical user interface.");
 
-            return m_UrlRedirectionAuthenticator.LogoutAsync();
+            return m_UrlRedirectionAuthenticator.LogoutAsync(clearBrowserCache);
         }
 
         /// <inheritdoc/>

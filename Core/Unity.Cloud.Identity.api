@@ -46,7 +46,7 @@ namespace Unity.Cloud.Identity
         public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
         public System.Threading.Tasks.Task InitializeAsync();
         public System.Threading.Tasks.Task LoginAsync();
-        public System.Threading.Tasks.Task LogoutAsync();
+        public System.Threading.Tasks.Task LogoutAsync(bool clearBrowserCache = false);
     }
 
     public readonly struct CompositeAuthenticatorSettings
@@ -96,7 +96,7 @@ namespace Unity.Cloud.Identity
         public string GetAppStateOverride();
         public string GetCancellationUri();
         public System.Nullable<Unity.Cloud.Common.UrlRedirectResult> GetRedirectionResult();
-        public string GetRedirectUri();
+        public string GetRedirectUri(string operation = default(string));
         public System.Threading.Tasks.Task<Unity.Cloud.Common.UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
         public void ProcessActivationUrl(System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
     }
@@ -134,7 +134,7 @@ namespace Unity.Cloud.Identity
     {
         public void CancelLogin();
         public System.Threading.Tasks.Task LoginAsync();
-        public System.Threading.Tasks.Task LogoutAsync();
+        public System.Threading.Tasks.Task LogoutAsync(bool clearBrowserCache = false);
     }
 
     public interface IUserInfoProvider
@@ -160,10 +160,10 @@ namespace Unity.Cloud.Identity
 
     public class OrganizationInfo
     {
-        public bool AllowCreateNewProject = false;
-        public bool AllowRequestLicense = false;
+        public bool AllowCreateNewProject;
+        public bool AllowRequestLicense;
         public Unity.Cloud.Common.OrganizationId Id;
-        public bool IsPrimaryOrg = false;
+        public bool IsPrimaryOrg;
         public string Name = @"";
         public OrganizationInfo() {}
     }
@@ -192,7 +192,7 @@ namespace Unity.Cloud.Identity
         public System.Threading.Tasks.Task<bool> HasValidPreconditionsAsync();
         public System.Threading.Tasks.Task InitializeAsync();
         public System.Threading.Tasks.Task LoginAsync();
-        public System.Threading.Tasks.Task LogoutAsync();
+        public System.Threading.Tasks.Task LogoutAsync(bool clearBrowserCache = false);
     }
 
     public class PkceConfiguration
@@ -205,6 +205,7 @@ namespace Unity.Cloud.Identity
         public string LoginUrl = @"";
         public string LogoutUrl = @"";
         public string RefreshTokenUrl = @"";
+        public string SignOutUrl = @"";
         public string TokenUrl = @"";
         public static PkceConfiguration DefaultConfiguration { get; }
         public PkceConfiguration() {}

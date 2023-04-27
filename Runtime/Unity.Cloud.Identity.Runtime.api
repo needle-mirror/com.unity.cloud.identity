@@ -15,7 +15,7 @@ namespace Unity.Cloud.Identity.Runtime
         public virtual string GetAppStateOverride();
         public virtual string GetCancellationUri();
         public virtual System.Nullable<Unity.Cloud.Common.UrlRedirectResult> GetRedirectionResult();
-        public virtual string GetRedirectUri();
+        public virtual string GetRedirectUri(string operation = default(string));
         public virtual System.Threading.Tasks.Task<Unity.Cloud.Common.UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
         public virtual void ProcessActivationUrl(System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
     }
@@ -29,7 +29,7 @@ namespace Unity.Cloud.Identity.Runtime
     {
         public EditorPkcePlatformSupport(Unity.Cloud.Common.IUrlRedirectionInterceptor urlRedirectionInterceptor) {}
         public override string GetCancellationUri();
-        public override string GetRedirectUri();
+        public override string GetRedirectUri(string operation = default(string));
         public override System.Threading.Tasks.Task<Unity.Cloud.Common.UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
         public override void ProcessActivationUrl(System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
     }
@@ -57,7 +57,7 @@ namespace Unity.Cloud.Identity.Runtime
         public WebglPkcePlatformSupport(Unity.Cloud.Common.IUrlRedirectionInterceptor urlRedirectionInterceptor) {}
         public override string GetCancellationUri();
         public override System.Nullable<Unity.Cloud.Common.UrlRedirectResult> GetRedirectionResult();
-        public override string GetRedirectUri();
+        public override string GetRedirectUri(string operation = default(string));
         public override System.Threading.Tasks.Task<Unity.Cloud.Common.UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
         public override void ProcessActivationUrl(System.Collections.Generic.List<string> awaitedQueryArguments = default(System.Collections.Generic.List<string>));
     }

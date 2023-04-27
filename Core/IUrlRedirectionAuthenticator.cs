@@ -29,10 +29,15 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Performs a logout operation.
         /// </summary>
+        /// <param name="clearBrowserCache">An optional boolean value that, if set to true, triggers a navigation to the OS default browser to clear any cached session.</param>
+        /// <remarks>A logout operation clears the user session in the application only.
+        /// Unless the user manually clears the session in the browser that is used for authentication, a user can get automatically logged in again from cached values,
+        /// without entering any credentials.
+        /// Use the clearBrowserCache boolean to also clear the session in the browser to prevent automatic login from a cached session.</remarks>
         /// <exception cref="InvalidOperationException"></exception>
         /// <returns>
         /// A task.
         /// </returns>
-        Task LogoutAsync();
+        Task LogoutAsync(bool clearBrowserCache = false);
     }
 }

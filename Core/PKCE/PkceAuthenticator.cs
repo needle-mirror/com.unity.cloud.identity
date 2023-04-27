@@ -40,6 +40,15 @@ namespace Unity.Cloud.Identity
             get => m_AuthenticationState;
             private set
             {
+                if (value == AuthenticationState.LoggedOut)
+                {
+                    if (m_AuthenticationPlatformSupport.SecretCacheStore != null)
+                        _ = m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
+
+                    m_AccessTokenRefresher?.Dispose();
+                    m_AccessTokenRefresher = null;
+                }
+
                 m_AuthenticationState = value;
                 AuthenticationStateChanged?.Invoke(m_AuthenticationState);
             }
@@ -152,25 +161,26 @@ namespace Unity.Cloud.Identity
                 // If no user and url is a login response (WebGL context)
                 if (m_AccessTokenRefresher == null && ActivationUrlHasCodeAndStateParams(activationUrl))
                 {
-                    await CompleteLoginFromActivationUrlAsync(activationUrl, pkceConfiguration);
-
-                    // After login, look at awaiting cached activation url
-                    try
+                    if (await CompleteLoginFromActivationUrlAsync(activationUrl, pkceConfiguration))
                     {
-                        var cachedActivationUrl = await m_AuthenticationPlatformSupport.SecretCacheStore.ReadCacheAsync(s_CachedActivationUrl);
-
-                        if (!string.IsNullOrEmpty(cachedActivationUrl))
+                        // After login, look at awaiting cached activation url
+                        try
                         {
-                            // Remove as soon as detected
-                            await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_CachedActivationUrl);
-                            s_Logger.LogInfo($"ActivationUrl detected from cache: {cachedActivationUrl}");
+                            var cachedActivationUrl = await m_AuthenticationPlatformSupport.SecretCacheStore.ReadCacheAsync(s_CachedActivationUrl);
 
-                            m_AuthenticationPlatformSupport.UrlRedirectionInterceptor.InterceptAwaitedUrl(cachedActivationUrl);
+                            if (!string.IsNullOrEmpty(cachedActivationUrl))
+                            {
+                                // Remove as soon as detected
+                                await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_CachedActivationUrl);
+                                s_Logger.LogInfo($"ActivationUrl detected from cache: {cachedActivationUrl}");
+
+                                m_AuthenticationPlatformSupport.UrlRedirectionInterceptor.InterceptAwaitedUrl(cachedActivationUrl);
+                            }
                         }
-                    }
-                    catch (FileNotFoundException e)
-                    {
-                        s_Logger.LogInfo("ActivationUrl could not be found in cache.");
+                        catch (FileNotFoundException e)
+                        {
+                            s_Logger.LogInfo("ActivationUrl could not be found in cache.");
+                        }
                     }
                 }
                 else
@@ -185,17 +195,19 @@ namespace Unity.Cloud.Identity
             }
         }
 
-        async Task CompleteLoginFromActivationUrlAsync(string activationUrl, PkceConfiguration pkceConfiguration)
+        async Task<bool> CompleteLoginFromActivationUrlAsync(string activationUrl, PkceConfiguration pkceConfiguration)
         {
             s_Logger.LogInfo($"Completing login...");
 
             if (m_AuthenticationPlatformSupport.CodeVerifierCacheStore == null)
-                return;
+                return false;
 
             string codeVerifier = null;
             try
             {
                 codeVerifier = await m_AuthenticationPlatformSupport.CodeVerifierCacheStore.ReadCacheAsync(s_CodeVerifierFileName);
+                // Delete as soon as we read it back
+                await m_AuthenticationPlatformSupport.CodeVerifierCacheStore.DeleteCacheAsync(s_CodeVerifierFileName);
             }
             catch (FileNotFoundException e)
             {
@@ -203,7 +215,7 @@ namespace Unity.Cloud.Identity
             }
 
             if (string.IsNullOrEmpty(codeVerifier))
-                return;
+                return false;
 
             AuthenticationState = AuthenticationState.AwaitingLogin;
 
@@ -214,12 +226,14 @@ namespace Unity.Cloud.Identity
                 var redirectResultCode = string.Empty;
                 queryArguments?.TryGetValue("code", out redirectResultCode);
 
-                var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri();
+                var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri("login");
 
                 var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(redirectResultCode, codeVerifier, redirectUri, pkceConfiguration);
 
                 await OnReceivedNonceCodeAsync(pkceConfiguration, requestStringParam);
             }
+
+            return true;
         }
 
         bool ActivationUrlHasCodeAndStateParams(string activationUrl)
@@ -289,7 +303,7 @@ namespace Unity.Cloud.Identity
                 ? PkceHelper.GenerateState()
                 : stateOverride;
 
-            var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri();
+            var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri("login");
             var url = PkceHelper.CreateAuthenticateUrl(state, codeChallenge, redirectUri, pkceConfiguration, stateOverride);
 
             UrlRedirectResult urlRedirectResult;
@@ -315,20 +329,32 @@ namespace Unity.Cloud.Identity
                 case UrlRedirectStatus.NotApplicable:
                     break;
                 case UrlRedirectStatus.Success:
-                    ValidateQueryArguments(urlRedirectResult.QueryArguments);
+                    ValidateQueryArguments(urlRedirectResult.QueryArguments, s_AwaitedQueryArguments);
                     var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(urlRedirectResult.QueryArguments["code"], codeVerifier, redirectUri, pkceConfiguration, stateOverride);
                     await OnUrlRedirectSuccess(pkceConfiguration, urlRedirectResult, state, requestStringParam);
                     break;
             }
         }
 
-        void ValidateQueryArguments(Dictionary<string, string> queryArguments)
+        void ValidateQueryArguments(Dictionary<string, string> queryArguments,  List<string> awaitedQueryArguments)
         {
-            if ( queryArguments == null || !queryArguments.ContainsKey("state") || !queryArguments.ContainsKey("code"))
+            if ( queryArguments == null || !ValidateAllKeysExistInDictionary(queryArguments, awaitedQueryArguments))
             {
                 AuthenticationState = AuthenticationState.LoggedOut;
                 throw new AuthenticationFailedException(s_InvalidQueryArgumentsMessage);
             }
+        }
+
+        bool ValidateAllKeysExistInDictionary(Dictionary<string, string> queryArguments, List<string> awaitedQueryArguments)
+        {
+            foreach (var awaitedQueryArgument in awaitedQueryArguments)
+            {
+                if (!queryArguments.ContainsKey(awaitedQueryArgument))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         async Task OnUrlRedirectSuccess(PkceConfiguration pkceConfiguration, UrlRedirectResult urlRedirectResult, string state, string requestStringParam)
@@ -351,7 +377,6 @@ namespace Unity.Cloud.Identity
             }
         }
 
-
         /// <inheritdoc/>
         public void CancelLogin()
         {
@@ -365,7 +390,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <inheritdoc/>
-        public async Task LogoutAsync()
+        public async Task LogoutAsync(bool clearBrowserCache = false)
         {
             if (AuthenticationState == AuthenticationState.AwaitingInitialization)
                 throw new InvalidOperationException("PkceAuthenticator was not properly initialized");
@@ -387,13 +412,61 @@ namespace Unity.Cloud.Identity
                 s_Logger.LogInfo($"EX: {ex}");
             }
 
-            if (m_AuthenticationPlatformSupport.SecretCacheStore != null)
-                await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
-
-            m_AccessTokenRefresher?.Dispose();
-            m_AccessTokenRefresher = null;
+            if (clearBrowserCache)
+            {
+                await SignOut(pkceConfiguration);
+            }
 
             AuthenticationState = AuthenticationState.LoggedOut;
+        }
+
+        async Task SignOut(PkceConfiguration pkceConfiguration)
+        {
+            if (string.IsNullOrEmpty(pkceConfiguration.SignOutUrl))
+            {
+                AuthenticationState = AuthenticationState.LoggedOut;
+                throw new InvalidOperationException("Missing SignOut URL definition, cannot clear browser cache.");
+            }
+
+            var stateOverride = m_AuthenticationPlatformSupport.GetAppStateOverride();
+            var state = string.IsNullOrEmpty(stateOverride)
+                ? PkceHelper.GenerateState()
+                : stateOverride;
+
+            var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri("signout");
+            var url = PkceHelper.CreateSignOutUrl(state, redirectUri, pkceConfiguration, stateOverride);
+
+            UrlRedirectResult urlRedirectResult;
+
+            var awaitedQueryArgument = new List<string> { "state" };
+            try
+            {
+                urlRedirectResult = await m_AuthenticationPlatformSupport.OpenUrlAndWaitForRedirectAsync(url, awaitedQueryArgument);
+            }
+            catch (TimeoutException e)
+            {
+                AuthenticationState = AuthenticationState.LoggedOut;
+                throw new AuthenticationFailedException(s_AuthorizationFailedMessage, e);
+            }
+            catch (Exception)
+            {
+                // If any exception occurs, the user should be considered logged out
+                AuthenticationState = AuthenticationState.LoggedOut;
+                throw;
+            }
+
+            switch (urlRedirectResult.Status)
+            {
+                case UrlRedirectStatus.NotApplicable:
+                    break;
+                case UrlRedirectStatus.Success:
+                    ValidateQueryArguments(urlRedirectResult.QueryArguments, awaitedQueryArgument);
+                    if (!urlRedirectResult.QueryArguments["state"].Equals(state))
+                    {
+                        throw new AuthenticationFailedException(s_StateMismatchMessage);
+                    }
+                    break;
+            }
         }
 
         async Task OnReceivedNonceCodeAsync(PkceConfiguration pkceConfiguration, string exchangeCodeForDeviceTokenParams)

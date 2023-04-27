@@ -88,9 +88,10 @@ namespace Unity.Cloud.Identity.Runtime
         }
 
         /// <inheritdoc/>
-        public virtual string GetRedirectUri()
+        public virtual string GetRedirectUri(string operation = null)
         {
-            return $"{UriSchemeRedirection.s_UriSchemePrefix}{UnityCloudPlayerSettings.Instance.AppName}://implicit/callback/login";
+            var operationPath = string.IsNullOrEmpty(operation) ? string.Empty : $"/{operation}";
+            return $"{UriSchemeRedirection.s_UriSchemePrefix}{UnityCloudPlayerSettings.Instance.AppName}://implicit/callback{operationPath}";
         }
 
         /// <inheritdoc/>

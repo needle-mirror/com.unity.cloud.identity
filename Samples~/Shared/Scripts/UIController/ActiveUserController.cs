@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using Unity.Cloud.Common;
+using Unity.Cloud.Common.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,6 +23,9 @@ namespace Unity.Cloud.Identity.Samples
 
         [SerializeField]
         Button m_LogoutButton;
+
+        [SerializeField]
+        Button m_SignOutButton;
 
         [SerializeField]
         UIController m_UIController;
@@ -51,7 +56,7 @@ namespace Unity.Cloud.Identity.Samples
         void OnDestroy()
         {
             UnregisterButtons();
-
+            m_CompositeAuthenticator.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         }
 
         public void Login()
@@ -104,6 +109,22 @@ namespace Unity.Cloud.Identity.Samples
             }
         }
 
+        void SignOut()
+        {
+            try
+            {
+                m_CompositeAuthenticator.LogoutAsync(true);
+            }
+            catch (Exception ex)
+            {
+                if (ex is InvalidOperationException
+                    or AuthenticationFailedException)
+                {
+                    Debug.LogError(ex.Message);
+                }
+                throw;
+            }
+        }
 
         void OnAuthenticationStateChanged(AuthenticationState newAuthenticationState)
         {
@@ -122,15 +143,18 @@ namespace Unity.Cloud.Identity.Samples
                 case AuthenticationState.AwaitingLogout:
                     UpdateButton(m_LoginButton, false);
                     UpdateButton(m_LogoutButton, false);
+                    UpdateButton(m_SignOutButton, false);
                     break;
                 case AuthenticationState.LoggedIn:
                     UpdateButton(m_LoginButton, false);
                     UpdateButton(m_LogoutButton, m_CompositeAuthenticator.RequiresGUI);
+                    UpdateButton(m_SignOutButton, m_CompositeAuthenticator.RequiresGUI);
                     m_UserNameText.text = await GetUserInfo();
                     break;
                 case AuthenticationState.LoggedOut:
                     UpdateButton(m_LoginButton, m_CompositeAuthenticator.RequiresGUI);
                     UpdateButton(m_LogoutButton, false);
+                    UpdateButton(m_SignOutButton, false);
                     m_UserNameText.text = "No User";
                     break;
             }
@@ -166,11 +190,13 @@ namespace Unity.Cloud.Identity.Samples
         void RegisterButtons()
         {
             if (m_LoginButton != null)
-                    m_LoginButton.onClick.AddListener(Login);
+                m_LoginButton.onClick.AddListener(Login);
             if(m_CancelLoginButton != null)
                 m_CancelLoginButton.onClick.AddListener(CancelLogin);
             if (m_LogoutButton != null)
                 m_LogoutButton.onClick.AddListener(Logout);
+            if (m_SignOutButton != null)
+                m_SignOutButton.onClick.AddListener(SignOut);
         }
 
         void UnregisterButtons()
@@ -181,6 +207,9 @@ namespace Unity.Cloud.Identity.Samples
                 m_CancelLoginButton.onClick.RemoveListener(CancelLogin);
             if (m_LogoutButton != null)
                 m_LogoutButton.onClick.RemoveListener(Logout);
+            if (m_SignOutButton != null)
+                m_SignOutButton.onClick.RemoveListener(SignOut);
+
         }
 
     }
