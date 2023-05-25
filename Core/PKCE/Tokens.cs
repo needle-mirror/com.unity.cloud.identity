@@ -3,14 +3,14 @@ using System;
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// This class holds the token information related to a user authenticated session.
+    /// Holds the token information related to a user authenticated session.
     /// </summary>
     public class DeviceToken
     {
         readonly DateTime m_AccessTokenExpiry;
 
         /// <summary>
-        /// The token used to request authenticated access to cloud endpoints.
+        /// Requests authenticated access to cloud endpoints.
         /// </summary>
         public string AccessToken { get; }
 
@@ -25,7 +25,7 @@ namespace Unity.Cloud.Identity
         public TimeSpan AccessTokenExpiresIn => m_AccessTokenExpiry - DateTime.UtcNow;
 
         /// <summary>
-        /// Creates a DeviceToken.
+        /// Creates a `DeviceToken`.
         /// </summary>
         /// <param name="accessToken">The string value of the issued access token.</param>
         /// <param name="refreshToken">The string value of the issued refresh token.</param>
@@ -38,7 +38,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Creates a DeviceToken.
+        /// Creates a `DeviceToken`.
         /// </summary>
         /// <param name="accessToken">The string value of the issued access token.</param>
         /// <param name="refreshToken">The string value of the issued refresh token.</param>
@@ -51,7 +51,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Creates a DeviceToken.
+        /// Creates a `DeviceToken`.
         /// </summary>
         /// <param name="accessToken">The string value of the issued access token.</param>
         /// <param name="refreshToken">The string value of the issued refresh token.</param>
@@ -65,7 +65,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Creates a DeviceToken.
+        /// Creates a `DeviceToken`.
         /// </summary>
         /// <param name="accessToken">The string value of the issued access token.</param>
         /// <param name="refreshToken">The string value of the issued refresh token.</param>
@@ -85,7 +85,7 @@ namespace Unity.Cloud.Identity
     }
 
     /// <summary>
-    /// This class holds information about a <see cref="ExchangeCodeToken"/>.
+    /// Holds information about a <see cref="ExchangeCodeToken"/>.
     /// </summary>
     [Serializable]
     class ExchangeCodeToken
@@ -115,7 +115,7 @@ namespace Unity.Cloud.Identity
     }
 
     /// <summary>
-    /// This class holds information about a <see cref="RefreshDeviceToken"/>.
+    /// Contains information about a <see cref="RefreshDeviceToken"/>.
     /// </summary>
     [Serializable]
     class RefreshDeviceToken

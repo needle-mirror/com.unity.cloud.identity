@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// The `CompositeAuthenticator` uses a list of injected <see cref="IAuthenticator"/> to provide support for multiple authentication flows.
+    /// Uses a list of injected <see cref="IAuthenticator"/> to provide support for multiple authentication flows.
     /// </summary>
     /// <remarks>
     /// The `CompositeAuthenticator` uses internally the first <see cref="IAuthenticator"/> from the injected list that returns a true value when invoking <see cref="IAuthenticator.HasValidPreconditions"/> method.

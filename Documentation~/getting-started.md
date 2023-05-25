@@ -32,6 +32,21 @@ To set up the application identifier, follow these steps:
 4. Select **Refresh** to update the application data in the Unity Cloud Portal.
 </br> Your project is now set up.
 
+## Manage the package stripping level
+
+To avoid runtime errors when building with this package, follow these steps:
+
+1. In your Unity project window, go to **Edit** > **Project settings**. <br/> The Project setting window opens.
+2. Select the **Player** option.
+3. Scroll to the **Additional Compiler Arguments** section.
+4. Set the **Managed stripping level** option to:
+
+- **Disabled**
+<br/> or
+- **Minimal** (if the **Disabled** option isn't available)
+
+![Managed Stripping Level dropdown](images/stripping-level.png)
+
 ## Supported platforms
 
 - Unity Editor

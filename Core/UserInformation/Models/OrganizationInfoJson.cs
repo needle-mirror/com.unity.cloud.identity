@@ -3,7 +3,7 @@ using System;
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// This class holds the organization information and its user related properties.
+    /// Holds the organization information and its user related properties.
     /// </summary>
     [Serializable]
     internal class OrganizationInfoJson

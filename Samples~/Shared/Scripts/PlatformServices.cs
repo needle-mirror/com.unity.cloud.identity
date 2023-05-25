@@ -34,10 +34,12 @@ namespace Unity.Cloud.Identity.Samples
         /// </summary>
         public static void Create()
         {
-            var playerSettings = UnityCloudPlayerSettings.Instance;
             var httpClient = new UnityHttpClient();
+            var playerSettings = UnityCloudPlayerSettings.Instance;
+            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
+            var configuration = UnityRuntimeServiceHostConfigurationFactory.Create();
 
-            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, PlatformSupportFactory.GetAuthenticationPlatformSupport())
+            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, platformSupport, configuration)
                 .AddDefaultBrowserAuthenticatedAccessTokenProvider()
                 .AddDefaultPersonalAccessTokenProvider()
                 .AddDefaultPkceAuthenticator(playerSettings, playerSettings)
@@ -47,7 +49,7 @@ namespace Unity.Cloud.Identity.Samples
 
             var serviceHttpClient = new ServiceHttpClient(httpClient, s_CompositeAuthenticator, playerSettings);
 
-            UserInfoProvider = new UserInfoProvider(serviceHttpClient, UnityRuntimeServiceHostConfigurationFactory.Create());
+            UserInfoProvider = new UserInfoProvider(serviceHttpClient, configuration);
         }
 
         /// <summary>

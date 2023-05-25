@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// This class holds the authenticated user information, like organizations the user belongs to (<see cref="OrganizationInfo"/>) and granted licenses (<see cref="LicenseInfo"/>).
+    /// Holds the authenticated user information, like organizations the user belongs to (<see cref="OrganizationInfo"/>), and granted licenses (<see cref="LicenseInfo"/>).
     /// </summary>
     [Serializable]
     internal class UserInfoJson

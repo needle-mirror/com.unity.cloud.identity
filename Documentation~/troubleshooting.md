@@ -2,10 +2,16 @@
 
 This section describes issues you might have while using the package.
 
-## Build settings
+## You have runtime errors when building the package
 
-On certain platforms such as WebGL, code stripping levels can cause certain runtime errors to occur.
+On some platforms such as WebGL, code stripping levels can cause runtime errors.
 
-When making builds that include this package, the **Managed Stripping Level** should be set to "Disabled" if the option is available for the chosen platform, else set to "Minimal".
+Make sure to set the **Managed stripping level** option to:
+
+* **Disabled**
+<br/> or
+* **Minimal** (if the **Disabled** option isn't available)
 
 ![Managed Stripping Level dropdown](images/stripping-level.png)
+
+See [Manage the package stripping level](getting-started.md#manage-the-package-stripping-level) for more information.

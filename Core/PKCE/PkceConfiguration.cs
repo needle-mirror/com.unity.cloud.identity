@@ -1,9 +1,10 @@
 using System;
+using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// This class holds all information required to perform Proof Key Code Exchange (PKCE) authentication.
+    /// Contains all information required to perform Proof Key Code Exchange (PKCE) authentication.
     /// </summary>
     [Serializable]
     public class PkceConfiguration
@@ -17,6 +18,18 @@ namespace Unity.Cloud.Identity
         /// The unique client identifier as registered with the authentication service.
         /// </summary>
         public string ClientId = "";
+        /// <summary>
+        /// The login redirect proxy route.
+        /// </summary>
+        public string ProxyLoginRedirectRoute = "";
+        /// <summary>
+        /// The login completed redirect proxy route.
+        /// </summary>
+        public string ProxyLoginCompletedRoute = "";
+        /// <summary>
+        /// The sign out completed redirect proxy route.
+        /// </summary>
+        public string ProxySignOutCompletedRoute = "";
         /// <summary>
         /// The login page url on the authentication service.
         /// </summary>
@@ -59,32 +72,9 @@ namespace Unity.Cloud.Identity
 #pragma warning restore S1104
 
         /// <summary>
-        /// This class holds all information required to perform authentication on default Unity authentication service.
+        /// This functions can be used after deserialization, to ensure the format is correct.
         /// </summary>
-        public static PkceConfiguration DefaultConfiguration
-        {
-            get
-            {
-                return new PkceConfiguration
-                {
-                    AppName = "default",
-                    AllowAnonymous = false,
-                    CacheRefreshToken = true,
-                    ClientId = "digital_twins",
-                    LoginUrl = "https://api.unity.com/v1/oauth2/authorize",
-                    TokenUrl = "https://dt.unity.com/api/auth/token/refresh",
-                    RefreshTokenUrl = "https://dt.unity.com/api/auth/token/refresh",
-                    LogoutUrl = "https://dt.unity.com/api/auth/token/revoke",
-                    SignOutUrl = "https://api.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
-                    CustomLoginParams = ""
-                };
-            }
-        }
-
-    /// <summary>
-    /// This functions can be used after deserialization, to ensure the format is correct.
-    /// </summary>
-    public void Sanitize()
+        public void Sanitize()
         {
             AppName = AppName?.Trim();
             ClientId = ClientId?.Trim();

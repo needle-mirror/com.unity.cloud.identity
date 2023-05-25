@@ -18,7 +18,7 @@ namespace Unity.Cloud.Identity
         /// Provides access to a <see cref="UserInfo"/> instance returned from a cloud endpoint.
         /// </summary>
         /// <param name="serviceHttpClient">An IServiceHttpClient instance.</param>
-        /// <param name="serviceHostConfiguration">A configuration instance.</param>
+        /// <param name="serviceHostConfiguration">A service environment configuration.</param>
         /// <example>
         /// <code source="../../Samples/Documentation/Scripting/UserInfoProviderExample.cs" region="UserInfoProvider"/>
         /// </example>
@@ -29,14 +29,14 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Fetches a <see cref="UserInfo"/> instance from a cloud endpoint.
+        /// Retrieves a <see cref="UserInfo"/> instance from a cloud endpoint.
         /// </summary>
         /// <exception cref="System.Net.Http.HttpRequestException">Thrown when the request fails to complete. See the returned StatusCode for more details.</exception>
         /// <exception cref="UnauthorizedException"></exception>
         /// <exception cref="ConnectionException"></exception>
         /// <exception cref="ForbiddenException"></exception>
         /// <returns>
-        /// A Task that results in a <see cref="UserInfo"/> instance after completion.
+        /// A task that results in a <see cref="UserInfo"/> instance after completion.
         /// </returns>
         public async Task<UserInfo> GetUserInfoAsync()
         {

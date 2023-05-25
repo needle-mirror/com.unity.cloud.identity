@@ -7,12 +7,6 @@ namespace Unity.Cloud.Identity
 {
     static class PkceHelper
     {
-        static readonly string s_ProxyDomainHost = "dt.unity.com";
-        static readonly string s_ProxyDomain = $"https://{s_ProxyDomainHost}";
-        static readonly string s_ProxyLoginRedirectRoute = "/login/redirect/";
-        static readonly string s_ProxyLoginCompletedRoute = "/login/completed/";
-        static readonly string s_ProxySignOutCompletedRoute = "/signout/completed/";
-
         public static string GenerateState()
         {
             var bytes = new byte[43];
@@ -66,7 +60,7 @@ namespace Unity.Cloud.Identity
         {
             var redirectHint = CreateRedirectHint($"{UriSchemeRedirection.s_UriSchemePrefix}{pkceConfiguration.AppName}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenLoginState) ? $"{overriddenLoginState}/" : "";
-            redirectUri = $"{s_ProxyDomain}{s_ProxyLoginCompletedRoute}{redirectHint}/{redirectProcessId}";
+            redirectUri = $"https://{pkceConfiguration.ProxyLoginCompletedRoute}{redirectHint}/{redirectProcessId}";
             return $"client_id={pkceConfiguration.ClientId}&grant_type=authorization_code&code={authCode}&code_verifier={codeVerifier}&redirect_uri={redirectUri}";
         }
 
@@ -75,7 +69,7 @@ namespace Unity.Cloud.Identity
             var redirectHint = CreateRedirectHint($"{UriSchemeRedirection.s_UriSchemePrefix}{pkceConfiguration.AppName}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenLoginState) ? $"/{overriddenLoginState}" : "";
             var encodedAuthorizeEndpointUrl = System.Net.WebUtility.UrlEncode(pkceConfiguration.LoginUrl);
-            var genesisLoginRedirectUrl = $"{s_ProxyDomain}{s_ProxyLoginRedirectRoute}{redirectHint}/{encodedAuthorizeEndpointUrl}{redirectProcessId}";
+            var genesisLoginRedirectUrl = $"https://{pkceConfiguration.ProxyLoginRedirectRoute}{redirectHint}/{encodedAuthorizeEndpointUrl}{redirectProcessId}";
             return $"{genesisLoginRedirectUrl}?client_id={pkceConfiguration.ClientId}{pkceConfiguration.CustomLoginParams}&state={state}&code_challenge={codeChallenge}&code_challenge_method=S256&response_type=code";
         }
 
@@ -83,7 +77,7 @@ namespace Unity.Cloud.Identity
         {
             var redirectHint = CreateRedirectHint($"{UriSchemeRedirection.s_UriSchemePrefix}{pkceConfiguration.AppName}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenState) ? $"/{overriddenState}" : "";
-            var redirectProxyUri = $"{s_ProxyDomain}{s_ProxySignOutCompletedRoute}{redirectHint}{redirectProcessId}/?state={state}";
+            var redirectProxyUri = $"https://{pkceConfiguration.ProxySignOutCompletedRoute}{redirectHint}{redirectProcessId}/?state={state}";
             // External IDP will need to support
             return $"{pkceConfiguration.SignOutUrl}{redirectProxyUri}";
         }
@@ -94,7 +88,7 @@ namespace Unity.Cloud.Identity
             if (IsLoopBackRedirection(redirectUri) || IsHttpsHostedRedirection(redirectUri))
             {
                 // use base64 encoding for redirection safe transport in urls
-                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(redirectUri);
+                var plainTextBytes = Encoding.UTF8.GetBytes(redirectUri);
                 redirectHint = Convert.ToBase64String(plainTextBytes);
             }
             return redirectHint;

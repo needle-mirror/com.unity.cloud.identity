@@ -34,7 +34,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// The expected key name in launch arguments that holds the access token value.
+        /// Returns the expected key name in launch arguments that holds the access token value.
         /// </summary>
         public static readonly string s_AccessTokenKeyName = "UNITY_CLOUD_ACCESS_TOKEN";
 

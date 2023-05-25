@@ -12,26 +12,26 @@ namespace Unity.Cloud.Identity
         /// </summary>
         /// <param name="tokenEndPointParams">The content of the request</param>
         /// <returns>
-        /// A Task that results in a <see cref="DeviceToken"/> when completed.
+        /// A task that results in a <see cref="DeviceToken"/> when completed.
         /// </returns>
         Task<DeviceToken> ExchangeCodeForDeviceTokenAsync(string tokenEndPointParams);
 
         /// <summary>
-        /// Refreshes the device token from specified end-point
+        /// Updates the device token from specified end-point
         /// </summary>
         /// <param name="tokenEndPointParams">The content of the request</param>
         /// <param name="refreshToken">The refresh token needed for the refresh request</param>
         /// <returns>
-        /// A Task that results in a <see cref="DeviceToken"/> when completed.
+        /// A task that results in a <see cref="DeviceToken"/> when completed.
         /// </returns>
         Task<DeviceToken> RefreshTokenAsync(string tokenEndPointParams, string refreshToken);
 
         /// <summary>
-        /// Revoke the current refresh token
+        /// Revokes the current refresh token
         /// </summary>
         /// <param name="revokeEndPointParams">The content of the request</param>
         /// <returns>
-        /// A Task.
+        /// A task.
         /// </returns>
         Task RevokeRefreshTokenAsync(string revokeEndPointParams);
     }

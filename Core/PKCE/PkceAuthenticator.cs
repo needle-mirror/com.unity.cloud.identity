@@ -9,14 +9,14 @@ namespace Unity.Cloud.Identity
 {
 
     /// <summary>
-    /// An authenticator implementation that provides authentication through PKCE (Proof Key Code Exchange) standards.
+    /// Provides authentication through PKCE (Proof Key Code Exchange) standards.
     /// </summary>
     /// <code source="../../Samples/Documentation/Scripting/PkceAuthenticatorExample.cs" region="PkceAuthenticator"/>
     public class PkceAuthenticator : IUrlRedirectionAuthenticator, IDisposable
     {
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<PkceAuthenticator>();
 
-        static readonly string s_DeviceTokenFileName = "devicetoken.data";
+        static readonly string s_BaseDeviceTokenFileName = "devicetoken.data";
         static readonly string s_CodeVerifierFileName = "codeVerifier";
         static readonly string s_CachedActivationUrl = "cached_activation_url";
 
@@ -30,9 +30,16 @@ namespace Unity.Cloud.Identity
         /// <inheritdoc/>
         public event Action<AuthenticationState> AuthenticationStateChanged;
 
+        /// <summary>
+        /// Raised when the authenticator's <see cref="DeviceToken"/> is refreshed.
+        /// </summary>
+        public event Action<DeviceToken> DeviceTokenRefreshed;
+
         LazyPkceAccessTokenRefresher m_AccessTokenRefresher = null;
 
         AuthenticationState m_AuthenticationState = AuthenticationState.AwaitingInitialization;
+
+        readonly string m_DeviceTokenFileName;
 
         /// <inheritdoc/>
         public AuthenticationState AuthenticationState
@@ -43,7 +50,7 @@ namespace Unity.Cloud.Identity
                 if (value == AuthenticationState.LoggedOut)
                 {
                     if (m_AuthenticationPlatformSupport.SecretCacheStore != null)
-                        _ = m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
+                        _ = m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(m_DeviceTokenFileName);
 
                     m_AccessTokenRefresher?.Dispose();
                     m_AccessTokenRefresher = null;
@@ -65,14 +72,15 @@ namespace Unity.Cloud.Identity
         /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
         /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier required on App settings cloud endpoints.</param>
         /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
-        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider)
+        /// <param name="serviceHostConfiguration">A service environment configuration.</param>
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, ServiceHostConfiguration serviceHostConfiguration = null)
             : this(
                   authenticationPlatformSupport,
                   httpClient,
                   appIdProvider,
                   appNameProvider,
                   null,
-                  null
+                  serviceHostConfiguration
                 )
         { }
 
@@ -94,24 +102,36 @@ namespace Unity.Cloud.Identity
                )
         { }
 
-        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
+        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, ServiceHostConfiguration serviceHostConfiguration)
         {
-            if (pkceConfigurationProvider == null)
-            {
-                pkceConfigurationProvider = new PkceConfigurationProvider(httpClient, this, appIdProvider, appNameProvider);
-            }
-            if (pkceRequestHandler == null)
-            {
-                pkceRequestHandler = new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
-            }
+            var pkceConfigurationProvider = new PkceConfigurationProvider(httpClient, this, serviceHostConfiguration, appIdProvider, appNameProvider);
+            pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
 
             m_PkceConfigurationProvider = pkceConfigurationProvider;
             m_AuthenticationPlatformSupport = authenticationPlatformSupport;
             m_PkceRequestHandler = pkceRequestHandler;
+
+            var environment = serviceHostConfiguration?.ResolveEnvironment().environment;
+            m_DeviceTokenFileName = environment switch
+            {
+                ServiceEnvironment.Staging => string.Concat("stg.", s_BaseDeviceTokenFileName),
+                ServiceEnvironment.Test => string.Concat("test.", s_BaseDeviceTokenFileName),
+                _ => s_BaseDeviceTokenFileName
+            };
+        }
+
+        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
+        {
+            pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
+
+            m_PkceConfigurationProvider = pkceConfigurationProvider;
+            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
+            m_PkceRequestHandler = pkceRequestHandler;
+            m_DeviceTokenFileName = s_BaseDeviceTokenFileName;
         }
 
         /// <summary>
-        /// Ensure disposal of any IDisposable references.
+        /// Disposes of any `IDisposable` references.
         /// </summary>
         public void Dispose()
         {
@@ -120,13 +140,14 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Ensure internal disposal of any IDisposable references.
+        /// Disposes of any `IDisposable` references.
         /// </summary>
         /// <param name="disposing">Dispose pattern boolean value received from public Dispose method.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && m_AccessTokenRefresher != null)
             {
+                m_AccessTokenRefresher.DeviceTokenRefreshed -= OnDeviceTokenRefreshed;
                 m_AccessTokenRefresher?.Dispose();
             }
         }
@@ -148,7 +169,7 @@ namespace Unity.Cloud.Identity
                 catch (Exception ex)
                 {
                     s_Logger.LogInfo($"Failed to revive session. User will need to login manually. {ex.Message}");
-                    await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
+                    await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(m_DeviceTokenFileName);
                 }
             }
 
@@ -255,7 +276,7 @@ namespace Unity.Cloud.Identity
             string refreshToken = null;
             try
             {
-                refreshToken = await m_AuthenticationPlatformSupport.SecretCacheStore.ReadCacheAsync(s_DeviceTokenFileName);
+                refreshToken = await m_AuthenticationPlatformSupport.SecretCacheStore.ReadCacheAsync(m_DeviceTokenFileName);
             }
             catch (FileNotFoundException e)
             {
@@ -276,7 +297,7 @@ namespace Unity.Cloud.Identity
             else
             {
                 s_Logger.LogInfo("Invalid refresh token from cache. Awaiting manual logging.");
-                await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_DeviceTokenFileName);
+                await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(m_DeviceTokenFileName);
             }
         }
 
@@ -489,9 +510,10 @@ namespace Unity.Cloud.Identity
         async Task RegisterNewDeviceTokenAsync(PkceConfiguration pkceConfiguration, DeviceToken deviceToken)
         {
             if (pkceConfiguration.CacheRefreshToken && m_AuthenticationPlatformSupport.SecretCacheStore != null)
-                await m_AuthenticationPlatformSupport.SecretCacheStore?.WriteToCacheAsync(s_DeviceTokenFileName, deviceToken.RefreshToken);
+                await m_AuthenticationPlatformSupport.SecretCacheStore?.WriteToCacheAsync(m_DeviceTokenFileName, deviceToken.RefreshToken);
 
             m_AccessTokenRefresher = new LazyPkceAccessTokenRefresher(deviceToken, m_PkceRequestHandler, pkceConfiguration);
+            m_AccessTokenRefresher.DeviceTokenRefreshed += OnDeviceTokenRefreshed;
 
             AuthenticationState = AuthenticationState.LoggedIn;
         }
@@ -499,6 +521,11 @@ namespace Unity.Cloud.Identity
         async Task RevokeRefreshTokenAsync(PkceConfiguration pkceConfiguration, string refreshToken)
         {
             await m_PkceRequestHandler.RevokeRefreshTokenAsync(PkceHelper.CreateRevokeRefreshTokenUrlRequestStringContent(refreshToken, pkceConfiguration));
+        }
+
+        void OnDeviceTokenRefreshed(DeviceToken token)
+        {
+            DeviceTokenRefreshed?.Invoke(token);
         }
 
         /// <inheritdoc/>
@@ -579,7 +606,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Ensure disposal of any IDisposable references.
+        /// Disposes of any `IDisposable` references.
         /// </summary>
         public void Dispose()
         {
@@ -588,7 +615,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Ensure internal disposal of any IDisposable references.
+        /// Disposes of any `IDisposable` references.
         /// </summary>
         /// <param name="disposing">Dispose pattern boolean value received from public Dispose method.</param>
         protected virtual void Dispose(bool disposing)

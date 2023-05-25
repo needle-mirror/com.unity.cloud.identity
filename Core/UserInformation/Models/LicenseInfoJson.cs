@@ -3,7 +3,7 @@ using System;
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// This class holds the licence information, such as expiry date, <see cref="LicenseType"/> and entitlement string identifier.
+    /// Holds the licence information, such as expiry date, <see cref="LicenseType"/>, and entitlement string identifier.
     /// </summary>
     [Serializable]
     internal class LicenseInfoJson
@@ -14,7 +14,7 @@ namespace Unity.Cloud.Identity
         /// </summary>
         public long ExpiryTicks = 0;
         /// <summary>
-        /// The LicenseType of the license.
+        /// The `LicenseType` of the license.
         /// </summary>
         public LicenseType Type;
         /// <summary>

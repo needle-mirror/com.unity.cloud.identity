@@ -4,6 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2023-05-25
+
+### Added
+- Proxy redirect routes exposed in `PkceConfiguration`.
+
+### Changed
+- Device tokens are now saved per `ServiceEnvironment`.
+- [Breaking] `ServiceHostConfiguration` is now required to build a `PkceConfigurationProvider` and `CompositeAuthenticatorSettingsBuilder`.
+- [Breaking] `PkceConfigurationProvider` will build a `PkceConfiguration` dynamically based on the `ServiceHostConfiguration` provided.
+- `CompositeAuthenticator` in samples now takes `ServiceHostConfiguration` as a parameter.
+
+### Removed
+- [Breaking] `DefaultConfiguration` has been removed from `PkceConfiguration`. `PkceConfigurationProvider` will build a default configuration based on a provided `ServiceHostConfiguration`.
+
+## [0.15.3] - 2023-05-11
+
+### Added
+- Exposed an event in `PkceAuthenticator.cs` which is raised whenever the device token is refreshed.
+
+### Changed
+- Upgrade to Moq 2.0.0-pre.2
+
 ## [0.15.2] - 2023-04-27
 
 ### Added

@@ -12,16 +12,18 @@ namespace Unity.Cloud.Identity
     {
         readonly IHttpClient m_HttpClient;
         readonly IAuthenticationPlatformSupport m_AuthenticationPlatformSupport;
+        readonly ServiceHostConfiguration m_ServiceHostConfiguration;
 
         internal readonly List<IAuthenticator> m_Authenticators = new List<IAuthenticator>();
 
         /// <summary>
         /// Creates a <see cref="CompositeAuthenticatorSettingsBuilder"/> that builds a <see cref="CompositeAuthenticatorSettings"/> to inject into the <see cref="CompositeAuthenticator"/>.
         /// </summary>
-        public CompositeAuthenticatorSettingsBuilder(IHttpClient httpClient, IAuthenticationPlatformSupport authenticationPlatformSupport)
+        public CompositeAuthenticatorSettingsBuilder(IHttpClient httpClient, IAuthenticationPlatformSupport authenticationPlatformSupport, ServiceHostConfiguration serviceHostConfiguration)
         {
             m_HttpClient = httpClient;
             m_AuthenticationPlatformSupport = authenticationPlatformSupport;
+            m_ServiceHostConfiguration = serviceHostConfiguration;
         }
 
         /// <summary>
@@ -30,7 +32,7 @@ namespace Unity.Cloud.Identity
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
         public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(IAppIdProvider appIdProvider, IAppNameProvider appNameProvider)
         {
-            m_Authenticators.Add(new PkceAuthenticator(m_AuthenticationPlatformSupport, m_HttpClient, appIdProvider, appNameProvider));
+            m_Authenticators.Add(new PkceAuthenticator(m_AuthenticationPlatformSupport, m_HttpClient, appIdProvider, appNameProvider, m_ServiceHostConfiguration));
             return this;
         }
 

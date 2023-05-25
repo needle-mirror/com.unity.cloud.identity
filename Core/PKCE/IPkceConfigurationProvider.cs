@@ -12,7 +12,7 @@ namespace Unity.Cloud.Identity
         /// Create a Task that results in a <see cref="PkceConfiguration"/> when completed.
         /// </summary>
         /// <returns>
-        /// A Task that results in a <see cref="PkceConfiguration"/> when completed.
+        /// A task that results in a <see cref="PkceConfiguration"/> when completed.
         /// </returns>
         Task<PkceConfiguration> GetPkceConfigurationAsync();
     }

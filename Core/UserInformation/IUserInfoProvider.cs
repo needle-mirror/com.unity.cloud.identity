@@ -12,7 +12,7 @@ namespace Unity.Cloud.Identity
         /// Abstracts a Task that results in a <see cref="UserInfo"/> instance once completed.
         /// </summary>
         /// <returns>
-        /// A Task that results in a <see cref="UserInfo"/> instance once completed.
+        /// A task that results in a <see cref="UserInfo"/> instance once completed.
         /// </returns>
         Task<UserInfo> GetUserInfoAsync();
     }

@@ -33,7 +33,7 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// The expected key name in launch arguments that holds the personal access token value.
+        /// Returns the expected key name in launch arguments that holds the personal access token value.
         /// </summary>
         public static readonly string s_PersonalAccessTokenKeyName = "UNITY_CLOUD_PERSONAL_ACCESS_TOKEN";
 
