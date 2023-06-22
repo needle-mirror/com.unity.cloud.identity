@@ -30,9 +30,26 @@ namespace Unity.Cloud.Identity
         /// Adds a default <see cref="PkceAuthenticator"/> to the list of <see cref="IAuthenticator"/>.
         /// </summary>
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
+        [Obsolete("Replaced by similar method requiring only the IAppNameProvider.")]
         public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(IAppIdProvider appIdProvider, IAppNameProvider appNameProvider)
         {
-            m_Authenticators.Add(new PkceAuthenticator(m_AuthenticationPlatformSupport, m_HttpClient, appIdProvider, appNameProvider, m_ServiceHostConfiguration));
+            return AddDefaultPkceAuthenticator(appNameProvider);
+        }
+
+        /// <summary>
+        /// Adds a default <see cref="PkceAuthenticator"/> to the list of <see cref="IAuthenticator"/>.
+        /// </summary>
+        /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
+        public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(IAppNameProvider appNameProvider)
+        {
+            var pkceConfigurationProvider = new PkceConfigurationProvider(m_ServiceHostConfiguration, appNameProvider);
+            m_Authenticators.Add(new PkceAuthenticator(
+                m_AuthenticationPlatformSupport,
+                pkceConfigurationProvider,
+                m_ServiceHostConfiguration,
+                new DeviceTokenToUnityServicesTokenExchanger(m_HttpClient, m_ServiceHostConfiguration),
+                new HttpPkceRequestHandler(m_HttpClient, pkceConfigurationProvider)
+                ));
             return this;
         }
 

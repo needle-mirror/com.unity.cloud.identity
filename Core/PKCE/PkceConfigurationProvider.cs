@@ -17,11 +17,23 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Builds a `PkceConfigurationProvider` handles the access to a <see cref="PkceConfiguration"/>.
         /// </summary>
+        /// <param name="serviceHostConfiguration">An optional service environment configuration.</param>
+        /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
+        public PkceConfigurationProvider(ServiceHostConfiguration serviceHostConfiguration, IAppNameProvider appNameProvider)
+        {
+            m_ServiceHostConfiguration = serviceHostConfiguration;
+            m_AppNameProvider = appNameProvider;
+        }
+
+        /// <summary>
+        /// Builds a `PkceConfigurationProvider` handles the access to a <see cref="PkceConfiguration"/>.
+        /// </summary>
         /// <param name="httpClient">An <see cref="IHttpClient"/> to make http requests.</param>
         /// <param name="accessTokenProvider">An <see cref="IAccessTokenProvider"/> to inject the authenticated access token in http requests.</param>
         /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier in cloud endpoint requests.</param>
         /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
         /// <param name="serviceHostConfiguration">An optional service environment configuration.</param>
+        [Obsolete("Replaced by constructor requiring only ServiceHostConfiguration and IAppNameProvider.")]
         public PkceConfigurationProvider(IHttpClient httpClient, IAccessTokenProvider accessTokenProvider, ServiceHostConfiguration serviceHostConfiguration, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider = null)
         {
             m_ServiceHttpClient = new ServiceHttpClient(httpClient, accessTokenProvider, appIdProvider).WithApiSourceHeadersFromAssembly(Assembly.GetExecutingAssembly());

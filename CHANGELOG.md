@@ -4,6 +4,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.16.1] - 2023-06-22
+
+### Added
+- `IAccessTokenExchanger` interface.
+- `UnityServicesToken`, `ExchangeGenesisTokenRequest`, `TargetClientIdToken`, `ExchangeGenesisAccessTokenResponse`, `ExchangeTargetClientIdTokenResponse` class.
+- `DeviceTokenToUnityServicesTokenExchanger` and `TargetClientIdTokenToUnityServicesTokenExchanger` implementation of the `IAccessTokenExchanger` interface.
+- `UnityEditorAuthenticator` class to return a `UnityServicesToken` from the user logged in the Unity Editor.
+
+### Changed
+- `PkceAuthenticator` returns an access token from a `UnityServicesToken` in its `IAccessTokenProvider` implementation.
+- `PkceAuthenticator` constructors not supporting the injection of an `IAccessTokenExchanger` implementation class marked as obsolete.
+- `CompositeAuthenticatorSettingsBuilder.AddDefaultPkceAuthenticator` marked as obsolete in favor of a new override that accepts only an `IAppNameProvider` argument.
+- `PkceConfigurationProvider` constructor marked as absolete in favor of a new constructor that accepts `ServiceHostConfiguration` and `IAppNameProvider` arguments.
+
 ## [0.16.0] - 2023-05-25
 
 ### Added

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Cloud.Common;
+using Unity.Cloud.Common.Runtime;
 
 namespace Unity.Cloud.Identity
 {
@@ -33,6 +34,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Raised when the authenticator's <see cref="DeviceToken"/> is refreshed.
         /// </summary>
+        [Obsolete("Not required when using the constructor with IAccessTokenExchanger injection.")]
         public event Action<DeviceToken> DeviceTokenRefreshed;
 
         LazyPkceAccessTokenRefresher m_AccessTokenRefresher = null;
@@ -40,6 +42,9 @@ namespace Unity.Cloud.Identity
         AuthenticationState m_AuthenticationState = AuthenticationState.AwaitingInitialization;
 
         readonly string m_DeviceTokenFileName;
+
+        readonly IAccessTokenExchanger<DeviceToken, UnityServicesToken> m_UnityServicesTokenExchanger;
+        UnityServicesToken m_UnityServicesToken;
 
         /// <inheritdoc/>
         public AuthenticationState AuthenticationState
@@ -66,6 +71,24 @@ namespace Unity.Cloud.Identity
         readonly IPkceRequestHandler m_PkceRequestHandler;
 
         /// <summary>
+        /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow.
+        /// </summary>
+        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
+        /// <param name="pkceConfigurationProvider">An alternate <see cref="IPkceConfigurationProvider"/> to override the built-in one.</param>
+        /// <param name="serviceHostConfiguration">A service environment configuration.</param>
+        /// <param name="accessTokenExchanger">A Unity Services token exchange class.</param>
+        /// <param name="pkceRequestHandler">An <see cref="IPkceRequestHandler"/> to customize http requests used in the authentication flow.</param>
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IPkceConfigurationProvider pkceConfigurationProvider, ServiceHostConfiguration serviceHostConfiguration, IAccessTokenExchanger<DeviceToken, UnityServicesToken> accessTokenExchanger, IPkceRequestHandler pkceRequestHandler)
+        {
+            m_UnityServicesTokenExchanger = accessTokenExchanger;
+            m_PkceConfigurationProvider = pkceConfigurationProvider;
+            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
+            m_PkceRequestHandler = pkceRequestHandler;
+
+            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(serviceHostConfiguration);
+        }
+
+        /// <summary>
         /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow using built-in PkceRequestHandler and PkceConfigurationProvider.
         /// </summary>
         /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
@@ -73,6 +96,7 @@ namespace Unity.Cloud.Identity
         /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier required on App settings cloud endpoints.</param>
         /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
         /// <param name="serviceHostConfiguration">A service environment configuration.</param>
+        [Obsolete("Replaced by new constructor requiring IAccessTokenExchanger injection.")]
         public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, ServiceHostConfiguration serviceHostConfiguration = null)
             : this(
                   authenticationPlatformSupport,
@@ -91,6 +115,7 @@ namespace Unity.Cloud.Identity
         /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
         /// <param name="pkceRequestHandler">An <see cref="IPkceRequestHandler"/> to customize http requests used in the authentication flow.</param>
         /// <param name="pkceConfigurationProvider">An alternate <see cref="IPkceConfigurationProvider"/> to override the built-in one.</param>
+        [Obsolete("Replaced by new constructor requiring IAccessTokenExchanger injection.")]
         public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
            : this(
                  authenticationPlatformSupport,
@@ -104,20 +129,15 @@ namespace Unity.Cloud.Identity
 
         internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, ServiceHostConfiguration serviceHostConfiguration)
         {
-            var pkceConfigurationProvider = new PkceConfigurationProvider(httpClient, this, serviceHostConfiguration, appIdProvider, appNameProvider);
+            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostConfiguration, appNameProvider);
             pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
 
+            m_UnityServicesTokenExchanger = new DeviceTokenToUnityServicesTokenExchanger(httpClient, serviceHostConfiguration);
             m_PkceConfigurationProvider = pkceConfigurationProvider;
             m_AuthenticationPlatformSupport = authenticationPlatformSupport;
             m_PkceRequestHandler = pkceRequestHandler;
 
-            var environment = serviceHostConfiguration?.ResolveEnvironment().environment;
-            m_DeviceTokenFileName = environment switch
-            {
-                ServiceEnvironment.Staging => string.Concat("stg.", s_BaseDeviceTokenFileName),
-                ServiceEnvironment.Test => string.Concat("test.", s_BaseDeviceTokenFileName),
-                _ => s_BaseDeviceTokenFileName
-            };
+            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(serviceHostConfiguration);
         }
 
         internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
@@ -129,6 +149,20 @@ namespace Unity.Cloud.Identity
             m_PkceRequestHandler = pkceRequestHandler;
             m_DeviceTokenFileName = s_BaseDeviceTokenFileName;
         }
+
+        string BuildDeviceTokenFileNameFromHostConfiguration(ServiceHostConfiguration serviceHostConfiguration)
+        {
+            var environment = serviceHostConfiguration?.ResolveEnvironment().environment;
+            var provider = serviceHostConfiguration?.ResolveProvider();
+            var environmentBaseFileName = environment switch
+            {
+                ServiceEnvironment.Staging => string.Concat("stg.", s_BaseDeviceTokenFileName),
+                ServiceEnvironment.Test => string.Concat("test.", s_BaseDeviceTokenFileName),
+                _ => s_BaseDeviceTokenFileName
+            };
+            return string.Concat($"{provider}.", environmentBaseFileName);
+        }
+
 
         /// <summary>
         /// Disposes of any `IDisposable` references.
@@ -512,6 +546,8 @@ namespace Unity.Cloud.Identity
             if (pkceConfiguration.CacheRefreshToken && m_AuthenticationPlatformSupport.SecretCacheStore != null)
                 await m_AuthenticationPlatformSupport.SecretCacheStore?.WriteToCacheAsync(m_DeviceTokenFileName, deviceToken.RefreshToken);
 
+            m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(deviceToken);
+
             m_AccessTokenRefresher = new LazyPkceAccessTokenRefresher(deviceToken, m_PkceRequestHandler, pkceConfiguration);
             m_AccessTokenRefresher.DeviceTokenRefreshed += OnDeviceTokenRefreshed;
 
@@ -529,12 +565,17 @@ namespace Unity.Cloud.Identity
         }
 
         /// <inheritdoc/>
-        public Task<string> GetAccessTokenAsync()
+        public async Task<string> GetAccessTokenAsync()
         {
             if (m_AccessTokenRefresher == null)
-                return Task.FromResult<string>(null);
+                return null;
 
-            return m_AccessTokenRefresher.GetOrRefreshAccessTokenAsync();
+            if (await m_AccessTokenRefresher.ShouldRefreshAccessToken())
+            {
+                var newDeviceToken = await m_AccessTokenRefresher.RefreshAccessTokenAsync();
+                m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(newDeviceToken);
+            }
+            return m_UnityServicesToken.AccessToken;
         }
 
         /// <inheritdoc/>
@@ -568,21 +609,24 @@ namespace Unity.Cloud.Identity
             m_GetAccessTokenSemaphore = new SemaphoreSlim(1, 1);
         }
 
-        public async Task<string> GetOrRefreshAccessTokenAsync()
+        public async Task<bool> ShouldRefreshAccessToken()
         {
-            await m_GetAccessTokenSemaphore.WaitAsync();
-
             // The token should be refreshed within 1 minute of its expiration time
-            var shouldRefresh = DateTime.Now > m_DeviceTokenRetrievalTime + DeviceToken.AccessTokenExpiresIn - TimeSpan.FromSeconds(60);
+            await m_GetAccessTokenSemaphore.WaitAsync();
+            var isExpired = DateTime.Now > m_DeviceTokenRetrievalTime + DeviceToken.AccessTokenExpiresIn - TimeSpan.FromSeconds(60);
+            if (!isExpired)
+            {
+                m_GetAccessTokenSemaphore.Release();
+            }
+            return isExpired;
+        }
 
+        public async Task<DeviceToken> RefreshAccessTokenAsync()
+        {
             try
             {
-                if (shouldRefresh)
-                {
-                    DeviceToken = await RefreshDeviceTokenAsync(DeviceToken.RefreshToken);
-                    m_DeviceTokenRetrievalTime = DateTime.Now;
-                }
-
+                DeviceToken = await RefreshDeviceTokenAsync(DeviceToken.RefreshToken);
+                m_DeviceTokenRetrievalTime = DateTime.Now;
             }
             catch (Exception ex)
             {
@@ -592,8 +636,7 @@ namespace Unity.Cloud.Identity
             {
                 m_GetAccessTokenSemaphore.Release();
             }
-
-            return DeviceToken.AccessToken;
+            return DeviceToken;
         }
 
         async Task<DeviceToken> RefreshDeviceTokenAsync(string refreshToken)

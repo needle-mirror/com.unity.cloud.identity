@@ -9,6 +9,6 @@
 * [Customize the PKCE authentication flow](use-case-customize-pkce-authentication.md)
 * [URL redirection flows](url-redirection-flows.md)
 * [Security](security.md)
-* [Test with WebGL in a localhost](use-case-testing-webgl-localhost.md)
+* [WebGL build & deployment recommendations](use-case-webgl-build-deployment.md)
 * [Samples | Integrate Identity in a Unity project](samples.md)
 * [Troubleshooting](troubleshooting.md)

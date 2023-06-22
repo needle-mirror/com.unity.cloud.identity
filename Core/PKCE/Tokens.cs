@@ -2,6 +2,28 @@ using System;
 
 namespace Unity.Cloud.Identity
 {
+    internal class ExchangeGenesisTokenRequest
+    {
+        public string grantType { get; internal set;  }
+        public string accessToken { get; internal set; }
+        public string targetClientId { get; internal set; }
+    }
+
+    public class TargetClientIdToken
+    {
+        public string token { get; set; }
+    }
+
+    internal class ExchangeGenesisAccessTokenResponse
+    {
+        public string access_token { get; set; }
+    }
+
+    internal class ExchangeTargetClientIdTokenResponse
+    {
+        public string token { get; set; }
+    }
+
     /// <summary>
     /// Holds the token information related to a user authenticated session.
     /// </summary>

@@ -1,0 +1,20 @@
+{
+    "name": "Unity.Cloud.Identity.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:498d02e03062b2649b108f31a9668c56",
+        "GUID:f2f9fbb8654eff343bf4a94f2a688687",
+        "GUID:e5f73b9074c206b40bb5f74677290f0e"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
