@@ -12,18 +12,18 @@ namespace Unity.Cloud.Identity
     {
         readonly IHttpClient m_HttpClient;
         readonly IAuthenticationPlatformSupport m_AuthenticationPlatformSupport;
-        readonly ServiceHostConfiguration m_ServiceHostConfiguration;
+        readonly IServiceHostResolver m_ServiceHostResolver;
 
         internal readonly List<IAuthenticator> m_Authenticators = new List<IAuthenticator>();
 
         /// <summary>
         /// Creates a <see cref="CompositeAuthenticatorSettingsBuilder"/> that builds a <see cref="CompositeAuthenticatorSettings"/> to inject into the <see cref="CompositeAuthenticator"/>.
         /// </summary>
-        public CompositeAuthenticatorSettingsBuilder(IHttpClient httpClient, IAuthenticationPlatformSupport authenticationPlatformSupport, ServiceHostConfiguration serviceHostConfiguration)
+        public CompositeAuthenticatorSettingsBuilder(IHttpClient httpClient, IAuthenticationPlatformSupport authenticationPlatformSupport, IServiceHostResolver serviceHostResolver)
         {
             m_HttpClient = httpClient;
             m_AuthenticationPlatformSupport = authenticationPlatformSupport;
-            m_ServiceHostConfiguration = serviceHostConfiguration;
+            m_ServiceHostResolver = serviceHostResolver;
         }
 
         /// <summary>
@@ -42,14 +42,13 @@ namespace Unity.Cloud.Identity
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
         public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(IAppNameProvider appNameProvider)
         {
-            var pkceConfigurationProvider = new PkceConfigurationProvider(m_ServiceHostConfiguration, appNameProvider);
-            m_Authenticators.Add(new PkceAuthenticator(
-                m_AuthenticationPlatformSupport,
-                pkceConfigurationProvider,
-                m_ServiceHostConfiguration,
-                new DeviceTokenToUnityServicesTokenExchanger(m_HttpClient, m_ServiceHostConfiguration),
-                new HttpPkceRequestHandler(m_HttpClient, pkceConfigurationProvider)
-                ));
+            var pkceAuthenticatorSettingsBuilder = new PkceAuthenticatorSettingsBuilder(m_AuthenticationPlatformSupport, m_ServiceHostResolver);
+            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(m_HttpClient, appNameProvider)
+                                            .AddDefaultAccessTokenExchanger(m_HttpClient);
+
+            var pkceAuthenticatorSettings = pkceAuthenticatorSettingsBuilder.Build();
+
+            m_Authenticators.Add(new PkceAuthenticator(pkceAuthenticatorSettings));
             return this;
         }
 

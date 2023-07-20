@@ -44,6 +44,15 @@ namespace Unity.Cloud.Identity
         string GetRedirectUri(string operation = null);
 
         /// <summary>
+        /// Gets the redirection URI expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.
+        /// </summary>
+        /// <param name="operation">Optional string to append to the path of the redirect URI</param>
+        /// <returns>
+        /// The redirection URI expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.
+        /// </returns>
+        Task<string> GetRedirectUriAsync(string operation = null);
+
+        /// <summary>
         /// Gets the cancellation URI expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if the app isn't awaiting a URL redirection response.</exception>

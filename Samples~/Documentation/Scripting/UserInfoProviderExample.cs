@@ -21,19 +21,19 @@ namespace Unity.Cloud.Identity.Documentation
     {
         var playerSettings = UnityCloudPlayerSettings.Instance;
         var httpClient = new UnityHttpClient();
-        var configuration = UnityRuntimeServiceHostConfigurationFactory.Create();
+        var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
-        var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, PlatformSupportFactory.GetAuthenticationPlatformSupport(), configuration)
+        var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, PlatformSupportFactory.GetAuthenticationPlatformSupport(), serviceHostResolver)
             .AddDefaultBrowserAuthenticatedAccessTokenProvider()
             .AddDefaultPersonalAccessTokenProvider()
-            .AddDefaultPkceAuthenticator(playerSettings, playerSettings)
+            .AddDefaultPkceAuthenticator(playerSettings)
             .Build();
 
         m_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);
 
         var serviceHttpClient = new ServiceHttpClient(httpClient, m_CompositeAuthenticator, playerSettings);
 
-        m_UserInfoProvider = new UserInfoProvider(serviceHttpClient, configuration);
+        m_UserInfoProvider = new UserInfoProvider(serviceHttpClient, serviceHostResolver);
     }
 
     #endregion

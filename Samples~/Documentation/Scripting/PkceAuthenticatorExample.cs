@@ -16,18 +16,17 @@ namespace Unity.Cloud.Identity.Documentation
         void Awake()
         {
             var httpClient = new UnityHttpClient();
-            var cloudConfiguration = UnityRuntimeServiceHostConfigurationFactory.Create();
-            var playerSettings = UnityCloudPlayerSettings.Instance;
             var authenticationPlatformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
-            var pkceConfigurationProvider = new PkceConfigurationProvider(cloudConfiguration, playerSettings);
+            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
+            var playerSettings = UnityCloudPlayerSettings.Instance;
 
-            m_PkceAuthenticator = new PkceAuthenticator(
-                authenticationPlatformSupport,
-                pkceConfigurationProvider,
-                cloudConfiguration,
-                new DeviceTokenToUnityServicesTokenExchanger(httpClient, cloudConfiguration),
-                new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider)
-            );
+            var pkceAuthenticatorSettingsBuilder = new PkceAuthenticatorSettingsBuilder(authenticationPlatformSupport, serviceHostResolver);
+            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(httpClient, playerSettings)
+                                            .AddDefaultAccessTokenExchanger(httpClient);
+
+            var pkceAuthenticatorSettings = pkceAuthenticatorSettingsBuilder.Build();
+
+            m_PkceAuthenticator = new PkceAuthenticator(pkceAuthenticatorSettings);
 
             m_AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         }

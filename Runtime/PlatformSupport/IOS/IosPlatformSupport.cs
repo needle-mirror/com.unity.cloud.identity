@@ -27,7 +27,8 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a IosPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
-        public IosPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor) : base(urlRedirectionInterceptor)
+        public IosPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
         {
 #if UNITY_IOS && !UNITY_EDITOR
             RequestAppTrackingAuthorization();

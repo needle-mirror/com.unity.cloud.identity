@@ -12,16 +12,16 @@ namespace Unity.Cloud.Identity
     {
         readonly IAppNameProvider m_AppNameProvider;
         readonly IServiceHttpClient m_ServiceHttpClient;
-        ServiceHostConfiguration m_ServiceHostConfiguration;
+        IServiceHostResolver m_ServiceHostResolver;
 
         /// <summary>
         /// Builds a `PkceConfigurationProvider` handles the access to a <see cref="PkceConfiguration"/>.
         /// </summary>
-        /// <param name="serviceHostConfiguration">An optional service environment configuration.</param>
+        /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
         /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
-        public PkceConfigurationProvider(ServiceHostConfiguration serviceHostConfiguration, IAppNameProvider appNameProvider)
+        public PkceConfigurationProvider(IServiceHostResolver serviceHostResolver, IAppNameProvider appNameProvider)
         {
-            m_ServiceHostConfiguration = serviceHostConfiguration;
+            m_ServiceHostResolver = serviceHostResolver;
             m_AppNameProvider = appNameProvider;
         }
 
@@ -32,12 +32,11 @@ namespace Unity.Cloud.Identity
         /// <param name="accessTokenProvider">An <see cref="IAccessTokenProvider"/> to inject the authenticated access token in http requests.</param>
         /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier in cloud endpoint requests.</param>
         /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
-        /// <param name="serviceHostConfiguration">An optional service environment configuration.</param>
-        [Obsolete("Replaced by constructor requiring only ServiceHostConfiguration and IAppNameProvider.")]
-        public PkceConfigurationProvider(IHttpClient httpClient, IAccessTokenProvider accessTokenProvider, ServiceHostConfiguration serviceHostConfiguration, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider = null)
+        /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
+        public PkceConfigurationProvider(IHttpClient httpClient, IAccessTokenProvider accessTokenProvider, IServiceHostResolver serviceHostResolver, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider = null)
         {
             m_ServiceHttpClient = new ServiceHttpClient(httpClient, accessTokenProvider, appIdProvider).WithApiSourceHeadersFromAssembly(Assembly.GetExecutingAssembly());
-            m_ServiceHostConfiguration = serviceHostConfiguration;
+            m_ServiceHostResolver = serviceHostResolver;
             m_AppNameProvider = appNameProvider;
         }
 
@@ -55,7 +54,7 @@ namespace Unity.Cloud.Identity
         async Task<PkceConfiguration> UpdatePkceConfiguration()
         {
             // Eventually, we fetch the information from Cloud endpoint using m_ServiceHttpClient
-            PkceConfiguration pkceConfiguration = CreateConfiguration(m_ServiceHostConfiguration);
+            var pkceConfiguration = CreateConfiguration();
 
             if (m_AppNameProvider != null)
             {
@@ -65,25 +64,19 @@ namespace Unity.Cloud.Identity
             return await Task.FromResult(pkceConfiguration);
         }
 
-        static PkceConfiguration CreateConfiguration(ServiceHostConfiguration serviceHostConfiguration)
+        PkceConfiguration CreateConfiguration()
         {
-            var serviceEnvironment = serviceHostConfiguration.ResolveEnvironment().environment;
-            var serviceDomainProvider = serviceHostConfiguration.ResolveProvider();
-            var serviceDomainHost = serviceHostConfiguration.GetServiceDomain();
+            var serviceEnvironment = m_ServiceHostResolver?.GetResolvedEnvironment();
+            var serviceDomainProvider = m_ServiceHostResolver?.GetResolvedDomainProvider();
+
+            var serviceDomainHost = GetServiceDomainHost();
 
             // Azure specifically points to genesis-staging when on test/stg. All others point to genesis-prod
-            string genesisSubdomain = (serviceEnvironment, serviceProvider: serviceDomainProvider) switch
+            var genesisSubdomain = (serviceEnvironment, serviceProvider: serviceDomainProvider) switch
             {
                 (ServiceEnvironment.Staging, ServiceDomainProvider.Azure) => "api-staging",
                 (ServiceEnvironment.Test, ServiceDomainProvider.Azure) => "api-staging",
                 _ => "api",
-            };
-
-            string environmentPrefix = serviceEnvironment switch
-            {
-                ServiceEnvironment.Staging => "stg.",
-                ServiceEnvironment.Test => "test.",
-                _ => string.Empty,
             };
 
             return new PkceConfiguration
@@ -92,16 +85,28 @@ namespace Unity.Cloud.Identity
                 AllowAnonymous = false,
                 CacheRefreshToken = true,
                 ClientId = "digital_twins",
-                ProxyLoginRedirectRoute = $"{environmentPrefix}{serviceDomainHost}/login/redirect/",
-                ProxyLoginCompletedRoute = $"{environmentPrefix}{serviceDomainHost}/login/completed/",
-                ProxySignOutCompletedRoute = $"{environmentPrefix}{serviceDomainHost}/signout/completed/",
+                ProxyLoginRedirectRoute = $"{serviceDomainHost}/login/redirect/",
+                ProxyLoginCompletedRoute = $"{serviceDomainHost}/login/completed/",
+                ProxySignOutCompletedRoute = $"{serviceDomainHost}/signout/completed/",
                 LoginUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/authorize",
-                TokenUrl = $"https://{environmentPrefix}{serviceDomainHost}/api/auth/token/refresh",
-                RefreshTokenUrl = $"https://{environmentPrefix}{serviceDomainHost}/api/auth/token/refresh",
-                LogoutUrl = $"https://{environmentPrefix}{serviceDomainHost}/api/auth/token/revoke",
+                TokenUrl = $"https://{serviceDomainHost}/api/auth/token/refresh",
+                RefreshTokenUrl = $"https://{serviceDomainHost}/api/auth/token/refresh",
+                LogoutUrl = $"https://{serviceDomainHost}/api/auth/token/revoke",
                 SignOutUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
                 CustomLoginParams = ""
             };
+        }
+
+        string GetServiceDomainHost()
+        {
+            var serviceAddress = m_ServiceHostResolver?.GetResolvedAddress();
+            if (serviceAddress != null)
+            {
+                var serviceAddressUri = new Uri(serviceAddress);
+                return serviceAddressUri.Host;
+            }
+
+            return string.Empty;
         }
     }
 }

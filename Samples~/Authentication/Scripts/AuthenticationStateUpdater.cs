@@ -58,5 +58,10 @@ namespace Unity.Cloud.Identity.Samples.Authenticate
                     break;
             }
         }
+
+        public void OnUserUnauthorized()
+        {
+            m_AuthenticationStateInfoText.text = "User Unauthorized:\n\nThe provided access token threw an Unauthorized exception - please ensure you are using a valid token.";
+        }
     }
 }

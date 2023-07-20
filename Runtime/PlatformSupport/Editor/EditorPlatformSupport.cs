@@ -21,7 +21,8 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a EditorActivatePlatformSupport that handles app activation from an url or key value pairs.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
-        public EditorActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor) : base(urlRedirectionInterceptor)
+        public EditorActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
         {
             var activateAppFromUrl = UnityEngine.Object.FindObjectOfType(typeof(ActivateAppFromUrl)) as ActivateAppFromUrl;
             if (activateAppFromUrl != null && activateAppFromUrl.ActivateAtStartUp && Uri.TryCreate(activateAppFromUrl.ActivationUrl, UriKind.Absolute, out Uri _))
@@ -49,7 +50,7 @@ namespace Unity.Cloud.Identity.Runtime
         static readonly string k_LocalHostCancellationUri = "?&code=none&state=cancelled";
 
         string m_UniqueResponseRoute;
-        readonly Action<string> m_OpenUrlAction;
+        readonly IUrlProcessor m_UrlProcessor;
         string m_LocalHostRedirectUri = "";
 
         string m_RedirectOperation = "";
@@ -59,25 +60,18 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a EditorPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
-        public EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor) : base(urlRedirectionInterceptor)
+        public EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
         {
-        }
-
-        internal EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, Action<string> openUrlAction) : base(urlRedirectionInterceptor)
-        {
-            m_OpenUrlAction = openUrlAction;
+            m_UrlProcessor = urlProcessor;
             GenerateUniquePath();
         }
 
         void OpenUrlAction(string url)
         {
-            if (m_OpenUrlAction != null)
+            if (m_UrlProcessor != null)
             {
-                m_OpenUrlAction(url);
-            }
-            else
-            {
-                Application.OpenURL(url);
+                m_UrlProcessor.ProcessURL(url);
             }
         }
 
@@ -109,6 +103,12 @@ namespace Unity.Cloud.Identity.Runtime
             m_RedirectOperation = operation;
             GenerateUniquePath();
             return $"{k_LocalHostHttp}{m_LocalHostRedirectUri}{m_UniqueResponseRoute}";
+        }
+
+        /// <inheritdoc/>
+        public override Task<string> GetRedirectUriAsync(string operation = null)
+        {
+            return Task.FromResult(GetRedirectUri(operation));
         }
 
         void GenerateUniquePath()

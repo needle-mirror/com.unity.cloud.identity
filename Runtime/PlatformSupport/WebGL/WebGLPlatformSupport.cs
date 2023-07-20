@@ -18,13 +18,14 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a WebglActivatePlatformSupport that handles app activation from an url or key value pairs.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
-        public WebglActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor) : base(urlRedirectionInterceptor)
+        public WebglActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
         {
             ActivationKeyValue = new Dictionary<string, string>();
-            if (Uri.TryCreate(Application.absoluteURL, UriKind.Absolute, out Uri uri) && !string.IsNullOrEmpty(uri.Query))
+            if (Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri uri) && !string.IsNullOrEmpty(uri.Query))
             {
-                s_Logger.LogInfo($"App was activated from url: {Application.absoluteURL}");
-                ActivationUrl = Application.absoluteURL;
+                s_Logger.LogInfo($"App was activated from url: {activationUrl}");
+                ActivationUrl = activationUrl;
                 ActivationKeyValue = QueryArgumentsParser.GetDictionaryFromArguments(uri);
             }
         }
@@ -53,7 +54,8 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a WebglPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
-        public WebglPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor) : base(urlRedirectionInterceptor)
+        public WebglPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
         {
         }
 
@@ -126,6 +128,13 @@ namespace Unity.Cloud.Identity.Runtime
 #endif
             return urlString;
         }
+
+        /// <inheritdoc/>
+        public override Task<string> GetRedirectUriAsync(string operation = null)
+        {
+            return Task.FromResult(GetRedirectUri(operation));
+        }
+
 
         /// <summary>
         /// Get the cancellation Uri expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.

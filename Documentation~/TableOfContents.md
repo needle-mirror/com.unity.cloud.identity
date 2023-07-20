@@ -11,4 +11,5 @@
 * [Security](security.md)
 * [WebGL build & deployment recommendations](use-case-webgl-build-deployment.md)
 * [Samples | Integrate Identity in a Unity project](samples.md)
+* [Upgrading](upgrade-guide.md)
 * [Troubleshooting](troubleshooting.md)

@@ -22,16 +22,16 @@ To get user information in your scene, perform the following procedures:
 To instantiate a `UserInfoProvider` in the `PlatformServices` class, see the following steps:
 
 1. Add the following references in the `PlatformServices` class if they're not already present:
-   * A public reference to `IUserInfoProvider` and `CloudConfiguration`
-   * A private reference to `ServiceHttpClient`, `UserInfoProvider` and `CloudConfiguration`
+   * A public reference to `IUserInfoProvider` and `IServiceHostResolver`
+   * A private reference to `ServiceHttpClient`, `UserInfoProvider` and `IServiceHostResolver`
 
     ```csharp
         static ServiceHttpClient s_ServiceHttpClient;
         static UserInfoProvider s_UserInfoProvider;
-        static CloudConfiguration s_CloudConfiguration;
+        static ServiceHostResolver s_ServiceHostResolver;
 
         public static IUserInfoProvider UserInfoProvider => s_UserInfoProvider;
-        public static CloudConfiguration CloudConfiguration => s_CloudConfiguration;
+        public static IServiceHostResolver ServiceHostResolver => s_ServiceHostResolver;
         
     ```
 
@@ -42,10 +42,10 @@ To instantiate a `UserInfoProvider` in the `PlatformServices` class, see the fol
         {
             // ...
 
-            s_CloudConfiguration = UnityCloudConfigurationFactory.Create();
+            s_ServiceHostResolver = UnityServiceHostResolverFactory.Create();
 
             s_ServiceHttpClient = new ServiceHttpClient(s_HttpClient, AccessTokenProvider, playerSettings);
-            s_UserInfoProvider = new UserInfoProvider(s_ServiceHttpClient, s_CloudConfiguration);
+            s_UserInfoProvider = new UserInfoProvider(s_ServiceHttpClient, s_ServiceHostResolver);
 
             // ...
         }
@@ -59,7 +59,7 @@ To instantiate a `UserInfoProvider` in the `PlatformServices` class, see the fol
             // ...
             s_ServiceHttpClient = null;
             s_UserInfoProvider = null;
-            s_CloudConfiguration = null;
+            s_ServiceHostResolver = null;
             
             // ...
         }

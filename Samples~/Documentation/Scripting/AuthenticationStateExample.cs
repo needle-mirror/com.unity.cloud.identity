@@ -20,12 +20,12 @@ namespace Unity.Cloud.Identity.Documentation
             // Build a CompositeAuthenticator supporting different runtime authentication flow
             var playerSettings = UnityCloudPlayerSettings.Instance;
             var httpClient = new UnityHttpClient();
-            var configuration = UnityRuntimeServiceHostConfigurationFactory.Create();
+            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
-            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, PlatformSupportFactory.GetAuthenticationPlatformSupport(), configuration)
+            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, PlatformSupportFactory.GetAuthenticationPlatformSupport(), serviceHostResolver)
                 .AddDefaultBrowserAuthenticatedAccessTokenProvider()
                 .AddDefaultPersonalAccessTokenProvider()
-                .AddDefaultPkceAuthenticator(playerSettings, playerSettings)
+                .AddDefaultPkceAuthenticator(playerSettings)
                 .Build();
 
             m_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);

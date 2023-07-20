@@ -20,14 +20,14 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Provides Unity Services token from DeviceToken
         /// </summary>
-        public DeviceTokenToUnityServicesTokenExchanger(IHttpClient httpClient, ServiceHostConfiguration serviceHostConfiguration)
+        public DeviceTokenToUnityServicesTokenExchanger(IHttpClient httpClient, IServiceHostResolver serviceHostResolver)
         {
             m_HttpClient = httpClient;
 
             m_TargetClientIdTokenToUnityServicesTokenExchanger =
-                new TargetClientIdTokenToUnityServicesTokenExchanger(m_HttpClient, serviceHostConfiguration);
+                new TargetClientIdTokenToUnityServicesTokenExchanger(m_HttpClient, serviceHostResolver);
 
-            var environment = serviceHostConfiguration?.ResolveEnvironment().environment;
+            var environment = serviceHostResolver?.GetResolvedEnvironment();
 
             m_UnityApiUrl = environment switch
             {

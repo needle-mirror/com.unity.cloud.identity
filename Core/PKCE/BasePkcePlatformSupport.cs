@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
-using Unity.Cloud.Common.Runtime;
-using UnityEngine;
 
-namespace Unity.Cloud.Identity.Runtime
+namespace Unity.Cloud.Identity
 {
     /// <summary>
     /// This class contains platform shared logic to handle the authentication flow.
@@ -18,18 +16,18 @@ namespace Unity.Cloud.Identity.Runtime
         virtual public IUrlRedirectionInterceptor UrlRedirectionInterceptor { get; internal set; }
 
         /// <inheritdoc/>
-        virtual public string ActivationUrl { get; internal set; }
+        virtual public string ActivationUrl { get; protected set; }
 
         /// <inheritdoc/>
-        virtual public Dictionary<string, string> ActivationKeyValue { get; internal set; }
+        virtual public Dictionary<string, string> ActivationKeyValue { get; protected set; }
 
-        static readonly string k_CacheStorePath = Application.persistentDataPath;
+        string m_CacheStorePath { get; }
 
         /// <inheritdoc/>
         public virtual string GetAppStateOverride() => null;
 
         /// <inheritdoc/>
-        public virtual IKeyValueStore SecretCacheStore { get; } = new FileKeyValueStore(k_CacheStorePath, new AesStringObfuscator(!string.IsNullOrEmpty(UnityCloudPlayerSettings.Instance.AppId) ? UnityCloudPlayerSettings.Instance.AppId : "default"));
+        public virtual IKeyValueStore SecretCacheStore { get; }
 
         /// <inheritdoc/>
         public virtual IKeyValueStore CodeVerifierCacheStore { get; } = null;
@@ -39,29 +37,31 @@ namespace Unity.Cloud.Identity.Runtime
         /// </summary>
         protected string m_LoginUrl = string.Empty;
 
-        readonly Action<string> m_OpenUrlAction;
+        protected readonly IUrlProcessor m_UrlProcessor;
+        readonly IAppIdProvider m_AppIdProvider;
+        readonly IAppNameProvider m_AppNameProvider;
 
         /// <summary>
         /// Creates a BasePkcePlatformSupport that handles app activation from an url or key value pairs.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
-        public BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor)
+        /// <param name="activationUrl">An optional activation URL</param>
+        public BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
         {
-            if (Uri.TryCreate(Application.absoluteURL, UriKind.Absolute, out Uri _))
+            m_UrlProcessor = urlProcessor;
+            m_AppIdProvider = appIdProvider;
+            m_AppNameProvider = appNameProvider;
+            m_CacheStorePath = cacheStorePath;
+            SecretCacheStore = new FileKeyValueStore(m_CacheStorePath, new AesStringObfuscator(!string.IsNullOrEmpty(m_AppIdProvider.GetAppId()) ? m_AppIdProvider.GetAppId() : "default"));
+            if (!string.IsNullOrEmpty(activationUrl) && Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri _))
             {
-                s_Logger.LogInfo($"App was activated from url: {Application.absoluteURL}");
-                ActivationUrl = Application.absoluteURL;
+                s_Logger.LogInfo($"App was activated from url: {activationUrl}");
+                ActivationUrl = activationUrl;
             }
             // Could hold query params from ActivationURL
             ActivationKeyValue = new Dictionary<string, string>();
 
             UrlRedirectionInterceptor = urlRedirectionInterceptor;
-        }
-
-        internal BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, Action<string> openUrlAction)
-            : this(urlRedirectionInterceptor)
-        {
-            m_OpenUrlAction = openUrlAction;
         }
 
         /// <inheritdoc/>
@@ -77,13 +77,9 @@ namespace Unity.Cloud.Identity.Runtime
 
         void OpenUrlAction(string url)
         {
-            if (m_OpenUrlAction != null)
+            if (m_UrlProcessor != null)
             {
-                m_OpenUrlAction(url);
-            }
-            else
-            {
-                Application.OpenURL(url);
+                m_UrlProcessor.ProcessURL(url);
             }
         }
 
@@ -91,7 +87,13 @@ namespace Unity.Cloud.Identity.Runtime
         public virtual string GetRedirectUri(string operation = null)
         {
             var operationPath = string.IsNullOrEmpty(operation) ? string.Empty : $"/{operation}";
-            return $"{UriSchemeRedirection.s_UriSchemePrefix}{UnityCloudPlayerSettings.Instance.AppName}://implicit/callback{operationPath}";
+            return $"{UriSchemeRedirection.s_UriSchemePrefix}{m_AppNameProvider.GetAppName()}://implicit/callback{operationPath}";
+        }
+
+        /// <inheritdoc/>
+        public virtual Task<string> GetRedirectUriAsync(string operation = null)
+        {
+            return Task.FromResult(GetRedirectUri(operation));
         }
 
         /// <inheritdoc/>

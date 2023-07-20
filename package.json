@@ -1,26 +1,26 @@
 {
   "name": "com.unity.cloud.identity",
-  "version": "0.16.1",
+  "version": "0.18.0",
   "displayName": "Unity Cloud Identity",
   "description": "The identity package provides client support for all Identity and Access Management (IAM) service features",
   "unity": "2021.3",
   "dependencies": {
-    "com.unity.cloud.common": "0.13.1"
+    "com.unity.cloud.common": "0.14.1"
   },
   "relatedPackages": {
-    "com.unity.cloud.identity.tests": "0.16.1"
+    "com.unity.cloud.identity.tests": "0.18.0"
   },
   "_upm": {
-    "changelog": "### Added\n- `IAccessTokenExchanger` interface.\n- `UnityServicesToken`, `ExchangeGenesisTokenRequest`, `TargetClientIdToken`, `ExchangeGenesisAccessTokenResponse`, `ExchangeTargetClientIdTokenResponse` class.\n- `DeviceTokenToUnityServicesTokenExchanger` and `TargetClientIdTokenToUnityServicesTokenExchanger` implementation of the `IAccessTokenExchanger` interface.\n- `UnityEditorAuthenticator` class to return a `UnityServicesToken` from the user logged in the Unity Editor.\n\n### Changed\n- `PkceAuthenticator` returns an access token from a `UnityServicesToken` in its `IAccessTokenProvider` implementation.\n- `PkceAuthenticator` constructors not supporting the injection of an `IAccessTokenExchanger` implementation class marked as obsolete.\n- `CompositeAuthenticatorSettingsBuilder.AddDefaultPkceAuthenticator` marked as obsolete in favor of a new override that accepts only an `IAppNameProvider` argument.\n- `PkceConfigurationProvider` constructor marked as absolete in favor of a new constructor that accepts `ServiceHostConfiguration` and `IAppNameProvider` arguments."
+    "changelog": "### Added\n- [Breaking] `GetRedirectUriAsync` method in `IAuthenticationPlatformSupport` interface and all derived classes.\n- Added `PkceAuthenticatorSettings` and `PkceAuthenticatorSettingsBuilder` to simplify the creation of `PkceAuthenticator` instances.\n\n### Changed\n- [Breaking] `PlatformSupportFactory.GetAuthenticationPlatformSupport` static method accept additional `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` parameters.\n- [Breaking] `BasePkcePlatformSupport` have been moved to `Unity.Cloud.Identity` namespace.\n- [Breaking] `BasePkcePlatformSupport` constructor and derived classes constructor accept additional `IUrlProcessor`, `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` and `activationUrl` parameters.  \n- Deprecated `PkceAuthenticator` constructors that don't accept a `PkceAuthenticatorSettings` instance."
   },
   "upmCi": {
-    "footprint": "a0d26694c1a156d2f789a30e4dd64d3f7177fbea"
+    "footprint": "aeef220b09ca55f8ba659755f694fbd408472b51"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@0.16/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@0.18/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/digital-twins-sdk.git",
     "type": "git",
-    "revision": "56bb14b1d8cccd0d7c56a4a05a4b2c65f72e6617"
+    "revision": "7bccfadbd3adbd5c73d2de247b801883ff447742"
   },
   "samples": [
     {

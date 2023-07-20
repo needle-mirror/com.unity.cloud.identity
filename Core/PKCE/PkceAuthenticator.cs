@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Cloud.Common;
-using Unity.Cloud.Common.Runtime;
 
 namespace Unity.Cloud.Identity
 {
@@ -71,21 +70,36 @@ namespace Unity.Cloud.Identity
         readonly IPkceRequestHandler m_PkceRequestHandler;
 
         /// <summary>
+        /// Provides a <see cref="PkceAuthenticator"/> that accepts a <see cref="PkceAuthenticatorSettings"/> to handle Proof Key Code Exchange (PKCE) authentication contexts.
+        /// </summary>
+        /// <param name="pkceAuthenticatorSettings">A <see cref="PkceAuthenticatorSettings"/> that contains the parameters required for constructing the authenticator.</param>
+        public PkceAuthenticator(PkceAuthenticatorSettings pkceAuthenticatorSettings)
+        {
+            m_AuthenticationPlatformSupport = pkceAuthenticatorSettings.AuthenticationPlatformSupport;
+            m_PkceConfigurationProvider = pkceAuthenticatorSettings.PkceConfigurationProvider;
+            m_PkceRequestHandler = pkceAuthenticatorSettings.PkceRequestHandler;
+            m_UnityServicesTokenExchanger = pkceAuthenticatorSettings.AccessTokenExchanger;
+
+            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(pkceAuthenticatorSettings.ServiceHostResolver);
+        }
+
+        /// <summary>
         /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow.
         /// </summary>
         /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
         /// <param name="pkceConfigurationProvider">An alternate <see cref="IPkceConfigurationProvider"/> to override the built-in one.</param>
-        /// <param name="serviceHostConfiguration">A service environment configuration.</param>
+        /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
         /// <param name="accessTokenExchanger">A Unity Services token exchange class.</param>
         /// <param name="pkceRequestHandler">An <see cref="IPkceRequestHandler"/> to customize http requests used in the authentication flow.</param>
-        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IPkceConfigurationProvider pkceConfigurationProvider, ServiceHostConfiguration serviceHostConfiguration, IAccessTokenExchanger<DeviceToken, UnityServicesToken> accessTokenExchanger, IPkceRequestHandler pkceRequestHandler)
+        [Obsolete("Use the constructor with PkceAuthenticatorSettings injection instead.")]
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IPkceConfigurationProvider pkceConfigurationProvider, IServiceHostResolver serviceHostResolver, IAccessTokenExchanger<DeviceToken, UnityServicesToken> accessTokenExchanger, IPkceRequestHandler pkceRequestHandler)
         {
             m_UnityServicesTokenExchanger = accessTokenExchanger;
             m_PkceConfigurationProvider = pkceConfigurationProvider;
             m_AuthenticationPlatformSupport = authenticationPlatformSupport;
             m_PkceRequestHandler = pkceRequestHandler;
 
-            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(serviceHostConfiguration);
+            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(serviceHostResolver);
         }
 
         /// <summary>
@@ -95,16 +109,15 @@ namespace Unity.Cloud.Identity
         /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
         /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier required on App settings cloud endpoints.</param>
         /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
-        /// <param name="serviceHostConfiguration">A service environment configuration.</param>
-        [Obsolete("Replaced by new constructor requiring IAccessTokenExchanger injection.")]
-        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, ServiceHostConfiguration serviceHostConfiguration = null)
+        /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
+        [Obsolete("Use the constructor with PkceAuthenticatorSettings injection instead.")]
+        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IServiceHostResolver serviceHostResolver = null)
             : this(
                   authenticationPlatformSupport,
                   httpClient,
-                  appIdProvider,
                   appNameProvider,
                   null,
-                  serviceHostConfiguration
+                  serviceHostResolver
                 )
         { }
 
@@ -115,32 +128,8 @@ namespace Unity.Cloud.Identity
         /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
         /// <param name="pkceRequestHandler">An <see cref="IPkceRequestHandler"/> to customize http requests used in the authentication flow.</param>
         /// <param name="pkceConfigurationProvider">An alternate <see cref="IPkceConfigurationProvider"/> to override the built-in one.</param>
-        [Obsolete("Replaced by new constructor requiring IAccessTokenExchanger injection.")]
+        [Obsolete("Use the constructor with PkceAuthenticatorSettings injection instead.")]
         public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
-           : this(
-                 authenticationPlatformSupport,
-                 httpClient,
-                 null,
-                 null,
-                 pkceRequestHandler,
-                 pkceConfigurationProvider
-               )
-        { }
-
-        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, ServiceHostConfiguration serviceHostConfiguration)
-        {
-            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostConfiguration, appNameProvider);
-            pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
-
-            m_UnityServicesTokenExchanger = new DeviceTokenToUnityServicesTokenExchanger(httpClient, serviceHostConfiguration);
-            m_PkceConfigurationProvider = pkceConfigurationProvider;
-            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
-            m_PkceRequestHandler = pkceRequestHandler;
-
-            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(serviceHostConfiguration);
-        }
-
-        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
         {
             pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
 
@@ -150,10 +139,23 @@ namespace Unity.Cloud.Identity
             m_DeviceTokenFileName = s_BaseDeviceTokenFileName;
         }
 
-        string BuildDeviceTokenFileNameFromHostConfiguration(ServiceHostConfiguration serviceHostConfiguration)
+        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IServiceHostResolver serviceHostResolver)
         {
-            var environment = serviceHostConfiguration?.ResolveEnvironment().environment;
-            var provider = serviceHostConfiguration?.ResolveProvider();
+            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostResolver, appNameProvider);
+            pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
+
+            m_UnityServicesTokenExchanger = new DeviceTokenToUnityServicesTokenExchanger(httpClient, serviceHostResolver);
+            m_PkceConfigurationProvider = pkceConfigurationProvider;
+            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
+            m_PkceRequestHandler = pkceRequestHandler;
+
+            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(serviceHostResolver);
+        }
+
+        static string BuildDeviceTokenFileNameFromHostConfiguration(IServiceHostResolver serviceHostResolver)
+        {
+            var environment = serviceHostResolver?.GetResolvedEnvironment();
+            var provider = serviceHostResolver?.GetResolvedDomainProvider();
             var environmentBaseFileName = environment switch
             {
                 ServiceEnvironment.Staging => string.Concat("stg.", s_BaseDeviceTokenFileName),
@@ -232,7 +234,7 @@ namespace Unity.Cloud.Identity
                                 m_AuthenticationPlatformSupport.UrlRedirectionInterceptor.InterceptAwaitedUrl(cachedActivationUrl);
                             }
                         }
-                        catch (FileNotFoundException e)
+                        catch (FileNotFoundException)
                         {
                             s_Logger.LogInfo("ActivationUrl could not be found in cache.");
                         }
@@ -264,7 +266,7 @@ namespace Unity.Cloud.Identity
                 // Delete as soon as we read it back
                 await m_AuthenticationPlatformSupport.CodeVerifierCacheStore.DeleteCacheAsync(s_CodeVerifierFileName);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
                 s_Logger.LogInfo("CodeVerifier could not be found in cache.");
             }
@@ -281,7 +283,7 @@ namespace Unity.Cloud.Identity
                 var redirectResultCode = string.Empty;
                 queryArguments?.TryGetValue("code", out redirectResultCode);
 
-                var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri("login");
+                var redirectUri = await m_AuthenticationPlatformSupport.GetRedirectUriAsync("login");
 
                 var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(redirectResultCode, codeVerifier, redirectUri, pkceConfiguration);
 
@@ -291,7 +293,7 @@ namespace Unity.Cloud.Identity
             return true;
         }
 
-        bool ActivationUrlHasCodeAndStateParams(string activationUrl)
+        static bool ActivationUrlHasCodeAndStateParams(string activationUrl)
         {
             var uriQuery = new Uri(activationUrl).Query;
             if (string.IsNullOrEmpty(uriQuery))
@@ -358,7 +360,7 @@ namespace Unity.Cloud.Identity
                 ? PkceHelper.GenerateState()
                 : stateOverride;
 
-            var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri("login");
+            var redirectUri = await m_AuthenticationPlatformSupport.GetRedirectUriAsync("login");
             var url = PkceHelper.CreateAuthenticateUrl(state, codeChallenge, redirectUri, pkceConfiguration, stateOverride);
 
             UrlRedirectResult urlRedirectResult;
@@ -400,7 +402,7 @@ namespace Unity.Cloud.Identity
             }
         }
 
-        bool ValidateAllKeysExistInDictionary(Dictionary<string, string> queryArguments, List<string> awaitedQueryArguments)
+        static bool ValidateAllKeysExistInDictionary(Dictionary<string, string> queryArguments, List<string> awaitedQueryArguments)
         {
             foreach (var awaitedQueryArgument in awaitedQueryArguments)
             {
@@ -488,7 +490,7 @@ namespace Unity.Cloud.Identity
                 ? PkceHelper.GenerateState()
                 : stateOverride;
 
-            var redirectUri = m_AuthenticationPlatformSupport.GetRedirectUri("signout");
+            var redirectUri = await m_AuthenticationPlatformSupport.GetRedirectUriAsync("signout");
             var url = PkceHelper.CreateSignOutUrl(state, redirectUri, pkceConfiguration, stateOverride);
 
             UrlRedirectResult urlRedirectResult;

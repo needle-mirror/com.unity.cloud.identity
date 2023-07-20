@@ -1,12 +1,10 @@
 #if !UC_EXCLUDE_SAMPLES
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 using Unity.Cloud.Common;
-using Unity.Cloud.Common.Runtime;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Unity.Cloud.Identity.Samples
@@ -35,6 +33,9 @@ namespace Unity.Cloud.Identity.Samples
 
         ICompositeAuthenticator m_CompositeAuthenticator;
         IUserInfoProvider m_UserInfoProvider;
+
+        [SerializeField]
+        UnityEvent m_UserUnauthorized;
 
         void Start()
         {
@@ -176,6 +177,9 @@ namespace Unity.Cloud.Identity.Samples
                     or ForbiddenException)
                 {
                     Debug.LogError(ex.Message);
+
+                    if (ex is UnauthorizedException)
+                        m_UserUnauthorized?.Invoke();
                 }
                 throw;
             }

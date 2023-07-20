@@ -4,6 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.18.0] - 2023-07-20
+
+### Added
+- [Breaking] `GetRedirectUriAsync` method in `IAuthenticationPlatformSupport` interface and all derived classes.
+- Added `PkceAuthenticatorSettings` and `PkceAuthenticatorSettingsBuilder` to simplify the creation of `PkceAuthenticator` instances.
+
+### Changed
+- [Breaking] `PlatformSupportFactory.GetAuthenticationPlatformSupport` static method accept additional `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` parameters.
+- [Breaking] `BasePkcePlatformSupport` have been moved to `Unity.Cloud.Identity` namespace.
+- [Breaking] `BasePkcePlatformSupport` constructor and derived classes constructor accept additional `IUrlProcessor`, `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` and `activationUrl` parameters.  
+- Deprecated `PkceAuthenticator` constructors that don't accept a `PkceAuthenticatorSettings` instance.
+
+## [0.17.0] - 2023-07-07
+
+### Changed
+- [Breaking] Uses of `ServiceHostConfiguration` have been replaced for `IServiceHostResolver`.  
+- Updated all references to Common's `IHttpClient.SendAsync` to match its new signature.
+
+### Fixed
+- The Authentication sample now correctly displays an error when the provided Personal Access Token is invalid.
+
 ## [0.16.1] - 2023-06-22
 
 ### Added

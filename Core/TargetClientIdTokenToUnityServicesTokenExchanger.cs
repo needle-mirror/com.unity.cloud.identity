@@ -15,12 +15,12 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Provides Unity Services token from TargetClientIdToken
         /// </summary>
-        public TargetClientIdTokenToUnityServicesTokenExchanger(IHttpClient httpClient, ServiceHostConfiguration serviceHostConfiguration)
+        public TargetClientIdTokenToUnityServicesTokenExchanger(IHttpClient httpClient, IServiceHostResolver serviceHostResolver)
         {
             m_HttpClient = httpClient;
 
-            var environment = serviceHostConfiguration?.ResolveEnvironment().environment;
-            var provider = serviceHostConfiguration?.ResolveProvider();
+            var environment = serviceHostResolver?.GetResolvedEnvironment();
+            var provider = serviceHostResolver?.GetResolvedDomainProvider();
 
             if (provider.Equals(ServiceDomainProvider.Azure))
             {
