@@ -2,18 +2,16 @@
 
 This section outlines the different URL redirection flows supported in a registered Unity Cloud application.
 
-
 ## Supported flows
 
 The following are the supported flows:
+
 - Automatic URL redirection triggered from the default OS browser after a successful login
 - User triggered URL redirection when manually clicking on a link
-
 
 ## UrlRedirectionInterceptor class
 
 URL redirection flows are automatically supported using an internal runtime implementation of the IUrlRedirectionInterceptor interface. This cross-platform implementation intercepts OS level invocation through `Application.deepLinkActivated` events or other alternate interception mechanisms when the platform doesn't support OS level invocation.
-
 
 ## Url Activation of application per platform
 

@@ -111,9 +111,9 @@ Unlike the standalone application authentication flow, where the OS prompts you 
 
 ### Mouse input isn't registered
 
-This sample isn't created to run with the [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/QuickStartGuide.html) package. If you are using this package in your
+This sample isn't created to run with the [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest) package. If you are using this package in your
 project, your mouse selections may not be detected.
 
-To fix this, set your project to support both the built-in input system and the [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/QuickStartGuide.html) package: go to **Edit > Project Settings > Player** and set Active Input Handling to **Both**.
+To fix this, set your project to support both the built-in input system and the [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest) package: go to **Edit > Project Settings > Player** and set Active Input Handling to **Both**.
 
 ![Input system settings](images/input-handling-both.png)

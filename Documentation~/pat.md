@@ -2,8 +2,8 @@
 
 To generate your PAT, follow these steps:
 
-1. Log into the [Unity Cloud portal](https://dashboard.unity3d.com/digital-twins/).
-2. Select **Developer Hub**> **Personal Access Tokens**.
+1. Log into the [Digital Twin Dashboard](https://dashboard.unity3d.com/digital-twins/).
+2. Select **Developer Hub** > **Personal Access Tokens**.
 3. Select the **+Add New** button to create a new PAT.
 4. Copy the PAT to your clipboard and save it to a secure location.
 

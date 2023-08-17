@@ -37,13 +37,13 @@ namespace Unity.Cloud.Identity.Runtime
 #elif UNITY_STANDALONE_WIN
             return new WindowsPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath);
 #elif UNITY_STANDALONE_OSX
-            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath);
+            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_STANDALONE_LINUX
-            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath);
+            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_IOS
-            return new IosPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath);
+            return new IosPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_ANDROID
-            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath);
+            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_WEBGL
             return new WebglPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
 #else

@@ -14,8 +14,8 @@ To get user information, you must do the following:
 
 To get user information in your scene, perform the following procedures:
 
-1. Instantiate a UserInfoProvider in PlatformServices
-2. Leverage the UserInfoProvider in your scene
+1. Instantiate a `UserInfoProvider` in `PlatformServices`
+2. Leverage the `UserInfoProvider` in your scene
 
 ### Instantiate a UserInfoProvider in PlatformServices
 

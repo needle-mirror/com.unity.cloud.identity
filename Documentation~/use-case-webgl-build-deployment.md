@@ -19,20 +19,20 @@ Before generating a WebGL build, make sure to have the right configuration in th
 Identity's authentication engine calls specific Unity Cloud endpoints.
 By default and for security reasons, these endpoints reject any request sent from any host that doesn't belong to the `*.unity.com` domain (including the `localhost` environment).
 
-The only valid option to deploy your WebGL build is to upload it on Unity Dashboard. Refer to [Upload a WebGL build on Unity Dashboard](#upload-a-webgl-build-on-unity-dashboard) for more details.
+[Upload a WebGL build on the Digital Twin Dashboard](#upload-a-webgl-build-on-the-digital-twin-dashboard)
 
-### Upload a WebGL build on Unity Dashboard
+### Upload a WebGL build on the Digital Twin Dashboard
 
 To upload a WebGL build, follow these steps:
 
-1. Log into the [Unity Dashboard](https://dashboard.unity3d.com/digital-twins/).
+1. Log into the [Digital Twin Dashboard](https://dashboard.unity3d.com/digital-twins/).
 2. Select **Asset Manager** > **Organization Workspace**.
 3. Create a new dataset using the **+ New** button.
 4. Select **folder** in the drag and drop field.
 5. Select the folder containing your WebGL build.
 6. Select **Create Digital Twin** to upload the files.
 
-### Access and deploy a WebGL build with Unity Dashboard
+### Access and deploy a WebGL build with the Digital Twin Dashboard
 
 Once the upload is completed, a summary of the new dataset details appears.
 

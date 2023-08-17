@@ -1,26 +1,26 @@
 {
   "name": "com.unity.cloud.identity",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "displayName": "Unity Cloud Identity",
   "description": "The identity package provides client support for all Identity and Access Management (IAM) service features",
   "unity": "2021.3",
   "dependencies": {
-    "com.unity.cloud.common": "0.14.1"
+    "com.unity.cloud.common": "0.14.3"
   },
   "relatedPackages": {
-    "com.unity.cloud.identity.tests": "0.18.0"
+    "com.unity.cloud.identity.tests": "0.18.1"
   },
   "_upm": {
-    "changelog": "### Added\n- [Breaking] `GetRedirectUriAsync` method in `IAuthenticationPlatformSupport` interface and all derived classes.\n- Added `PkceAuthenticatorSettings` and `PkceAuthenticatorSettingsBuilder` to simplify the creation of `PkceAuthenticator` instances.\n\n### Changed\n- [Breaking] `PlatformSupportFactory.GetAuthenticationPlatformSupport` static method accept additional `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` parameters.\n- [Breaking] `BasePkcePlatformSupport` have been moved to `Unity.Cloud.Identity` namespace.\n- [Breaking] `BasePkcePlatformSupport` constructor and derived classes constructor accept additional `IUrlProcessor`, `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` and `activationUrl` parameters.  \n- Deprecated `PkceAuthenticator` constructors that don't accept a `PkceAuthenticatorSettings` instance."
+    "changelog": "### Fixed\n- `BasePkcePlatformSupport` and `IosPkcePlatformSupport` missing `Application.absoluteURL` injection since version 0.18.0."
   },
   "upmCi": {
-    "footprint": "aeef220b09ca55f8ba659755f694fbd408472b51"
+    "footprint": "d807d4f339d06e1d80f6cf2c4840dd96558dc2ba"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@0.18/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/digital-twins-sdk.git",
     "type": "git",
-    "revision": "7bccfadbd3adbd5c73d2de247b801883ff447742"
+    "revision": "26a8430a1d8ea9aee869c7e61e148ef8e36bd420"
   },
   "samples": [
     {

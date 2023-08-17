@@ -1,6 +1,6 @@
-# Unity Cloud Platform Identity
+# Unity Identity
 
-Use the Unity Cloud Identity package to provide client support for all Identity and Access Management (IAM) service features.
+Use the Unity Identity package to provide client support for all Identity and Access Management (IAM) service features.
 
 ## Prerequisites and system requirements
 

@@ -1,13 +1,13 @@
 # Basic concepts
 
-The Unity Cloud Identity's authentication layer purpose is to mediate the retrieval of an access token that identifies your application user when calling Unity Cloud services.
+The Unity Identity's authentication layer purpose is to mediate the retrieval of an access token that identifies your application user when calling Unity Cloud services.
 
-Unity Cloud Identity supports the following flows to retrieve an access token:
+Unity Identity supports the following flows to retrieve an access token:
 
 |  Flow                  | Description                                                                                      |
 |----------------------- |------------------------------------------------------------------------------------------------- |
 | Interactive login flow | A flow where the user must manually fill a login form through a UI in a browser.                 |
-| Automated flow         | A flow recommended for automated tools, but that comes handy to fast-track local development on other Unity Cloud feature that rely on Unity Cloud Identity. </br> The user generates a personal access token (PAT) from the Unity Cloud Portal and injects it into the application via command line or environment variables to avoid interaction with a UI.                           |
+| Automated flow         | A flow recommended for automated tools, but that comes handy to fast-track local development on other Unity Cloud feature that rely on Unity Identity. </br> The user generates a personal access token (PAT) from the Digital Twin Dashboard and injects it into the application via command line or environment variables to avoid interaction with a UI.                           |
 | Pre-authenticated flow | A flow that can be used by web-hosted platforms (WebGL) where the host already has a valid access token that can be fetched by the application. |
 | Composite flow         | A prioritized list of authentication flows that decides, based the execution context, which authentication flow to activate for the application session lifecycle. This flow offers flexibility for application built and delivered across multiple platforms (PC/MacOS/iOS/Android/WebGL) and execution contexts (CICD Automation, Tests runner).   |
 
@@ -23,7 +23,7 @@ This section lists the main `IAuthenticator` classes for each flow and their cor
 
 ### Interactive login flow
 
-The interactive login flow requires user interaction with a login and a logout button. In Unity Cloud Identity, only the `PkceAuthenticator` class supports the interactive login flow.
+The interactive login flow requires user interaction with a login and a logout button. In Unity Identity, only the `PkceAuthenticator` class supports the interactive login flow.
 
 The `PkceAuthenticator` implements the 0Auth 2.0 PKCE standard flow to retrieve an access token and involves using the default OS browser as the middle-man to authenticate the user.
 
@@ -31,7 +31,7 @@ It has no required pre-condition.
 
 ### Automated flow
 
-This flow is supported by the `PersonalAccessTokenProvider` and `CommandLineAccessTokenProvider` classes and works through a PAT that you generate on the Unity Cloud Portal.
+This flow is supported by the `PersonalAccessTokenProvider` and `CommandLineAccessTokenProvider` classes and works through a PAT that you generate on the Digital Twin Dashboard.
 
 Both classes pre-conditions are the detection of a PAT, either injected from command line or discovered in environment variables.
 
