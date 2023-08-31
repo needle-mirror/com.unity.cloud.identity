@@ -1,26 +1,26 @@
 {
   "name": "com.unity.cloud.identity",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "displayName": "Unity Cloud Identity",
   "description": "The identity package provides client support for all Identity and Access Management (IAM) service features",
   "unity": "2021.3",
   "dependencies": {
-    "com.unity.cloud.common": "0.14.3"
+    "com.unity.cloud.common": "0.14.4"
   },
   "relatedPackages": {
-    "com.unity.cloud.identity.tests": "0.18.1"
+    "com.unity.cloud.identity.tests": "0.19.0"
   },
   "_upm": {
-    "changelog": "### Fixed\n- `BasePkcePlatformSupport` and `IosPkcePlatformSupport` missing `Application.absoluteURL` injection since version 0.18.0."
+    "changelog": "### Added\n- Added official support for the latest LTS Editor 2022.3 while maintaining support for 2021.3.\n\n### Changed\n- Default `PkceConfiguration` TokenUrl, RefreshTokenUrl and LogoutUrl no longer use cloud service endpoints.\n- [Breaking] WebGL platform use secure document.cookie instead of HTTP headers to reach cloud service endpoints."
   },
   "upmCi": {
-    "footprint": "d807d4f339d06e1d80f6cf2c4840dd96558dc2ba"
+    "footprint": "1579d624767875d1d9b5675c2d92dea7f084d46b"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@0.18/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@0.19/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/digital-twins-sdk.git",
     "type": "git",
-    "revision": "26a8430a1d8ea9aee869c7e61e148ef8e36bd420"
+    "revision": "79b157f6b3eb32e2a5884c36fde102fd115e85d5"
   },
   "samples": [
     {

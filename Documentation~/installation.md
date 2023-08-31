@@ -14,7 +14,7 @@ The following are the prerequisites for installing Unity Identity package:
 
 ## Install the Unity Identity package from the Unity Package Manager
 
-> **Important**: Unity Cloud SDKs are categorized as Experimental Packages. Before you can successfully install them from the Unity Package Manager, you must enable Experimental Packages from the Editor. See: [Experimental packages](https://docs.unity3d.com/Manual/pack-exp.html)
+> **Important**: Unity Cloud SDKs are categorized as Experimental Packages. Before you can successfully install them from the Unity Package Manager, you must enable Experimental Packages from the Editor. See: [Experimental packages](https://docs.unity3d.com/Manual/pack-exp.html).
 
 To install the Unity Identity package, follow these steps:
 

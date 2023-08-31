@@ -89,9 +89,9 @@ namespace Unity.Cloud.Identity
                 ProxyLoginCompletedRoute = $"{serviceDomainHost}/login/completed/",
                 ProxySignOutCompletedRoute = $"{serviceDomainHost}/signout/completed/",
                 LoginUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/authorize",
-                TokenUrl = $"https://{serviceDomainHost}/api/auth/token/refresh",
-                RefreshTokenUrl = $"https://{serviceDomainHost}/api/auth/token/refresh",
-                LogoutUrl = $"https://{serviceDomainHost}/api/auth/token/revoke",
+                TokenUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/token",
+                RefreshTokenUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/token",
+                LogoutUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/revoke",
                 SignOutUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
                 CustomLoginParams = ""
             };

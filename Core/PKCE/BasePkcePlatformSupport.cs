@@ -75,6 +75,11 @@ namespace Unity.Cloud.Identity
             return await UrlRedirectionInterceptor.AwaitRedirectAsync(awaitedQueryArguments);
         }
 
+        /// <inheritdoc/>
+        public virtual void ExportServiceAuthorizerToken(string type, string token)
+        {
+        }
+
         void OpenUrlAction(string url)
         {
             if (m_UrlProcessor != null)

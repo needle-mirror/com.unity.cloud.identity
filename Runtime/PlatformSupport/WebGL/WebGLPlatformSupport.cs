@@ -86,6 +86,14 @@ namespace Unity.Cloud.Identity.Runtime
             return urlRedirectResult;
         }
 
+        /// <inheritdoc/>
+        public override void ExportServiceAuthorizerToken(string type, string token)
+        {
+#if UNITY_WEBGL
+            CommonBrowserInterop.SaveAuthorizationCookie(token);
+#endif
+        }
+
         bool ActivationUrlHasCodeAndStateParams(string activationUrl)
         {
             var uriQuery = new Uri(activationUrl).Query;

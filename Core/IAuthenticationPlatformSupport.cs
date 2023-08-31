@@ -35,6 +35,13 @@ namespace Unity.Cloud.Identity
         Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null);
 
         /// <summary>
+        /// Exports the token and its token type used to authorize Service endpoints call.
+        /// </summary>
+        /// <param name="type">Authorization type for the token (Bearer or Basic).</param>
+        /// <param name="token">The token string value.</param>
+        void ExportServiceAuthorizerToken(string type, string token);
+
+        /// <summary>
         /// Gets the redirection URI expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.
         /// </summary>
         /// <param name="operation">Optional string to append to the path of the redirect URI</param>

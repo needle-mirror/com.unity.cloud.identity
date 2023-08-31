@@ -58,6 +58,8 @@ namespace Unity.Cloud.Identity
 
                     m_AccessTokenRefresher?.Dispose();
                     m_AccessTokenRefresher = null;
+
+                    m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", string.Empty);
                 }
 
                 m_AuthenticationState = value;
@@ -549,6 +551,7 @@ namespace Unity.Cloud.Identity
                 await m_AuthenticationPlatformSupport.SecretCacheStore?.WriteToCacheAsync(m_DeviceTokenFileName, deviceToken.RefreshToken);
 
             m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(deviceToken);
+            m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", m_UnityServicesToken.AccessToken);
 
             m_AccessTokenRefresher = new LazyPkceAccessTokenRefresher(deviceToken, m_PkceRequestHandler, pkceConfiguration);
             m_AccessTokenRefresher.DeviceTokenRefreshed += OnDeviceTokenRefreshed;
@@ -576,6 +579,7 @@ namespace Unity.Cloud.Identity
             {
                 var newDeviceToken = await m_AccessTokenRefresher.RefreshAccessTokenAsync();
                 m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(newDeviceToken);
+                m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", m_UnityServicesToken.AccessToken);
             }
             return m_UnityServicesToken.AccessToken;
         }
