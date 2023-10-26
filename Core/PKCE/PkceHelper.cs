@@ -56,26 +56,26 @@ namespace Unity.Cloud.Identity
             return $"client_id={pkceConfiguration.ClientId}&token={token}";
         }
 
-        public static string CreateTokenUrlRequestStringContent(string authCode, string codeVerifier, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenLoginState = "")
+        public static string CreateTokenUrlRequestStringContent(string appNamespace, string authCode, string codeVerifier, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenLoginState = "")
         {
-            var redirectHint = CreateRedirectHint($"{UriSchemeRedirection.s_UriSchemePrefix}{pkceConfiguration.AppName}", redirectUri);
+            var redirectHint = CreateRedirectHint($"{appNamespace}.{pkceConfiguration.AppName}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenLoginState) ? $"{overriddenLoginState}/" : "";
             redirectUri = $"https://{pkceConfiguration.ProxyLoginCompletedRoute}{redirectHint}/{redirectProcessId}";
             return $"client_id={pkceConfiguration.ClientId}&grant_type=authorization_code&code={authCode}&code_verifier={codeVerifier}&redirect_uri={redirectUri}";
         }
 
-        public static string CreateAuthenticateUrl(string state, string codeChallenge, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenLoginState = "")
+        public static string CreateAuthenticateUrl(string appNamespace, string state, string codeChallenge, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenLoginState = "")
         {
-            var redirectHint = CreateRedirectHint($"{UriSchemeRedirection.s_UriSchemePrefix}{pkceConfiguration.AppName}", redirectUri);
+            var redirectHint = CreateRedirectHint($"{appNamespace}.{pkceConfiguration.AppName}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenLoginState) ? $"/{overriddenLoginState}" : "";
             var encodedAuthorizeEndpointUrl = System.Net.WebUtility.UrlEncode(pkceConfiguration.LoginUrl);
             var genesisLoginRedirectUrl = $"https://{pkceConfiguration.ProxyLoginRedirectRoute}{redirectHint}/{encodedAuthorizeEndpointUrl}{redirectProcessId}";
             return $"{genesisLoginRedirectUrl}?client_id={pkceConfiguration.ClientId}{pkceConfiguration.CustomLoginParams}&state={state}&code_challenge={codeChallenge}&code_challenge_method=S256&response_type=code";
         }
 
-        public static string CreateSignOutUrl(string state, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenState = "")
+        public static string CreateSignOutUrl(string appNamespace,  string state, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenState = "")
         {
-            var redirectHint = CreateRedirectHint($"{UriSchemeRedirection.s_UriSchemePrefix}{pkceConfiguration.AppName}", redirectUri);
+            var redirectHint = CreateRedirectHint($"{appNamespace}.{pkceConfiguration.AppName}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenState) ? $"/{overriddenState}" : "";
             var redirectProxyUri = $"https://{pkceConfiguration.ProxySignOutCompletedRoute}{redirectHint}{redirectProcessId}/?state={state}";
             // External IDP will need to support

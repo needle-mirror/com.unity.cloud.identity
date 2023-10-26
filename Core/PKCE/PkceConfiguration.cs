@@ -17,7 +17,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// The unique client identifier as registered with the authentication service.
         /// </summary>
-        public string ClientId = "";
+        public ClientId ClientId = ClientId.None;
         /// <summary>
         /// The login redirect proxy route.
         /// </summary>
@@ -51,6 +51,10 @@ namespace Unity.Cloud.Identity
         /// </summary>
         public string SignOutUrl = "";
         /// <summary>
+        /// The endpoint url on the authentication service to reach to get user information using .
+        /// </summary>
+        public string UserInfoUrl = "";
+        /// <summary>
         /// The additional custom url formatted parameters to append to the LoginUrl.
         /// </summary>
         /// <remarks>
@@ -77,7 +81,7 @@ namespace Unity.Cloud.Identity
         public void Sanitize()
         {
             AppName = AppName?.Trim();
-            ClientId = ClientId?.Trim();
+            ClientId = new ClientId(ClientId.ToString().Trim());
             LoginUrl = LoginUrl?.Trim();
             TokenUrl = TokenUrl?.Trim();
             RefreshTokenUrl = RefreshTokenUrl?.Trim();

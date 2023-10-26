@@ -11,15 +11,19 @@ namespace Unity.Cloud.Identity
         readonly IAuthenticationPlatformSupport m_AuthenticationPlatformSupport;
         readonly IServiceHostResolver m_ServiceHostResolver;
 
+        IHttpClient m_HttpClient;
+        IAppIdProvider m_AppIdProvider;
+        IAppNamespaceProvider m_AppNamespaceProvider;
         IPkceConfigurationProvider m_PkceConfigurationProvider;
         IPkceRequestHandler m_PkceRequestHandler;
-        IAccessTokenExchanger<DeviceToken, UnityServicesToken> m_AccessTokenExchanger;
+        IAccessTokenExchanger<string, UnityServicesToken> m_AccessTokenExchanger;
 
         /// <summary>
         /// Creates a <see cref="PkceAuthenticatorSettingsBuilder"/> that builds a <see cref="PkceAuthenticatorSettings"/> to inject into the <see cref="PkceAuthenticator"/>.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public PkceAuthenticatorSettingsBuilder(IAuthenticationPlatformSupport authenticationPlatformSupport, IServiceHostResolver serviceHostResolver)
+        public PkceAuthenticatorSettingsBuilder(IAuthenticationPlatformSupport authenticationPlatformSupport,
+            IServiceHostResolver serviceHostResolver)
         {
             ThrowIfNull(authenticationPlatformSupport, nameof(authenticationPlatformSupport));
             ThrowIfNull(serviceHostResolver, nameof(serviceHostResolver));
@@ -33,15 +37,21 @@ namespace Unity.Cloud.Identity
         /// </summary>
         /// <param name="httpClient">The <see cref="IHttpClient"/> with which to build the default <see cref="IPkceRequestHandler"/>.</param>
         /// <param name="appNameProvider">The <see cref="IAppNameProvider"/> with which to build the default <see cref="IPkceConfigurationProvider"/>.</param>
+        /// <param name="appNamespaceProvider">The <see cref="IAppNamespaceProvider"/> to fetch the namespace required to identify the app on the device.</param>
         /// <returns>The modified <see cref="PkceAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public PkceAuthenticatorSettingsBuilder AddDefaultConfigurationProviderAndRequestHandler(IHttpClient httpClient, IAppNameProvider appNameProvider)
+        public PkceAuthenticatorSettingsBuilder AddDefaultConfigurationProviderAndRequestHandler(IHttpClient httpClient,
+            IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider)
         {
             ThrowIfNull(httpClient, nameof(httpClient));
             ThrowIfNull(appNameProvider, nameof(appNameProvider));
+            ThrowIfNull(appNamespaceProvider, nameof(appNamespaceProvider));
 
             m_PkceConfigurationProvider = new PkceConfigurationProvider(m_ServiceHostResolver, appNameProvider);
-            m_PkceRequestHandler = new HttpPkceRequestHandler(httpClient, m_PkceConfigurationProvider);;
+            m_PkceRequestHandler = new HttpPkceRequestHandler(httpClient, m_PkceConfigurationProvider);
+            m_HttpClient = httpClient;
+            m_AppNamespaceProvider = appNamespaceProvider;
+
             return this;
         }
 
@@ -51,11 +61,36 @@ namespace Unity.Cloud.Identity
         /// <param name="pkceConfigurationProvider">The <see cref="IPkceConfigurationProvider"/> to add to the authenticator settings.</param>
         /// <returns>The modified <see cref="PkceAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public PkceAuthenticatorSettingsBuilder AddConfigurationProvider(IPkceConfigurationProvider pkceConfigurationProvider)
+        public PkceAuthenticatorSettingsBuilder AddConfigurationProvider(
+            IPkceConfigurationProvider pkceConfigurationProvider)
         {
             ThrowIfNull(pkceConfigurationProvider, nameof(pkceConfigurationProvider));
 
             m_PkceConfigurationProvider = pkceConfigurationProvider;
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a default implementation of <see cref="IAppIdProvider"/> to the authenticator settings.
+        /// </summary>
+        /// <param name="appIdProvider">The <see cref="IAppIdProvider"/> to provide with the app registered Id.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
+        public PkceAuthenticatorSettingsBuilder AddAppIdProvider(IAppIdProvider appIdProvider)
+        {
+            ThrowIfNull(appIdProvider, nameof(appIdProvider));
+            m_AppIdProvider = appIdProvider;
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a default implementation of <see cref="IAppNamespaceProvider"/> to the authenticator settings.
+        /// </summary>
+        /// <param name="appNamespaceProvider">The <see cref="IAppNamespaceProvider"/> to provide with the app namespace.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
+        public PkceAuthenticatorSettingsBuilder AddAppNamespaceProvider(IAppNamespaceProvider appNamespaceProvider)
+        {
+            ThrowIfNull(appNamespaceProvider, nameof(appNamespaceProvider));
+            m_AppNamespaceProvider = appNamespaceProvider;
             return this;
         }
 
@@ -83,7 +118,7 @@ namespace Unity.Cloud.Identity
         {
             ThrowIfNull(httpClient, nameof(httpClient));
 
-            m_AccessTokenExchanger = new DeviceTokenToUnityServicesTokenExchanger(httpClient, m_ServiceHostResolver);
+            m_AccessTokenExchanger = new AccessTokenToUnityServicesTokenExchanger(httpClient, m_ServiceHostResolver);
             return this;
         }
 
@@ -93,11 +128,25 @@ namespace Unity.Cloud.Identity
         /// <param name="accessTokenExchanger">The <see cref="IAccessTokenExchanger{DeviceToken, UnityServicesToken}"/> to add to the authenticator settings.</param>
         /// <returns>The modified <see cref="PkceAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public PkceAuthenticatorSettingsBuilder AddAccessTokenExchanger(IAccessTokenExchanger<DeviceToken, UnityServicesToken> accessTokenExchanger)
+        public PkceAuthenticatorSettingsBuilder AddAccessTokenExchanger(IAccessTokenExchanger<string, UnityServicesToken> accessTokenExchanger)
         {
             ThrowIfNull(accessTokenExchanger, nameof(accessTokenExchanger));
 
             m_AccessTokenExchanger = accessTokenExchanger;
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a <see cref="IHttpClient"/> to the authenticator settings.
+        /// </summary>
+        /// <param name="httpClient">The <see cref="IHttpClient"/> to add to the authenticator settings.</param>
+        /// <returns>The modified <see cref="PkceAuthenticatorSettingsBuilder"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
+        public PkceAuthenticatorSettingsBuilder AddHttpClient(IHttpClient httpClient)
+        {
+            ThrowIfNull(httpClient, nameof(httpClient));
+
+            m_HttpClient = httpClient;
             return this;
         }
 
@@ -116,7 +165,10 @@ namespace Unity.Cloud.Identity
                 m_PkceConfigurationProvider,
                 m_PkceRequestHandler,
                 m_AccessTokenExchanger,
-                m_ServiceHostResolver
+                m_ServiceHostResolver,
+                m_HttpClient,
+                m_AppIdProvider,
+                m_AppNamespaceProvider
                 );
         }
 
@@ -134,6 +186,7 @@ namespace Unity.Cloud.Identity
             ValidateRequiredSetting(m_ServiceHostResolver, ref missingSettingsMessage, ref settingsAreMissing);
             ValidateRequiredSetting(m_AccessTokenExchanger, ref missingSettingsMessage, ref settingsAreMissing);
             ValidateRequiredSetting(m_PkceRequestHandler, ref missingSettingsMessage, ref settingsAreMissing);
+            ValidateRequiredSetting(m_AppNamespaceProvider, ref missingSettingsMessage, ref settingsAreMissing);
 
             // If any settings are missing, throw an exception.
             if (settingsAreMissing)

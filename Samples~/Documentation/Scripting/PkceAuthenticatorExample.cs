@@ -21,7 +21,7 @@ namespace Unity.Cloud.Identity.Documentation
             var playerSettings = UnityCloudPlayerSettings.Instance;
 
             var pkceAuthenticatorSettingsBuilder = new PkceAuthenticatorSettingsBuilder(authenticationPlatformSupport, serviceHostResolver);
-            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(httpClient, playerSettings)
+            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(httpClient, playerSettings, playerSettings)
                                             .AddDefaultAccessTokenExchanger(httpClient);
 
             var pkceAuthenticatorSettings = pkceAuthenticatorSettingsBuilder.Build();

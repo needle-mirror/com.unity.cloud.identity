@@ -11,6 +11,11 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Retrieves the URL used to activate the application.
         /// </summary>
+        string HostUrl { get; }
+
+        /// <summary>
+        /// Retrieves the URL used to activate the application.
+        /// </summary>
         string ActivationUrl { get; }
 
         /// <summary>

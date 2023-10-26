@@ -1,20 +1,14 @@
-# Integrate authentication in your scene
+# Use case: Integrate authentication in your scene
 
 This section explains how to set up your scene to integrate an authentication layer to communicate with Unity Cloud services.
 
-## Prerequisites
+## Before you start
 
 * Follow the [Installation instructions](installation.md).
 * Follow the [Get started instructions](getting-started.md).
 * Follow the [Best practices: dependency injection guide](best-practices-dependency-injection.md).
 
-## Overview
-
-To integrate authentication in your scene, perform the following procedures:
-
-1. Instantiate a `CompositeAuthenticator` in `PlatformServices`.
-2. Tie Identity's features with a UI.
-3. Leverage the access token to communicate with other Unity Cloud services.
+## How do I...?
 
 ### Instantiate a CompositeAuthenticator in PlatformServices
 
@@ -65,10 +59,8 @@ Please note that if the `CompositeAuthenticatorSettings` added <b>automated flow
 
 [!code-cs [LoginManager](../Samples/Documentation/Manual/IntegrateAuthentication.cs#LoginManager)]
 
-### Leverage the access token to communicate with other Unity Cloud services
+### Leverage the authorization headers to communicate with other Unity Cloud services
 
-After you set up your login flow, communication with other Unity Cloud services is possible. All Unity Cloud services expect an instance of `IAccessTokenProvider`, which the `PlatformServices` provides.
+After you set up your login flow, communication with other Unity Cloud services is possible. All Unity Cloud services expect an instance of `IServiceAuthorizer` to apply authorization information to HTTP requests, which the `PlatformServices` provides.
 
 For an example of a service that expects an `IAccessTokenProvider`, refer to the [Get user information guide](use-case-getting-user-information.md).
-
-

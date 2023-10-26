@@ -16,6 +16,9 @@ namespace Unity.Cloud.Identity
         virtual public IUrlRedirectionInterceptor UrlRedirectionInterceptor { get; internal set; }
 
         /// <inheritdoc/>
+        virtual public string HostUrl { get; protected set; }
+
+        /// <inheritdoc/>
         virtual public string ActivationUrl { get; protected set; }
 
         /// <inheritdoc/>
@@ -40,24 +43,29 @@ namespace Unity.Cloud.Identity
         protected readonly IUrlProcessor m_UrlProcessor;
         readonly IAppIdProvider m_AppIdProvider;
         readonly IAppNameProvider m_AppNameProvider;
+        readonly IAppNamespaceProvider m_AppNamespaceProvider;
 
         /// <summary>
         /// Creates a BasePkcePlatformSupport that handles app activation from an url or key value pairs.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
         /// <param name="activationUrl">An optional activation URL</param>
-        public BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
+        public BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
         {
             m_UrlProcessor = urlProcessor;
             m_AppIdProvider = appIdProvider;
             m_AppNameProvider = appNameProvider;
+            m_AppNamespaceProvider = appNamespaceProvider;
             m_CacheStorePath = cacheStorePath;
-            SecretCacheStore = new FileKeyValueStore(m_CacheStorePath, new AesStringObfuscator(!string.IsNullOrEmpty(m_AppIdProvider.GetAppId()) ? m_AppIdProvider.GetAppId() : "default"));
+
+            var appIdString = m_AppIdProvider.GetAppId().ToString();
+            SecretCacheStore = new FileKeyValueStore(m_CacheStorePath, new AesStringObfuscator(!string.IsNullOrEmpty(appIdString) ? appIdString : "default"));
             if (!string.IsNullOrEmpty(activationUrl) && Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri _))
             {
                 s_Logger.LogInfo($"App was activated from url: {activationUrl}");
                 ActivationUrl = activationUrl;
             }
+
             // Could hold query params from ActivationURL
             ActivationKeyValue = new Dictionary<string, string>();
 
@@ -92,7 +100,7 @@ namespace Unity.Cloud.Identity
         public virtual string GetRedirectUri(string operation = null)
         {
             var operationPath = string.IsNullOrEmpty(operation) ? string.Empty : $"/{operation}";
-            return $"{UriSchemeRedirection.s_UriSchemePrefix}{m_AppNameProvider.GetAppName()}://implicit/callback{operationPath}";
+            return $"{m_AppNamespaceProvider.GetAppNamespace()}.{m_AppNameProvider.GetAppName()}://implicit/callback{operationPath}";
         }
 
         /// <inheritdoc/>

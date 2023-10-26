@@ -15,8 +15,8 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a WindowsActivatePlatformSupport that handles app activation from an url or key value pairs.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
-        public WindowsActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
+        public WindowsActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
             // Check deep link on startup
             var launchArgumentsParser = new LaunchArgumentsParser();
@@ -43,14 +43,14 @@ namespace Unity.Cloud.Identity.Runtime
         /// <returns>
         /// A string value corresponding to the main window pointer of the app.
         /// </returns>
-        public override string GetAppStateOverride() => UrlRedirectionInterceptor.GetRedirectProcessId();
+        public override string GetAppStateOverride() => UrlRedirectionInterceptor.GetRedirectProcessId().ToString();
 
         /// <summary>
         /// Creates a WindowsPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
-        public WindowsPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
+        public WindowsPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
         }
     }

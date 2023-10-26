@@ -20,17 +20,13 @@ namespace Unity.Cloud.Identity
             m_HttpClient = httpClient;
 
             var environment = serviceHostResolver?.GetResolvedEnvironment();
-            var provider = serviceHostResolver?.GetResolvedDomainProvider();
 
-            if (provider.Equals(ServiceDomainProvider.Azure))
+            m_UnityServicesApiUrl = environment switch
             {
-                m_UnityServicesApiUrl = environment switch
-                {
-                    ServiceEnvironment.Staging => string.Concat("staging.", s_BaseUnityServicesApiUrl),
-                    ServiceEnvironment.Test => string.Concat("staging.", s_BaseUnityServicesApiUrl),
-                    _ => s_BaseUnityServicesApiUrl
-                };
-            }
+                ServiceEnvironment.Staging => string.Concat("staging.", s_BaseUnityServicesApiUrl),
+                ServiceEnvironment.Test => string.Concat("staging.", s_BaseUnityServicesApiUrl),
+                _ => s_BaseUnityServicesApiUrl
+            };
         }
 
         /// <inheritdoc/>

@@ -1,10 +1,9 @@
-# Unity Identity
+# Unity Cloud Identity
 
-Use the Unity Identity package to provide client support for all Identity and Access Management (IAM) service features.
+![Identity Feature Splash](images/splash-hex-puzzle.png)
 
-## Prerequisites and system requirements
+Unity Cloud Identity and web services provide end-to-end authentication and access control for securing your assets.
 
-The following are the prerequisites and system requirements:
+Controlling access to 3D data is time consuming and specific to the existing Identity and Access Management policies of your business. Developers often struggle to configure authentication services in a way that scales with their RT3D solution.
 
-* A Unity version of 2021.3 or later
-* A Unity account
+Unity Cloud Identity package and services let you control access to your asset viewer and data with your existing IAM solutions.

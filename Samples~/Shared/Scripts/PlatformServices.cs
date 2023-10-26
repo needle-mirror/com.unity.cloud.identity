@@ -25,9 +25,9 @@ namespace Unity.Cloud.Identity.Samples
         public static IAuthenticationStateProvider AuthenticationStateProvider => s_CompositeAuthenticator;
 
         /// <summary>
-        /// Returns a <see cref="UserInfoProvider"/>.
+        /// Returns a <see cref="IAuthenticatedUserInfoProvider"/>.
         /// </summary>
-        public static IUserInfoProvider UserInfoProvider { get; private set; }
+        public static IAuthenticatedUserInfoProvider AuthenticatedUserInfoProvider => s_CompositeAuthenticator;
 
         /// <summary>
         /// Creates all platform services.
@@ -39,17 +39,12 @@ namespace Unity.Cloud.Identity.Samples
             var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
             var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
-            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, platformSupport, serviceHostResolver)
-                .AddDefaultBrowserAuthenticatedAccessTokenProvider()
-                .AddDefaultPersonalAccessTokenProvider()
-                .AddDefaultPkceAuthenticator(playerSettings)
+            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, platformSupport, serviceHostResolver, playerSettings)
+                .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings, playerSettings)
+                .AddDefaultPkceAuthenticator(playerSettings, playerSettings)
                 .Build();
 
             s_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);
-
-            var serviceHttpClient = new ServiceHttpClient(httpClient, s_CompositeAuthenticator, playerSettings);
-
-            UserInfoProvider = new UserInfoProvider(serviceHttpClient, serviceHostResolver);
         }
 
         /// <summary>
@@ -66,7 +61,6 @@ namespace Unity.Cloud.Identity.Samples
         /// </summary>
         public static void ShutDownServices()
         {
-            UserInfoProvider = null;
             s_CompositeAuthenticator.Dispose();
             s_CompositeAuthenticator = null;
         }

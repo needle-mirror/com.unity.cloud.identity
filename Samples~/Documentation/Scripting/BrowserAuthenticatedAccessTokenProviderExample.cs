@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Unity.Cloud.Common.Runtime;
 using Unity.Cloud.Identity.Runtime;
 
 namespace Unity.Cloud.Identity.Documentation
@@ -15,11 +16,20 @@ namespace Unity.Cloud.Identity.Documentation
 
         void Awake()
         {
+            var httpClient = new UnityHttpClient();
+            var playerSettings = UnityCloudPlayerSettings.Instance;
             var authenticationPlatformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
+            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
-            var localStorageKeyNames = new Dictionary<string, string>() { { "*", "genesis-access-token" } };
+            var localStorageKeyNames = new Dictionary<string, string>() { { "dashboard.unity3d.com", "genesis-access-token" } };
 
-            m_BrowserAuthenticatedAccessTokenProvider = new BrowserAuthenticatedAccessTokenProvider(authenticationPlatformSupport, localStorageKeyNames);
+            var pkceAuthenticatorSettingsBuilder = new PkceAuthenticatorSettingsBuilder(authenticationPlatformSupport, serviceHostResolver);
+            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(httpClient, playerSettings, playerSettings)
+                .AddDefaultAccessTokenExchanger(httpClient);
+
+            var pkceAuthenticatorSettings = pkceAuthenticatorSettingsBuilder.Build();
+
+            m_BrowserAuthenticatedAccessTokenProvider = new BrowserAuthenticatedAccessTokenProvider(pkceAuthenticatorSettings, localStorageKeyNames);
             m_AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         }
 

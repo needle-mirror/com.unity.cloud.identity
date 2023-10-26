@@ -1,25 +1,25 @@
-# WebGL build & deployment recommendations
+# Use case: WebGL build & deployment recommendations
 
 This section gathers all the relevant information required to build and deploy a WebGL build using the Identity SDK.
 
-## Build recommendations
+## Before you start
+
+### Build recommendations
 
 Before generating a WebGL build, make sure to have the right configuration in the Unity Editor **Player Settings**:
 
-1. Select **Player Settings**> **Publishing Settings**.
+1. Select **Player Settings** > **Publishing Settings**.
 2. Set **Compression Format** to **Disabled**.
-3. Select **Player Settings**> **Other Settings**.
+3. Select **Player Settings** > **Other Settings**.
 4. Under **Optimization** set **Manage Stripping Level** to **Minimal**.
-5. Select **Build Settings...**> **Build** and follow instructions to generate a WebGL build.
-
-## Deployment recommendations
+5. Select **Build Settings...** > **Build** and follow instructions to generate a WebGL build.
 
 ### Host limitations
 
 Identity's authentication engine calls specific Unity Cloud endpoints.
 By default and for security reasons, these endpoints reject any request sent from any host that doesn't belong to the `*.unity.com` domain (including the `localhost` environment).
 
-[Upload a WebGL build on the Digital Twin Dashboard](#upload-a-webgl-build-on-the-digital-twin-dashboard)
+## How do I...?
 
 ### Upload a WebGL build on the Digital Twin Dashboard
 
@@ -38,5 +38,5 @@ Once the upload is completed, a summary of the new dataset details appears.
 
 1. In the summary, make sure the **Public** option is checked. If the option is not checked by default, check it to make the dataset public.
 2. Locate the `index.html` file.
-3. Right-click the file and select **Copy URL** from the dropdown menu.
+3. Select and hold the file and select **Copy URL** from the dropdown menu.
 4. Paste the URL in the address bar of your browser.

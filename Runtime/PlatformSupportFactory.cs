@@ -22,30 +22,31 @@ namespace Unity.Cloud.Identity.Runtime
         /// A platform-specific <see cref="IAuthenticationPlatformSupport"/> instance.
         /// </returns>
         /// <exception cref="NotImplementedException">Throws a NotImplementedException if current execution platform cannot be determined.</exception>
-        public static IAuthenticationPlatformSupport GetAuthenticationPlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor = null, IAppIdProvider appIdProvider = null, IAppNameProvider appNameProvider = null, string cacheStorePath = null)
+        public static IAuthenticationPlatformSupport GetAuthenticationPlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor = null, IAppIdProvider appIdProvider = null, IAppNameProvider appNameProvider = null, IAppNamespaceProvider appNamespaceProvider = null, string cacheStorePath = null)
         {
             urlRedirectionInterceptor ??= UrlRedirectionInterceptor.GetInstance();
 
             appIdProvider ??= UnityCloudPlayerSettings.Instance;
             appNameProvider ??= UnityCloudPlayerSettings.Instance;
+            appNamespaceProvider ??= UnityCloudPlayerSettings.Instance;
             cacheStorePath ??= Application.persistentDataPath;
 
             IUrlProcessor urlProcessor = new UrlProcessor();
 
 #if UNITY_EDITOR
-            return new EditorPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath);
+            return new EditorPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath);
 #elif UNITY_STANDALONE_WIN
-            return new WindowsPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath);
+            return new WindowsPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath);
 #elif UNITY_STANDALONE_OSX
-            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
+            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_STANDALONE_LINUX
-            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
+            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_IOS
-            return new IosPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
+            return new IosPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_ANDROID
-            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
+            return new BasePkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, Application.absoluteURL);
 #elif UNITY_WEBGL
-            return new WebglPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, Application.absoluteURL);
+            return new WebglPkcePlatformSupport(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, Application.absoluteURL);
 #else
             throw new NotImplementedException("No PKCE platform support found for the current platform.");
 #endif

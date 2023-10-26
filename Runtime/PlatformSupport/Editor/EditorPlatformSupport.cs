@@ -21,8 +21,8 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a EditorActivatePlatformSupport that handles app activation from an url or key value pairs.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
-        public EditorActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
+        public EditorActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
             var activateAppFromUrl = UnityEngine.Object.FindObjectOfType(typeof(ActivateAppFromUrl)) as ActivateAppFromUrl;
             if (activateAppFromUrl != null && activateAppFromUrl.ActivateAtStartUp && Uri.TryCreate(activateAppFromUrl.ActivationUrl, UriKind.Absolute, out Uri _))
@@ -60,8 +60,8 @@ namespace Unity.Cloud.Identity.Runtime
         /// Creates a EditorPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
-        public EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, cacheStorePath, activationUrl)
+        public EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
             m_UrlProcessor = urlProcessor;
             GenerateUniquePath();

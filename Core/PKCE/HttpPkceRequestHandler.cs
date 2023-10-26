@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Unity.Cloud.Identity
         /// <param name="pkceConfigurationProvider">The <see cref="IPkceConfigurationProvider"/> instance used to fetch the <see cref="PkceConfiguration"/> holding endpoints url.</param>
         public HttpPkceRequestHandler(IHttpClient httpClient, IPkceConfigurationProvider pkceConfigurationProvider)
         {
-            m_HttpClient = httpClient.WithApiSourceHeadersFromAssembly(Assembly.GetExecutingAssembly());
+            m_HttpClient = httpClient;
             m_PkceConfigurationProvider = pkceConfigurationProvider;
         }
 
@@ -37,6 +38,7 @@ namespace Unity.Cloud.Identity
         {
             var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
             var response = await m_HttpClient.PostAsync(pkceConfiguration.TokenUrl, new StringContent(tokenEndPointParams, Encoding.UTF8, "application/x-www-form-urlencoded"));
+            var responseContent = await response.Content.ReadAsStringAsync();
             var exchangeCodeToken = await response.JsonDeserializeAsync<ExchangeCodeToken>();
             return new DeviceToken(exchangeCodeToken.access_token, exchangeCodeToken.refresh_token, exchangeCodeToken.expires_in);
         }
@@ -68,6 +70,18 @@ namespace Unity.Cloud.Identity
         {
             var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
             await m_HttpClient.PostAsync(pkceConfiguration.LogoutUrl, new StringContent(revokeEndPointParams, Encoding.UTF8, "application/x-www-form-urlencoded"));
+        }
+
+        /// <inheritdoc />
+        public async Task<IAuthenticatedUserInfoProvider> GetAuthenticatedUserInfoAsync(string accessToken)
+        {
+            var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, pkceConfiguration.UserInfoUrl);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await m_HttpClient.SendAsync(requestMessage);
+            var pkceUserInfoClaims = await response.JsonDeserializeAsync<PkceUserInfoClaims>();
+            pkceUserInfoClaims.access_token = accessToken;
+            return pkceUserInfoClaims;
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Unity.Cloud.Identity
     public class PkceConfigurationProvider : IPkceConfigurationProvider
     {
         readonly IAppNameProvider m_AppNameProvider;
-        readonly IServiceHttpClient m_ServiceHttpClient;
         IServiceHostResolver m_ServiceHostResolver;
 
         /// <summary>
@@ -21,21 +20,6 @@ namespace Unity.Cloud.Identity
         /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
         public PkceConfigurationProvider(IServiceHostResolver serviceHostResolver, IAppNameProvider appNameProvider)
         {
-            m_ServiceHostResolver = serviceHostResolver;
-            m_AppNameProvider = appNameProvider;
-        }
-
-        /// <summary>
-        /// Builds a `PkceConfigurationProvider` handles the access to a <see cref="PkceConfiguration"/>.
-        /// </summary>
-        /// <param name="httpClient">An <see cref="IHttpClient"/> to make http requests.</param>
-        /// <param name="accessTokenProvider">An <see cref="IAccessTokenProvider"/> to inject the authenticated access token in http requests.</param>
-        /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier in cloud endpoint requests.</param>
-        /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
-        /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
-        public PkceConfigurationProvider(IHttpClient httpClient, IAccessTokenProvider accessTokenProvider, IServiceHostResolver serviceHostResolver, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider = null)
-        {
-            m_ServiceHttpClient = new ServiceHttpClient(httpClient, accessTokenProvider, appIdProvider).WithApiSourceHeadersFromAssembly(Assembly.GetExecutingAssembly());
             m_ServiceHostResolver = serviceHostResolver;
             m_AppNameProvider = appNameProvider;
         }
@@ -53,7 +37,6 @@ namespace Unity.Cloud.Identity
 
         async Task<PkceConfiguration> UpdatePkceConfiguration()
         {
-            // Eventually, we fetch the information from Cloud endpoint using m_ServiceHttpClient
             var pkceConfiguration = CreateConfiguration();
 
             if (m_AppNameProvider != null)
@@ -66,16 +49,13 @@ namespace Unity.Cloud.Identity
 
         PkceConfiguration CreateConfiguration()
         {
+            var serviceDomainHost =  GetServiceDomainHost();
             var serviceEnvironment = m_ServiceHostResolver?.GetResolvedEnvironment();
-            var serviceDomainProvider = m_ServiceHostResolver?.GetResolvedDomainProvider();
 
-            var serviceDomainHost = GetServiceDomainHost();
-
-            // Azure specifically points to genesis-staging when on test/stg. All others point to genesis-prod
-            var genesisSubdomain = (serviceEnvironment, serviceProvider: serviceDomainProvider) switch
+            var genesisSubdomain = serviceEnvironment switch
             {
-                (ServiceEnvironment.Staging, ServiceDomainProvider.Azure) => "api-staging",
-                (ServiceEnvironment.Test, ServiceDomainProvider.Azure) => "api-staging",
+                ServiceEnvironment.Staging => "api-staging",
+                ServiceEnvironment.Test => "api-staging",
                 _ => "api",
             };
 
@@ -84,15 +64,16 @@ namespace Unity.Cloud.Identity
                 AppName = "default",
                 AllowAnonymous = false,
                 CacheRefreshToken = true,
-                ClientId = "digital_twins",
-                ProxyLoginRedirectRoute = $"{serviceDomainHost}/login/redirect/",
-                ProxyLoginCompletedRoute = $"{serviceDomainHost}/login/completed/",
-                ProxySignOutCompletedRoute = $"{serviceDomainHost}/signout/completed/",
+                ClientId = new ClientId("digital_twins"),
+                ProxyLoginRedirectRoute = $"{serviceDomainHost}/app-linking/v1/login/redirect/",
+                ProxyLoginCompletedRoute = $"{serviceDomainHost}/app-linking/v1/login/completed/",
+                ProxySignOutCompletedRoute = $"{serviceDomainHost}/app-linking/v1/signout/completed/",
                 LoginUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/authorize",
                 TokenUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/token",
                 RefreshTokenUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/token",
                 LogoutUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/revoke",
                 SignOutUrl = $"https://{genesisSubdomain}.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
+                UserInfoUrl = $"https://{genesisSubdomain}.unity.com/v1/users/current/openid",
                 CustomLoginParams = ""
             };
         }

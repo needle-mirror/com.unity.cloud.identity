@@ -1,26 +1,18 @@
+> :bulb: **TIP!** Automatically add the latest version of Unity Cloud Identity to the Unity Editor! <button onclick="window.location.href='com.unity3d.kharma:upmpackage/com.unity.cloud.identity';">Add package</button>
+
 # Installation
 
-This section outlines how to install Unity Identity in your Unity project. </br> Before you install the package, make sure you meet the [prerequisites](#prerequisites).
-
-## <a id="prerequisites"></a>Prerequisites
-
-The following are the prerequisites for installing Unity Identity package:
-
-* A Unity version of 2021.3 or later
-* A Unity account (to generate an identifier for your application)
-* The VPN enabled
+This section describes how to install Unity Cloud Identity in your Unity Project. Before you install the package, make sure you meet the [prerequisites](prerequisites.md).
 
 > **Note:** This prerequisite applies only to the Internal artifactory procedure.
 
-## Install the Unity Identity package from the Unity Package Manager
+## Install from the Unity Package Manager
 
-> **Important**: Unity Cloud SDKs are categorized as Experimental Packages. Before you can successfully install them from the Unity Package Manager, you must enable Experimental Packages from the Editor. See: [Experimental packages](https://docs.unity3d.com/Manual/pack-exp.html).
+To install the Unity Cloud Identity package, follow these steps:
 
-To install the Unity Identity package, follow these steps:
-
-1. In your Unity project, go to **Windows** > **Package Manager**.
+1. In your Unity Project, go to **Windows** > **Package Manager**.
 2. On the status bar, select the Add (**+**) button.
-3. From the Add menu, select  **Add + package by name**. **Name** and **Version** fields appear.
+3. From the Add menu, select  **Add + package by name**. </br>**Name** and **Version** fields appear.
 4. In the **Name** field, enter `com.unity.cloud.identity`.
 5. Select **Add**.
 

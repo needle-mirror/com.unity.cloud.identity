@@ -4,10 +4,78 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-exp.1] - 2023-10-26
+
+### Added
+- `IOrganization` and `IProject` can now list their respective roles and permissions.
+
+### Removed
+- [Breaking] Removing obsolete constructors for `PkceAuthenticator`.
+- [Breaking] Removing `CommandLineAccessTokenProvider`.
+- [Breaking] Removing obsolete `IOrganization.ListProjectsAsync()`.
+- [Breaking] Removing obsolete `PkceAuthenticator.DeviceTokenRefreshed` event.
+
+### Changed
+- Change minimal Unity version to 2022.3
+
+### Fixed
+- `UnityEditorAuthenticator` now exchanges the `CloudProjectSettings.accessToken` for a Unity Cloud Services token when it's value has been internally refreshed by the Unity Editor.
+- `PkceAuthenticator` no longer empties the portalAccessToken cookie on a logout operation on WebGL.
+
+## [0.21.0] - 2023-10-18
+
+### Removed
+- `Azure` and `GCP` service provider no longer supported.
+
+### Changed
+- `BasePkcePlatformSupport` and all its derived classes require an additional `IAppNamespaceProvider` parameter in the constructor method. 
+- `ListProjectsAsync` in `IOrganization` is now returning an `IAsyncEnumerable<Iproject>` to support paging.
+- [Breaking] `HttpMetadataDataSource` now expects `IServiceHttpClient` instead of `IHttpClient`.
+
+### Added
+- `AddDefaultPkceAuthenticator` and `AddDefaultBrowserAuthenticatedAccessTokenProvider` methods of the `CompositeAuthenticatorSettingsBuilder` require an additional `IAppNamespaceProvider` parameter.
+- `AddAppNamespaceProvider` method to the `PkceAuthenticatorSettingsBuilder` class.
+- `AddDefaultConfigurationProviderAndRequestHandler` method of `PkceAuthenticatorSettingsBuilder` class requires an additional `IAppNamespaceProvider` parameter.
+- `IOrganization`, `IProject`, `IRoleProvider` and `IOrganizationRespository` interfaces.
+- [Breaking] `IAuthenticator` implements `IOrganizationRespository`.
+- [Breaking] `CompositeAuthenticatorSettingsBuilder` requires an additional `IAppIdProvider` argument.
+- Added the `ServiceAccountAuthorizer` implementation to support service account authentication.
+- Added the `UnityServicesDomainResolver` implementation to support internal endpoints.
+
+### Changed
+- `BasePkcePlatformSupport` and all its derived classes require an additional `IAppNamespaceProvider` parameter in the constructor method. 
+- `ListProjectsAsync` in `IOrganization` is now returning an `IAsyncEnumerable<Iproject>` to support paging.
+- [Breaking] `HttpMetadataDataSource` now expects `IServiceHttpClient` instead of `IHttpClient`.
+
+### Removed
+- `Azure` and `GCP` service provider no longer supported.
+- [Breaking] Removed `PersonalAccessTokenProvider`.
+
+### Deprecated
+- `ListProjectsAsync` returning an `Task<IEnumerable<IProject>>` has been deprecated and will be removed in a future release.
+
+### Removed
+- `IUserInfoProvider` and `UserInfoProvider` have been removed, replaced by `IAuthenticatedUserInfoProvider` and `AuthenticatedUserInfoProvider`.
+- Removed all dependencies to `com.unity.cloud.storage`.
+
+## [0.20.0] - 2023-09-15
+
+### Added
+- `IAuthenticatedUserInfo` and `IAuthenticatedUserInfoProvider` interfaces.
+- `AuthenticatedUserInfoClaims` class.
+- `UserInfoUrl` property in `PkceConfiguration`.
+- [Breaking] `BrowserAuthenticatedAccessTokenProvider` and `CommandLineAccessTokenProvider` use `PkceAuthenticatorSettings` injection in the constructor.
+- [Breaking] `IAuthenticator` implements `IAuthenticatedUserInfoProvider`.
+- [Breaking] `IAccessTokenProvider` has been renamed to `IServiceAuthorizer` and applies authorization information directly to HTTP requests.
+
+### Deprecated
+- `PersonalAccessTokenProvider` has been deprecated and will be removed in a future release.
+
 ## [0.19.0] - 2023-08-31
 
 ### Added
 - Added official support for the latest LTS Editor 2022.3 while maintaining support for 2021.3.
+- [Breaking] Added ClientId and UserId classes to replace string IDs.
 
 ### Changed
 - Default `PkceConfiguration` TokenUrl, RefreshTokenUrl and LogoutUrl no longer use cloud service endpoints.
@@ -27,7 +95,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - [Breaking] `PlatformSupportFactory.GetAuthenticationPlatformSupport` static method accept additional `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` parameters.
 - [Breaking] `BasePkcePlatformSupport` have been moved to `Unity.Cloud.Identity` namespace.
-- [Breaking] `BasePkcePlatformSupport` constructor and derived classes constructor accept additional `IUrlProcessor`, `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` and `activationUrl` parameters.  
+- [Breaking] `BasePkcePlatformSupport` constructor and derived classes constructor accept additional `IUrlProcessor`, `IAppIdProvider`, `IAppNameProvider`, `cacheStorePath` and `activationUrl` parameters.
 - Deprecated `PkceAuthenticator` constructors that don't accept a `PkceAuthenticatorSettings` instance.
 
 ## [0.17.0] - 2023-07-07

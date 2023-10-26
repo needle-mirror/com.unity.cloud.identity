@@ -1,8 +1,12 @@
 #if !UC_EXCLUDE_SAMPLES
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
+using Unity.Cloud.Common.Runtime;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -13,6 +17,8 @@ namespace Unity.Cloud.Identity.Samples
 
     public class ActiveUserController : MonoBehaviour
     {
+        public event Action<IOrganization> OrganizationSelectionChanged;
+
         [SerializeField]
         Button m_LoginButton;
 
@@ -26,13 +32,26 @@ namespace Unity.Cloud.Identity.Samples
         Button m_SignOutButton;
 
         [SerializeField]
+        Button m_OwnerButton;
+
+        [SerializeField]
+        Dropdown m_OrganizationsDropdown;
+
+        [SerializeField]
         UIController m_UIController;
 
         [SerializeField]
         Text m_UserNameText;
 
         ICompositeAuthenticator m_CompositeAuthenticator;
-        IUserInfoProvider m_UserInfoProvider;
+        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider => m_CompositeAuthenticator;
+        IOrganizationRepository m_OrganizationRepository => m_CompositeAuthenticator;
+
+        IEnumerable<IOrganization> m_Organizations;
+
+        IOrganization SelectedOrganization;
+
+        readonly List<IOrganization> m_OrganizationDropdownValue = new();
 
         [SerializeField]
         UnityEvent m_UserUnauthorized;
@@ -41,12 +60,19 @@ namespace Unity.Cloud.Identity.Samples
         {
             RegisterButtons();
 
+            UpdateButton(m_OwnerButton, false);
+
+            if (m_OrganizationsDropdown != null)
+            {
+                m_OrganizationsDropdown.enabled = false;
+                m_OrganizationsDropdown.onValueChanged.AddListener(ApplyDropDownValueChanged);
+            }
+
             if (m_CompositeAuthenticator == null)
             {
                 m_CompositeAuthenticator = PlatformServices.CompositeAuthenticator;
-                m_UserInfoProvider = PlatformServices.UserInfoProvider;
-
                 m_CompositeAuthenticator.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
 
                 // Update UI with current state
                 _ = ApplyAuthenticationState(m_CompositeAuthenticator.AuthenticationState);
@@ -57,6 +83,7 @@ namespace Unity.Cloud.Identity.Samples
         void OnDestroy()
         {
             UnregisterButtons();
+            m_OrganizationsDropdown?.onValueChanged.RemoveAllListeners();
             m_CompositeAuthenticator.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         }
 
@@ -136,7 +163,6 @@ namespace Unity.Cloud.Identity.Samples
         {
             // Clear status text on authentication change
             m_UserNameText.text = string.Empty;
-
             switch (state)
             {
                 case AuthenticationState.AwaitingInitialization:
@@ -150,39 +176,75 @@ namespace Unity.Cloud.Identity.Samples
                     UpdateButton(m_LoginButton, false);
                     UpdateButton(m_LogoutButton, m_CompositeAuthenticator.RequiresGUI);
                     UpdateButton(m_SignOutButton, m_CompositeAuthenticator.RequiresGUI);
-                    m_UserNameText.text = await GetUserInfo();
+
+                    m_Organizations = await m_OrganizationRepository.ListOrganizationsAsync();
+                    SelectedOrganization = m_Organizations.FirstOrDefault(p => p.Role.Equals("owner")) ?? m_Organizations.ElementAt(0);
+
+                    FillOrganizationsDropDown();
                     break;
                 case AuthenticationState.LoggedOut:
                     UpdateButton(m_LoginButton, m_CompositeAuthenticator.RequiresGUI);
                     UpdateButton(m_LogoutButton, false);
                     UpdateButton(m_SignOutButton, false);
                     m_UserNameText.text = "No User";
+                    m_OrganizationDropdownValue.Clear();
+                    if (m_OrganizationsDropdown != null)
+                        m_OrganizationsDropdown.enabled = false;
                     break;
             }
         }
 
-        async Task<string> GetUserInfo()
+        void FillOrganizationsDropDown()
         {
-            try
-            {
-                var userInfo = await m_UserInfoProvider.GetUserInfoAsync();
-                var userNameText = userInfo != null ? userInfo.Name : "No User";
-                return userNameText;
-            }
-            catch (Exception ex)
-            {
-                if (ex is HttpRequestException
-                    or UnauthorizedException
-                    or ConnectionException
-                    or ForbiddenException)
-                {
-                    Debug.LogError(ex.Message);
+            m_OrganizationsDropdown?.ClearOptions();
+            m_OrganizationDropdownValue.Clear();
 
-                    if (ex is UnauthorizedException)
-                        m_UserUnauthorized?.Invoke();
+            int selectedOrganizationIndex = -1;
+            var list = new List<Dropdown.OptionData>();
+            if (m_Organizations != null && m_OrganizationsDropdown != null)
+            {
+                m_OrganizationsDropdown.enabled = true;
+
+                foreach (var org in m_Organizations)
+                {
+                    list.Add(new Dropdown.OptionData(org.Name));
+                    m_OrganizationDropdownValue.Add(org);
+
+                    if (SelectedOrganization != null && SelectedOrganization.Id.Equals(org.Id))
+                    {
+                        selectedOrganizationIndex = list.Count - 1;
+                    }
                 }
-                throw;
             }
+
+            if (list.Count > 0)
+            {
+                m_OrganizationsDropdown?.AddOptions(list);
+            }
+
+            if (selectedOrganizationIndex != -1 && m_OrganizationsDropdown != null)
+            {
+                m_OrganizationsDropdown.value = selectedOrganizationIndex;
+            }
+
+        }
+
+        void ApplyDropDownValueChanged(int value)
+        {
+            SelectedOrganization = m_OrganizationDropdownValue.ElementAt(value);
+            Debug.Log($"Selected org '{SelectedOrganization.Id}'");
+            _ = OnSelectOrganization();
+            OrganizationSelectionChanged?.Invoke(SelectedOrganization);
+        }
+
+        async Task OnSelectOrganization()
+        {
+            var hasOwnerRole = await SelectedOrganization.HasRoleAsync("owner");
+            // Enable the button only if the user is the owner of the organization.
+            UpdateButton(m_OwnerButton, hasOwnerRole);
+
+            var username = m_AuthenticatedUserInfoProvider.GetUserInfo(AuthenticatedUserInfoClaims.Name);
+            m_UserNameText.text = !string.IsNullOrEmpty(username) ? $"{username} : {SelectedOrganization.Role}" : "No User";
         }
 
         static void UpdateButton(Button button, bool enabled)

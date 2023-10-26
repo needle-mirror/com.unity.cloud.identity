@@ -31,6 +31,6 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Indicates the application is waiting for the completion of a logout operation.
         /// </summary>
-        AwaitingLogout,
+        AwaitingLogout
     };
 }

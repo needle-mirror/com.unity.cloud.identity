@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Unity.Cloud.Identity
@@ -115,9 +116,9 @@ namespace Unity.Cloud.Identity
         }
 
         /// <inheritdoc/>
-        public Task<string> GetAccessTokenAsync()
+        public Task AddAuthorization(HttpHeaders headers)
         {
-            return m_Authenticator.GetAccessTokenAsync();
+            return m_Authenticator.AddAuthorization(headers);
         }
 
         /// <summary>
@@ -142,6 +143,16 @@ namespace Unity.Cloud.Identity
             m_Authenticator.AuthenticationStateChanged -= OnAuthenticationStateChanged;
             if (m_Authenticator is IDisposable disposableAuthenticator)
                 disposableAuthenticator.Dispose();
+        }
+
+        public string GetUserInfo(string key)
+        {
+            return m_Authenticator.GetUserInfo(key);
+        }
+
+        public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
+        {
+            return await m_Authenticator.ListOrganizationsAsync();
         }
     }
 }

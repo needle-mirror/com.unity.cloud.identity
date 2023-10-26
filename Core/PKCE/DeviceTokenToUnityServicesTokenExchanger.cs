@@ -60,4 +60,59 @@ namespace Unity.Cloud.Identity
             return await ExchangeGenesisAccessTokenRequestAsync(deviceToken.AccessToken);
         }
     }
+
+    public class AccessTokenToUnityServicesTokenExchanger : IAccessTokenExchanger<string, UnityServicesToken>
+    {
+
+        readonly IHttpClient m_HttpClient;
+
+        static readonly string s_BaseUnityApiUrl = ".unity.com";
+
+        readonly string m_UnityApiUrl = ".unity.com";
+
+        readonly TargetClientIdTokenToUnityServicesTokenExchanger m_TargetClientIdTokenToUnityServicesTokenExchanger;
+
+        /// <summary>
+        /// Provides Unity Services token from DeviceToken
+        /// </summary>
+        public AccessTokenToUnityServicesTokenExchanger(IHttpClient httpClient, IServiceHostResolver serviceHostResolver)
+        {
+            m_HttpClient = httpClient;
+
+            m_TargetClientIdTokenToUnityServicesTokenExchanger =
+                new TargetClientIdTokenToUnityServicesTokenExchanger(m_HttpClient, serviceHostResolver);
+
+            var environment = serviceHostResolver?.GetResolvedEnvironment();
+
+            m_UnityApiUrl = environment switch
+            {
+                ServiceEnvironment.Staging => string.Concat("api-staging", s_BaseUnityApiUrl),
+                ServiceEnvironment.Test => string.Concat("api-staging", s_BaseUnityApiUrl),
+                _ => string.Concat("api", s_BaseUnityApiUrl)
+            };
+        }
+
+        // PKCE access token returned from Genesis requires a first exchange targeting a specific targetClientId
+        // before reaching Unity Services exchange endpoint
+        async Task<UnityServicesToken> ExchangeGenesisAccessTokenRequestAsync(string genesisAccessToken, string targetClientId = "ads-publisher")
+        {
+            var exchangeGenesisTokenRequest = new ExchangeGenesisTokenRequest
+            {
+                accessToken = genesisAccessToken, grantType = "EXCHANGE_ACCESS_TOKEN", targetClientId = targetClientId
+            };
+            var stringContent = new StringContent(JsonSerialization.Serialize(exchangeGenesisTokenRequest), Encoding.UTF8,
+                    "application/json");
+            var clientTargetIdTokenResponse = await m_HttpClient.PostAsync($"https://{m_UnityApiUrl}/v1/oauth2/token/exchange", stringContent);
+            var exchangeGenesisAccessTokenResponse = await clientTargetIdTokenResponse.JsonDeserializeAsync<ExchangeGenesisAccessTokenResponse>();
+
+            return await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(new TargetClientIdToken
+                { token = exchangeGenesisAccessTokenResponse.access_token });
+        }
+
+        /// <inheritdoc/>
+        public async Task<UnityServicesToken> ExchangeAsync(string accessToken)
+        {
+            return await ExchangeGenesisAccessTokenRequestAsync(accessToken);
+        }
+    }
 }

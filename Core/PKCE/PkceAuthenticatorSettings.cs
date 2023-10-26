@@ -26,12 +26,27 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// The <see cref="IAccessTokenExchanger{TInput,TOutput}"/> to use for PKCE authentication.
         /// </summary>
-        internal readonly IAccessTokenExchanger<DeviceToken, UnityServicesToken> AccessTokenExchanger;
+        internal readonly IAccessTokenExchanger<string, UnityServicesToken> AccessTokenExchanger;
 
         /// <summary>
         /// The <see cref="IPkceRequestHandler"/> to use for PKCE authentication.
         /// </summary>
         internal readonly IPkceRequestHandler PkceRequestHandler;
+
+        /// <summary>
+        /// The <see cref="IHttpClient"/> to use for PKCE authentication.
+        /// </summary>
+        internal readonly IHttpClient HttpClient;
+
+        /// <summary>
+        /// The <see cref="IAppIdProvider"/> to use for PKCE authentication.
+        /// </summary>
+        internal readonly IAppIdProvider AppIdProvider;
+
+        /// <summary>
+        /// The <see cref="IAppNamespaceProvider"/> to use for PKCE authentication.
+        /// </summary>
+        internal readonly IAppNamespaceProvider AppNamespaceProvider;
 
         /// <summary>
         /// Creates a <see cref="PkceAuthenticatorSettings"/> to inject in a <see cref="PkceAuthenticator"/>.
@@ -40,8 +55,11 @@ namespace Unity.Cloud.Identity
             IAuthenticationPlatformSupport authenticationPlatformSupport,
             IPkceConfigurationProvider pkceConfigurationProvider,
             IPkceRequestHandler pkceRequestHandler,
-            IAccessTokenExchanger<DeviceToken, UnityServicesToken> accessTokenExchanger,
-            IServiceHostResolver serviceHostResolver
+            IAccessTokenExchanger<string, UnityServicesToken> accessTokenExchanger,
+            IServiceHostResolver serviceHostResolver,
+            IHttpClient httpClient,
+            IAppIdProvider appIdProvider,
+            IAppNamespaceProvider appNamespaceProvider
             )
         {
             AuthenticationPlatformSupport = authenticationPlatformSupport;
@@ -49,6 +67,9 @@ namespace Unity.Cloud.Identity
             PkceRequestHandler = pkceRequestHandler;
             AccessTokenExchanger = accessTokenExchanger;
             ServiceHostResolver = serviceHostResolver;
+            HttpClient = httpClient;
+            AppIdProvider = appIdProvider;
+            AppNamespaceProvider = appNamespaceProvider;
         }
     }
 }

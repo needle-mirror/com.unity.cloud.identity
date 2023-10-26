@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Unity.Cloud.Identity
 {
@@ -31,4 +32,5 @@ namespace Unity.Cloud.Identity
         public bool AllowRequestLicense = false;
 #pragma warning restore S1104
     }
+
 }

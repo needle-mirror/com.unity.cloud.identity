@@ -44,4 +44,36 @@ namespace Unity.Cloud.Identity
         public List<LicenseInfoJson> Entitlements;
 #pragma warning restore S1104
     }
+
+    /// <summary>
+    /// Holds the authenticated user information, like organizations the user belongs to (<see cref="OrganizationInfo"/>), and granted licenses (<see cref="LicenseInfo"/>).
+    /// </summary>
+    [Serializable]
+    internal class UnityUserInfoJson
+    {
+        /// <summary>
+        /// The id of the user.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// The genesis id of the user.
+        /// </summary>
+        public string GenesisId { get; set; }
+
+        /// <summary>
+        /// The name of the user.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The email of the user.
+        /// </summary>
+        public string Email { get; set; }
+
+        /// <summary>
+        /// The list of <see cref="Organization"/> the user belongs to.
+        /// </summary>
+        public IEnumerable<OrganizationJson> Organizations { get; set; }
+    }
 }

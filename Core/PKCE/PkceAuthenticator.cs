@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http.Headers;
 using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
@@ -27,14 +28,10 @@ namespace Unity.Cloud.Identity
         static readonly List<string> s_AwaitedQueryArguments = new List<string>() { "code", "state" };
         static readonly string s_StateCancelled = "cancelled";
 
+        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider;
+
         /// <inheritdoc/>
         public event Action<AuthenticationState> AuthenticationStateChanged;
-
-        /// <summary>
-        /// Raised when the authenticator's <see cref="DeviceToken"/> is refreshed.
-        /// </summary>
-        [Obsolete("Not required when using the constructor with IAccessTokenExchanger injection.")]
-        public event Action<DeviceToken> DeviceTokenRefreshed;
 
         LazyPkceAccessTokenRefresher m_AccessTokenRefresher = null;
 
@@ -42,7 +39,7 @@ namespace Unity.Cloud.Identity
 
         readonly string m_DeviceTokenFileName;
 
-        readonly IAccessTokenExchanger<DeviceToken, UnityServicesToken> m_UnityServicesTokenExchanger;
+        readonly IAccessTokenExchanger<string, UnityServicesToken> m_UnityServicesTokenExchanger;
         UnityServicesToken m_UnityServicesToken;
 
         /// <inheritdoc/>
@@ -51,6 +48,11 @@ namespace Unity.Cloud.Identity
             get => m_AuthenticationState;
             private set
             {
+                if (value == m_AuthenticationState)
+                {
+                    return;
+                }
+
                 if (value == AuthenticationState.LoggedOut)
                 {
                     if (m_AuthenticationPlatformSupport.SecretCacheStore != null)
@@ -59,7 +61,8 @@ namespace Unity.Cloud.Identity
                     m_AccessTokenRefresher?.Dispose();
                     m_AccessTokenRefresher = null;
 
-                    m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", string.Empty);
+                    m_UnityServicesToken = null;
+                    m_AuthenticatedUserInfoProvider = null;
                 }
 
                 m_AuthenticationState = value;
@@ -70,75 +73,27 @@ namespace Unity.Cloud.Identity
         readonly IPkceConfigurationProvider m_PkceConfigurationProvider;
         readonly IAuthenticationPlatformSupport m_AuthenticationPlatformSupport;
         readonly IPkceRequestHandler m_PkceRequestHandler;
+        readonly IAppNamespaceProvider m_AppNamespaceProvider = new DefaultAppNamespaceProvider();
+        readonly IOrganizationRepository m_OrganizationRepository;
 
         /// <summary>
         /// Provides a <see cref="PkceAuthenticator"/> that accepts a <see cref="PkceAuthenticatorSettings"/> to handle Proof Key Code Exchange (PKCE) authentication contexts.
         /// </summary>
         /// <param name="pkceAuthenticatorSettings">A <see cref="PkceAuthenticatorSettings"/> that contains the parameters required for constructing the authenticator.</param>
-        public PkceAuthenticator(PkceAuthenticatorSettings pkceAuthenticatorSettings)
+        /// <param name="organizationsRepository">An optional <see cref="IOrganizationRepository"/>.</param>
+        public PkceAuthenticator(PkceAuthenticatorSettings pkceAuthenticatorSettings, IOrganizationRepository organizationsRepository = null)
         {
             m_AuthenticationPlatformSupport = pkceAuthenticatorSettings.AuthenticationPlatformSupport;
             m_PkceConfigurationProvider = pkceAuthenticatorSettings.PkceConfigurationProvider;
             m_PkceRequestHandler = pkceAuthenticatorSettings.PkceRequestHandler;
             m_UnityServicesTokenExchanger = pkceAuthenticatorSettings.AccessTokenExchanger;
+            m_AppNamespaceProvider = pkceAuthenticatorSettings.AppNamespaceProvider;
+
+            m_OrganizationRepository = organizationsRepository ?? new AuthenticatorOrganizationRepository(
+                new ServiceHttpClient(pkceAuthenticatorSettings.HttpClient, this,
+                    pkceAuthenticatorSettings.AppIdProvider), pkceAuthenticatorSettings.ServiceHostResolver);
 
             m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(pkceAuthenticatorSettings.ServiceHostResolver);
-        }
-
-        /// <summary>
-        /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow.
-        /// </summary>
-        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
-        /// <param name="pkceConfigurationProvider">An alternate <see cref="IPkceConfigurationProvider"/> to override the built-in one.</param>
-        /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
-        /// <param name="accessTokenExchanger">A Unity Services token exchange class.</param>
-        /// <param name="pkceRequestHandler">An <see cref="IPkceRequestHandler"/> to customize http requests used in the authentication flow.</param>
-        [Obsolete("Use the constructor with PkceAuthenticatorSettings injection instead.")]
-        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IPkceConfigurationProvider pkceConfigurationProvider, IServiceHostResolver serviceHostResolver, IAccessTokenExchanger<DeviceToken, UnityServicesToken> accessTokenExchanger, IPkceRequestHandler pkceRequestHandler)
-        {
-            m_UnityServicesTokenExchanger = accessTokenExchanger;
-            m_PkceConfigurationProvider = pkceConfigurationProvider;
-            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
-            m_PkceRequestHandler = pkceRequestHandler;
-
-            m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(serviceHostResolver);
-        }
-
-        /// <summary>
-        /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow using built-in PkceRequestHandler and PkceConfigurationProvider.
-        /// </summary>
-        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
-        /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
-        /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> to inject the app identifier required on App settings cloud endpoints.</param>
-        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
-        /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
-        [Obsolete("Use the constructor with PkceAuthenticatorSettings injection instead.")]
-        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IServiceHostResolver serviceHostResolver = null)
-            : this(
-                  authenticationPlatformSupport,
-                  httpClient,
-                  appNameProvider,
-                  null,
-                  serviceHostResolver
-                )
-        { }
-
-        /// <summary>
-        /// Builds a PkceAuthenticator that uses the standard Proof Key Code Exchange (PKCE) authentication flow using custom <see cref="IPkceRequestHandler"/> and <see cref="IPkceConfigurationProvider"/>.
-        /// </summary>
-        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> required to handle platform-specific features in the authentication flow.</param>
-        /// <param name="httpClient">An <see cref="IHttpClient"/> to reach cloud endpoints in the authentication flow.</param>
-        /// <param name="pkceRequestHandler">An <see cref="IPkceRequestHandler"/> to customize http requests used in the authentication flow.</param>
-        /// <param name="pkceConfigurationProvider">An alternate <see cref="IPkceConfigurationProvider"/> to override the built-in one.</param>
-        [Obsolete("Use the constructor with PkceAuthenticatorSettings injection instead.")]
-        public PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IPkceRequestHandler pkceRequestHandler, IPkceConfigurationProvider pkceConfigurationProvider)
-        {
-            pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
-
-            m_PkceConfigurationProvider = pkceConfigurationProvider;
-            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
-            m_PkceRequestHandler = pkceRequestHandler;
-            m_DeviceTokenFileName = s_BaseDeviceTokenFileName;
         }
 
         internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IServiceHostResolver serviceHostResolver)
@@ -146,7 +101,7 @@ namespace Unity.Cloud.Identity
             var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostResolver, appNameProvider);
             pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
 
-            m_UnityServicesTokenExchanger = new DeviceTokenToUnityServicesTokenExchanger(httpClient, serviceHostResolver);
+            m_UnityServicesTokenExchanger = new AccessTokenToUnityServicesTokenExchanger(httpClient, serviceHostResolver);
             m_PkceConfigurationProvider = pkceConfigurationProvider;
             m_AuthenticationPlatformSupport = authenticationPlatformSupport;
             m_PkceRequestHandler = pkceRequestHandler;
@@ -185,7 +140,6 @@ namespace Unity.Cloud.Identity
         {
             if (disposing && m_AccessTokenRefresher != null)
             {
-                m_AccessTokenRefresher.DeviceTokenRefreshed -= OnDeviceTokenRefreshed;
                 m_AccessTokenRefresher?.Dispose();
             }
         }
@@ -287,7 +241,8 @@ namespace Unity.Cloud.Identity
 
                 var redirectUri = await m_AuthenticationPlatformSupport.GetRedirectUriAsync("login");
 
-                var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(redirectResultCode, codeVerifier, redirectUri, pkceConfiguration);
+                var appNamespace = m_AppNamespaceProvider.GetAppNamespace();
+                var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(appNamespace, redirectResultCode, codeVerifier, redirectUri, pkceConfiguration);
 
                 await OnReceivedNonceCodeAsync(pkceConfiguration, requestStringParam);
             }
@@ -363,7 +318,8 @@ namespace Unity.Cloud.Identity
                 : stateOverride;
 
             var redirectUri = await m_AuthenticationPlatformSupport.GetRedirectUriAsync("login");
-            var url = PkceHelper.CreateAuthenticateUrl(state, codeChallenge, redirectUri, pkceConfiguration, stateOverride);
+            var appNamespace = m_AppNamespaceProvider.GetAppNamespace();
+            var url = PkceHelper.CreateAuthenticateUrl(appNamespace, state, codeChallenge, redirectUri, pkceConfiguration, stateOverride);
 
             UrlRedirectResult urlRedirectResult;
 
@@ -389,7 +345,7 @@ namespace Unity.Cloud.Identity
                     break;
                 case UrlRedirectStatus.Success:
                     ValidateQueryArguments(urlRedirectResult.QueryArguments, s_AwaitedQueryArguments);
-                    var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(urlRedirectResult.QueryArguments["code"], codeVerifier, redirectUri, pkceConfiguration, stateOverride);
+                    var requestStringParam = PkceHelper.CreateTokenUrlRequestStringContent(appNamespace, urlRedirectResult.QueryArguments["code"], codeVerifier, redirectUri, pkceConfiguration, stateOverride);
                     await OnUrlRedirectSuccess(pkceConfiguration, urlRedirectResult, state, requestStringParam);
                     break;
             }
@@ -493,7 +449,8 @@ namespace Unity.Cloud.Identity
                 : stateOverride;
 
             var redirectUri = await m_AuthenticationPlatformSupport.GetRedirectUriAsync("signout");
-            var url = PkceHelper.CreateSignOutUrl(state, redirectUri, pkceConfiguration, stateOverride);
+            var appNamespace = m_AppNamespaceProvider.GetAppNamespace();
+            var url = PkceHelper.CreateSignOutUrl(appNamespace, state, redirectUri, pkceConfiguration, stateOverride);
 
             UrlRedirectResult urlRedirectResult;
 
@@ -550,11 +507,11 @@ namespace Unity.Cloud.Identity
             if (pkceConfiguration.CacheRefreshToken && m_AuthenticationPlatformSupport.SecretCacheStore != null)
                 await m_AuthenticationPlatformSupport.SecretCacheStore?.WriteToCacheAsync(m_DeviceTokenFileName, deviceToken.RefreshToken);
 
-            m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(deviceToken);
-            m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", m_UnityServicesToken.AccessToken);
+            m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(deviceToken.AccessToken);
+
+            m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(deviceToken.AccessToken);
 
             m_AccessTokenRefresher = new LazyPkceAccessTokenRefresher(deviceToken, m_PkceRequestHandler, pkceConfiguration);
-            m_AccessTokenRefresher.DeviceTokenRefreshed += OnDeviceTokenRefreshed;
 
             AuthenticationState = AuthenticationState.LoggedIn;
         }
@@ -564,30 +521,36 @@ namespace Unity.Cloud.Identity
             await m_PkceRequestHandler.RevokeRefreshTokenAsync(PkceHelper.CreateRevokeRefreshTokenUrlRequestStringContent(refreshToken, pkceConfiguration));
         }
 
-        void OnDeviceTokenRefreshed(DeviceToken token)
+        /// <inheritdoc/>
+        public string GetUserInfo(string key)
         {
-            DeviceTokenRefreshed?.Invoke(token);
+            return m_AuthenticatedUserInfoProvider?.GetUserInfo(key);
         }
 
         /// <inheritdoc/>
-        public async Task<string> GetAccessTokenAsync()
+        public async Task AddAuthorization(HttpHeaders headers)
         {
-            if (m_AccessTokenRefresher == null)
-                return null;
-
-            if (await m_AccessTokenRefresher.ShouldRefreshAccessToken())
+            if (m_AccessTokenRefresher != null && await m_AccessTokenRefresher.ShouldRefreshAccessToken())
             {
                 var newDeviceToken = await m_AccessTokenRefresher.RefreshAccessTokenAsync();
-                m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(newDeviceToken);
-                m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", m_UnityServicesToken.AccessToken);
+
+                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(newDeviceToken.AccessToken);
+
+                m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(newDeviceToken.AccessToken);
             }
-            return m_UnityServicesToken.AccessToken;
+
+            headers.AddAuthorization(m_UnityServicesToken.AccessToken, ServiceHeaderUtils.k_BearerScheme);
         }
 
         /// <inheritdoc/>
         public Task<bool> HasValidPreconditionsAsync()
         {
             return Task.FromResult(true);
+        }
+
+        public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
+        {
+            return await m_OrganizationRepository.ListOrganizationsAsync();
         }
     }
 

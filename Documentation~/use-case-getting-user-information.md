@@ -1,21 +1,14 @@
-# Get user information
+# Use case: Get user information
 
 This section explains how to set up your scene to get information about your application's user.
 
 Getting user information is an example of a Unity Cloud service that you can call after authenticating the user in your application. This service needs an Access Token to identify the user and authorize the call.
 
-## Prerequisites
+## Before you start
 
-To get user information, you must do the following:
+To use this sample, you must first [Integrate authentication in your scene](use-case-integrating-authentication-in-your-scene.md).
 
-* [Integrate authentication in your scene](use-case-integrating-authentication-in-your-scene.md)
-
-## Overview
-
-To get user information in your scene, perform the following procedures:
-
-1. Instantiate a `UserInfoProvider` in `PlatformServices`
-2. Leverage the `UserInfoProvider` in your scene
+## How do I...?
 
 ### Instantiate a UserInfoProvider in PlatformServices
 

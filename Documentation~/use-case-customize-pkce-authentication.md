@@ -1,31 +1,25 @@
-# Customize the PKCE authentication flow
+# Use case: Customize the PKCE authentication flow
 
 This section explains how to inject your own `IPkceConfigurationProvider` implementation in the `CompositeAuthenticator`.
 
 You can customize the returned `PkceConfiguration` to fulfill security requirements by injecting your own implementation.
 
-## Prerequisites
+## Before you start
 
-To use this sample, do the following:
+To use this sample, you must do the following:
 
 1. Install the [Identity package](installation.md)
 2. Follow the [Get started guide](getting-started.md)
 3. Follow the [Best practice | Dependency injection guide](best-practices-dependency-injection.md)
 4. [Integrate authentication in your scene](use-case-integrating-authentication-in-your-scene.md) to implement the interactive user login flow
 
-## Overview
-
-To inject an `IPkceConfigurationProvider` implementation in the `CompositeAuthenticator`, perform the following procedures:
-
-1. Create a `CustomPkceConfigurationProvider` class
-2. Inject your `CustomPkceConfigurationProvider` instance in the `CompositeAuthenticator` constructor parameters
-3. Optional | Adjust the `PkceConfiguration`'s returned value
+## How do I...?
 
 ### Create a CustomPkceConfigurationProvider class
 
 To create a new `CustomPkceConfigurationProvider` class, follow these steps:
 
-1. Open your Unity project.
+1. Open your Unity Project.
 2. Go to the **Assets** folder in the Project window.
 3. Go to **Add (+)** > **C# Script**.
 4. Rename the new script as `CustomPkceConfigurationProvider`.
@@ -65,7 +59,7 @@ To create a new `CustomPkceConfigurationProvider` class, follow these steps:
         }
     ```
 
-### Inject your CustomPkceConfigurationProvider instance in the CompositeAuthenticator constructor parameters
+### Inject the CustomPkceConfigurationProvider instance in the CompositeAuthenticator constructor parameters
 
 Modify the `PlatformServices` class by adding the `CustomPkceConfigurationProvider` script in the `CompositeAuthenticator` constructor parameters.
 

@@ -17,10 +17,10 @@ URL redirection flows are automatically supported using an internal runtime impl
 
 The supported flows will use different URL schema, per platform, to trigger the activation of the application:
 
-| URL Schema/Platform                                                       | iOS | Android | MacOS | Windows | WebGL | Unity Editor |
-|---------------------------------------------------------------------------|:---:|:-------:|:-----:|:-------:|:-----:|:------------:|
-| https://dt.unity.com/link/\[LINK_PATH\]                                   | x   | x       | x     | x       | o     | o            |
-| \[CUSTOM_URI_SCHEME\]://dt.unity.com/link/\[LINK_PATH\]                   | x   | x       | x     | x       | o     | o            |
-| https://\[CUSTOM_HOST_AND_PATH\]?\[LINK_PARAMS\]                          | o   | o       | o     | o       | x     | o            |
-| \[CUSTOM_URI_SCHEME\]://implicit/callback/[OPERATION]?\[RESPONSE_PARAMS\] | x   | x       | x     | x       | o     | o            |
-| http://localhost:[ANY_PORT]/\[RESPONSE_PATH\]/?\[RESPONSE_PARAMS\]        | o   | o       | o     | o       | o     | x            |
+| URL Schema/Platform                                                         | iOS | Android | MacOS | Windows | WebGL | Unity Editor |
+|---------------------------------------------------------------------------- |:---:|:-------:|:-----:|:-------:|:-----:|:------------:|
+| `https://dt.unity.com/link/\[LINK_PATH\]`                                   | x   | x       | x     | x       | o     | o            |
+| `\[CUSTOM_URI_SCHEME\]://dt.unity.com/link/\[LINK_PATH\]`                   | x   | x       | x     | x       | o     | o            |
+| `https://\[CUSTOM_HOST_AND_PATH\]?\[LINK_PARAMS\]`                          | o   | o       | o     | o       | x     | o            |
+| `\[CUSTOM_URI_SCHEME\]://implicit/callback/[OPERATION]?\[RESPONSE_PARAMS\]` | x   | x       | x     | x       | o     | o            |
+| `http://localhost:[ANY_PORT]/\[RESPONSE_PATH\]/?\[RESPONSE_PARAMS\]`        | o   | o       | o     | o       | o     | x            |
