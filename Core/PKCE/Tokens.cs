@@ -10,8 +10,14 @@ namespace Unity.Cloud.Identity
         public string targetClientId { get; internal set; }
     }
 
+    /// <summary>
+    /// A class with a single token property representing a TargetClientId exchanged token.
+    /// </summary>
     public class TargetClientIdToken
     {
+        /// <summary>
+        /// A string representing a token.
+        /// </summary>
         public string token { get; set; }
     }
 
@@ -161,19 +167,58 @@ namespace Unity.Cloud.Identity
         public int expires_in { get; set; }
     }
 
+    /// <summary>
+    /// An interface to expose authenticated user info claims.
+    /// </summary>
     public interface IAuthenticatedUserInfoProvider
     {
+        /// <summary>
+        /// A method to retrieve the string value for an <see cref="AuthenticatedUserInfoClaims"/>.
+        /// </summary>
+        /// <param name="key">An authenticated user info claim key name.</param>
+        /// <returns>The string value for the given key name.</returns>
         string GetUserInfo(string key);
     }
 
+    /// <summary>
+    /// A static class exposing authenticated user info claims key name.
+    /// </summary>
     public static class AuthenticatedUserInfoClaims
     {
+        /// <summary>
+        /// The access token used to fetch the claims from the /userinfo endpoint.
+        /// </summary>
         public const string AccessToken = "access_token";
+
+        /// <summary>
+        /// The unique identifier of the user as provided by the authenticator party in the "sub" property of the /userinfo endpoint response.
+        /// </summary>
+        /// <remarks>This value is not guaranteed to be a valid Unity Id account, since it can be provided by any authenticator party.</remarks>
         public const string Id = "id";
+
+        /// <summary>
+        /// The full name of the user as provided by the authenticator party.
+        /// </summary>
         public const string Name = "name";
+
+        /// <summary>
+        /// The unique email used to authenticate the user in the authentication flow.
+        /// </summary>
         public const string Email = "email";
+
+        /// <summary>
+        /// The absolute https path to the user picture as provided by the authenticator party.
+        /// </summary>
         public const string Picture = "picture";
+
+        /// <summary>
+        /// The given name of the user as provided by the authenticator party.
+        /// </summary>
         public const string GivenName = "given_name";
+
+        /// <summary>
+        /// The family name of the user as provided by the authenticator party.
+        /// </summary>
         public const string FamilyName = "family_name";
     }
 

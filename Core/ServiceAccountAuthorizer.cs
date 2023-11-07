@@ -9,7 +9,7 @@ namespace Unity.Cloud.Identity
     /// An <see cref="IServiceAuthorizer"/> implementation that expects service account credentials from a provided launch argument or environment variable.
     /// </summary>
     /// <example>
-    /// <code source="../../Samples/Documentation/Scripting/ServiceAccountAuthorizerExample.cs" region="ServiceAccountAuthorizer"/>
+    /// <code source="../Samples/Documentation/Scripting/ServiceAccountAuthorizerExample.cs" region="ServiceAccountAuthorizer"/>
     /// </example>
     public class ServiceAccountAuthorizer : IServiceAuthorizer
     {
@@ -68,7 +68,7 @@ namespace Unity.Cloud.Identity
             }
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
         public Task AddAuthorization(HttpHeaders headers)
         {
             headers.AddAuthorization(m_AccountCredentials, ServiceHeaderUtils.k_BasicScheme);

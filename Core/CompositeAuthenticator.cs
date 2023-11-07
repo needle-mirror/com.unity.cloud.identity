@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {
@@ -9,8 +10,8 @@ namespace Unity.Cloud.Identity
     /// Uses a list of injected <see cref="IAuthenticator"/> to provide support for multiple authentication flows.
     /// </summary>
     /// <remarks>
-    /// The `CompositeAuthenticator` uses internally the first <see cref="IAuthenticator"/> from the injected list that returns a true value when invoking <see cref="IAuthenticator.HasValidPreconditions"/> method.
-    /// Depending on the validated <see cref="IAuthenticator"/>, the authentication flow can require manual interaction with a UI. Use the <see cref="ICompositeAuthenticator.Interactive"/> value to decide if you need to enable manual login features.
+    /// The `CompositeAuthenticator` uses internally the first <see cref="IAuthenticator"/> from the injected list that returns a true value when invoking <see cref="IAuthenticator.HasValidPreconditionsAsync"/> method.
+    /// Depending on the validated <see cref="IAuthenticator"/>, the authentication flow can require manual interaction with a UI. Use the <see cref="ICompositeAuthenticator.RequiresGUI"/> value to decide if you need to enable manual login features.
     /// </remarks>
     /// <example>
     /// <code source="../Samples/Documentation/Scripting/CompositeAuthenticatorExample.cs" region="InitializeAndShutdown"/>
@@ -115,7 +116,7 @@ namespace Unity.Cloud.Identity
             await m_Authenticator.InitializeAsync();
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
         public Task AddAuthorization(HttpHeaders headers)
         {
             return m_Authenticator.AddAuthorization(headers);
@@ -145,11 +146,13 @@ namespace Unity.Cloud.Identity
                 disposableAuthenticator.Dispose();
         }
 
+        /// <inheritdoc/>
         public string GetUserInfo(string key)
         {
             return m_Authenticator.GetUserInfo(key);
         }
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
         {
             return await m_Authenticator.ListOrganizationsAsync();

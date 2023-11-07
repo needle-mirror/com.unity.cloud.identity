@@ -20,6 +20,9 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Creates a <see cref="CompositeAuthenticatorSettingsBuilder"/> that builds a <see cref="CompositeAuthenticatorSettings"/> to inject into the <see cref="CompositeAuthenticator"/>.
         /// </summary>
+        /// <param name="httpClient">An <see cref="IHttpClient"/> instance.</param>
+        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> instance.</param>
+        /// <param name="serviceHostResolver">An <see cref="IServiceHostResolver"/> instance.</param>
         public CompositeAuthenticatorSettingsBuilder(IHttpClient httpClient, IAuthenticationPlatformSupport authenticationPlatformSupport, IServiceHostResolver serviceHostResolver)
         {
             m_HttpClient = httpClient;
@@ -27,6 +30,13 @@ namespace Unity.Cloud.Identity
             m_ServiceHostResolver = serviceHostResolver;
         }
 
+        /// <summary>
+        /// Creates a <see cref="CompositeAuthenticatorSettingsBuilder"/> that builds a <see cref="CompositeAuthenticatorSettings"/> to inject into the <see cref="CompositeAuthenticator"/>.
+        /// </summary>
+        /// <param name="httpClient">An <see cref="IHttpClient"/> instance.</param>
+        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> instance.</param>
+        /// <param name="serviceHostResolver">An <see cref="IServiceHostResolver"/> instance.</param>
+        /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> instance.</param>
         public CompositeAuthenticatorSettingsBuilder(IHttpClient httpClient, IAuthenticationPlatformSupport authenticationPlatformSupport, IServiceHostResolver serviceHostResolver, IAppIdProvider appIdProvider)
         {
             m_HttpClient = httpClient;
@@ -38,6 +48,8 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Adds a default <see cref="PkceAuthenticator"/> to the list of <see cref="IAuthenticator"/>.
         /// </summary>
+        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> instance.</param>
+        /// <param name="appNamespaceProvider">An <see cref="IAppNamespaceProvider"/> instance.</param>
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
         public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider)
         {
@@ -55,6 +67,9 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Adds a default <see cref="BrowserAuthenticatedAccessTokenProvider"/> to the list of <see cref="IAuthenticator"/>.
         /// </summary>
+        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> instance.</param>
+        /// <param name="appNamespaceProvider">An <see cref="IAppNamespaceProvider"/> instance.</param>
+        /// <param name="localStorageKeyNames">An optional Dictionary to define, per hosted domain, what key name to look for an access token in local storage of the browser.</param>
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
         public CompositeAuthenticatorSettingsBuilder AddDefaultBrowserAuthenticatedAccessTokenProvider(IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, Dictionary<string, string> localStorageKeyNames = null)
         {
@@ -73,6 +88,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Adds any <see cref="IAuthenticator"/> to the list of <see cref="IAuthenticator"/>.
         /// </summary>
+        /// <param name="authenticator">An <see cref="IAuthenticator"/> instance.</param>
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
         public CompositeAuthenticatorSettingsBuilder AddAuthenticator(IAuthenticator authenticator)
         {

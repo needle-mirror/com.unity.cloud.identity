@@ -23,7 +23,7 @@ namespace Unity.Cloud.Identity
         string Name { get; }
 
         /// <summary>
-        /// Gets the role of the user in the organization.
+        /// Gets the legacy role of the user in the organization.
         /// </summary>
         string Role { get; }
 

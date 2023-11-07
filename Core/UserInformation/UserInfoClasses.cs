@@ -10,6 +10,9 @@ namespace Unity.Cloud.Identity
     /// </summary>
     public class LicenseInfo
     {
+        /// <summary>
+        /// LicenseInfo constructor.
+        /// </summary>
         public LicenseInfo() {}
 
         internal LicenseInfo(LicenseInfoJson json)

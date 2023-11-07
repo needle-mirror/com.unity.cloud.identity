@@ -14,10 +14,7 @@ namespace Unity.Cloud.Identity.Runtime
     {
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<WebglActivatePlatformSupport>();
 
-        /// <summary>
-        /// Creates a WebglActivatePlatformSupport that handles app activation from an url or key value pairs.
-        /// </summary>
-        /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
+        /// <inheritdoc/>
         public WebglActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
             : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
@@ -44,20 +41,13 @@ namespace Unity.Cloud.Identity.Runtime
 
         static readonly string s_CachedActivationUrl = "cached_activation_url";
 
-        /// <summary>
-        /// The secret cache store.
-        /// </summary>
+        /// <inheritdoc/>
         public override IKeyValueStore SecretCacheStore { get; } = new BrowserKeyValueStore();
 
-        /// <summary>
-        /// The code verifier cache store.
-        /// </summary>
+        /// <inheritdoc/>
         public override IKeyValueStore CodeVerifierCacheStore { get; } = new BrowserKeyValueStore();
 
-        /// <summary>
-        /// Creates a WebglPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
-        /// </summary>
-        /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
+        /// <inheritdoc/>
         public WebglPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
             : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
@@ -120,12 +110,7 @@ namespace Unity.Cloud.Identity.Runtime
             return UrlRedirectionInterceptor.GetRedirectionResult();
         }
 
-        /// <summary>
-        /// Get the redirection Uri expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.
-        /// </summary>
-        /// <returns>
-        /// The redirection Uri expected from the browser when calling <see cref="OpenUrlAndWaitForRedirectAsync"/>.
-        /// </returns>
+        /// <inheritdoc/>
         public override string GetRedirectUri(string operation = null)
         {
             var urlString = HostUrl;

@@ -65,7 +65,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Returns an <see cref="IAuthenticator"/> implementation that expects an access token from a browser environment.
         /// </summary>
-        /// <remarks>The `BrowserAuthenticatedAccessTokenProvider` tries to match running host location with location provided in <see cref="s_LocalStorageKeyNames"/>. Use a single wildcard character (*) to match any host location.</remarks>
+        /// <remarks>The `BrowserAuthenticatedAccessTokenProvider` tries to match running host location with location provided in <see cref="localStorageKeyNames"/>. Use a single wildcard character (*) to match any host location.</remarks>
         /// <param name="pkceAuthenticatorSettings">The <see cref="PkceAuthenticatorSettings"/> that contains all PKCE authentication classes</param>
         /// <param name="localStorageKeyNames">A dictionary with browser locations as keys and local storage key name as values.</param>
         /// <param name="organizationsRepository">An optional <see cref="IOrganizationRepository"/>.</param>
@@ -117,7 +117,7 @@ namespace Unity.Cloud.Identity
             m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", m_UnityServicesToken.AccessToken);
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
         public async Task AddAuthorization(HttpHeaders headers)
         {
             try

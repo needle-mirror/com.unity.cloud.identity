@@ -14,10 +14,11 @@ namespace Unity.Cloud.Identity.Runtime
         /// <summary>
         /// A static factory that handles instantiation of a platform-specific <see cref="IAuthenticationPlatformSupport"/>.
         /// </summary>
-        /// <param name="urlRedirectionInterceptor">
-        /// An optional IUrlRedirectionInterceptor instance.
-        /// If not set, the  <see cref="IAuthenticationPlatformSupport"/> instance generated will use default internal implementation.
-        /// </param>
+        /// <param name="urlRedirectionInterceptor">An optional <see cref="IUrlRedirectionInterceptor"/> instance.</param>
+        /// <param name="appIdProvider">An optional <see cref="IAppIdProvider"/> instance.</param>
+        /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> instance.</param>
+        /// <param name="appNamespaceProvider">An optional <see cref="IAppNamespaceProvider"/> instance.</param>
+        /// <param name="cacheStorePath">An optional full path to a readable/writable directory.</param>
         /// <returns>
         /// A platform-specific <see cref="IAuthenticationPlatformSupport"/> instance.
         /// </returns>

@@ -1,15 +1,41 @@
 # Sample: Authentication sample
 
-You can use the Identity samples to retrieve a valid access token for a user and manage UI states. The Authentication sample outlines how to listen to Authentication state changes in your application to manage the visibility and interactabilty of GameObjects.
+You can use the Unity Cloud Identity samples to retrieve a valid access token for a user and manage UI states. The Authentication sample outlines how to listen to Authentication state changes in your application to manage the visibility and interactabilty of GameObjects.
 
 ## Prerequisites
 
-To use the Identity samples, you require the following:
+To use the Unity Cloud Identity samples, you require the following:
 
 * Installed [Identity](installation.md) package
 * A valid [Unity ID](https://id.unity.com/)
 
-### Main components for the Identity package samples
+## Install the sample
+
+To install the sample, follow these steps:
+
+1. In your Unity Editor Project, go to **Window** > **Package Manager** > **Unity Cloud Identity**.
+2. Expand the **Samples** section.
+3. On the right of the Authentication sample, select **Import**.
+
+   ![Screenshot of the Package Manager's Identity samples](images/import-samples.png)
+
+   After the import process completes, you can view the imported assets under the `Assets/Samples/Unity Cloud Identity` folder.
+
+## Run the sample
+
+To run the sample, follow these steps:
+
+1. In your Unity Editor Project, go to **File** > **Open Scene**.
+2. Go to `Assets/Samples/Unity Cloud Identity/<package-version>/Authentication/Scenes/AuthenticationSample.unity` and run the scene.
+3. In the Game view, select **Login** if you are logged out.
+4. Log into the browser window that launches with your Unity ID account.
+5. Return to the sample scene to confirm that you are logged in.
+
+    > **Note:** Your device stores a refresh token until you log out. This token lets the Identity service automatically attempt to log you in when you relaunch the sample.
+
+6. (Optional) Relaunch the sample, without logging out, to test the automatic login.
+
+### Main components for the Unity Cloud Identity package samples
 
 This section describes the scripts shared in all Identity package samples.
 
@@ -37,32 +63,6 @@ The `ActiveUserController` gets a reference to an `ICompositeAuthenticator`, whi
 
 To open the Active User Controller script, go to the `Assets/Samples/Unity Cloud Identity/<package-version>/Shared/Scripts/UIController/ActiveUserController.cs` file.
 
-## Install the sample
-
-To install the sample, follow these steps:
-
-1. In your Unity Project, go to **Window** > **Package Manager** > **Unity Cloud Identity**.
-2. Expand the **Samples** section.
-3. On the right of the Authentication sample, select **Import**.
-
-   ![Screenshot of the Package Manager's Identity samples](images/import-samples.png)
-
-   After the import process completes, you can view the imported assets under the `Assets/Samples/Unity Cloud Identity` folder.
-
-## Run the sample
-
-To run the sample, follow these steps:
-
-1. In your Unity Project, go to **File** > **Open Scene**.
-2. Go to `Assets/Samples/Unity Cloud Identity/<package-version>/Authentication/Scenes/AuthenticationSample.unity` and run the scene.
-3. In the Game view, select **Login** if you are logged out.
-4. Log into the browser window that launches with your Unity ID account.
-5. Return to the sample scene to confirm that you are logged in.
-
-    > **Note:** Your device stores a refresh token until you log out. This token lets the Identity service automatically attempt to log you in when you relaunch the sample.
-
-6. (Optional) Relaunch the sample, without logging out, to test the automatic login.
-
 ### AuthenticationState Updater script
 
 The `AuthenticationStateUpdater` class manages the authentication state of a user.
@@ -70,3 +70,7 @@ The `AuthenticationStateUpdater` class manages the authentication state of a use
 The `AuthenticationStateUpdater` gets a reference to an `IAuthenticationStateProvider` and exposes an `AuthenticationStateChanged` event. The `AuthenticationStateUpdater` uses the `AuthenticationStateChanged` event to update the state of the UI.
 
 To open the Active User controller script, go to the `Assets/Samples/Unity Cloud Identity/<package-version>/Authentication/Scripts/AuthenticationStateUpdater.cs` file.
+
+## Troubleshooting
+
+Refer to the [troubleshooting](troubleshooting.md#samples-issues) section for help with the Authentication sample.

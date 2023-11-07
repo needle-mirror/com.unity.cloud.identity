@@ -16,32 +16,34 @@ namespace Unity.Cloud.Identity
     }
 
     /// <summary>
-    /// The interface to validate a role assigned to a user.
+    /// The interface to validate and list roles assigned to a user.
     /// </summary>
     public interface IRoleProvider
     {
         /// <summary>
-        /// A Task to return if a role is assigned to a user.
+        /// Validate if a role is assigned to a user.
         /// </summary>
         /// <param name="roleName">The name of the role to look for.</param>
+        /// <returns>A task that once completed returns if a role is assigned to a user.</returns>
         Task<bool> HasRoleAsync(string roleName);
 
         /// <summary>
-        /// A Task to return if a permission is assigned to a user.
+        /// Validate if a permission is assigned to a user.
         /// </summary>
         /// <param name="permission">The permission to look for.</param>
+        /// <returns>A task that once completed returns if a permission is assigned to a user.</returns>
         Task<bool> HasPermissionAsync(string permission);
 
         /// <summary>
-        /// A Task to return the list of roles assigned to a user.
+        /// List roles assigned to a user.
         /// </summary>
-        /// <returns>The list of roles assigned to a user.</returns>
+        /// <returns>A task that once completed returns the list of roles assigned to a user.</returns>
         Task<IEnumerable<string>> ListRolesAsync();
 
         /// <summary>
-        /// A Task to return the list of permissions assigned to a user.
+        /// List permissions assigned to a user.
         /// </summary>
-        /// <returns>The list of permissions assigned to a user.</returns>
+        /// <returns>A task that once completed returns the list of permissions assigned to a user.</returns>
         Task<IEnumerable<string>> ListPermissionsAsync();
     }
 

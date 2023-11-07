@@ -21,6 +21,8 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Creates a <see cref="PkceAuthenticatorSettingsBuilder"/> that builds a <see cref="PkceAuthenticatorSettings"/> to inject into the <see cref="PkceAuthenticator"/>.
         /// </summary>
+        /// <param name="authenticationPlatformSupport">An <see cref="IAuthenticationPlatformSupport"/> instance.</param>
+        /// <param name="serviceHostResolver">An <see cref="IServiceHostResolver"/> instance.</param>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
         public PkceAuthenticatorSettingsBuilder(IAuthenticationPlatformSupport authenticationPlatformSupport,
             IServiceHostResolver serviceHostResolver)
@@ -74,6 +76,7 @@ namespace Unity.Cloud.Identity
         /// Adds a default implementation of <see cref="IAppIdProvider"/> to the authenticator settings.
         /// </summary>
         /// <param name="appIdProvider">The <see cref="IAppIdProvider"/> to provide with the app registered Id.</param>
+        /// <returns>The modified <see cref="PkceAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
         public PkceAuthenticatorSettingsBuilder AddAppIdProvider(IAppIdProvider appIdProvider)
         {
@@ -86,6 +89,7 @@ namespace Unity.Cloud.Identity
         /// Adds a default implementation of <see cref="IAppNamespaceProvider"/> to the authenticator settings.
         /// </summary>
         /// <param name="appNamespaceProvider">The <see cref="IAppNamespaceProvider"/> to provide with the app namespace.</param>
+        /// <returns>The modified <see cref="PkceAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
         public PkceAuthenticatorSettingsBuilder AddAppNamespaceProvider(IAppNamespaceProvider appNamespaceProvider)
         {

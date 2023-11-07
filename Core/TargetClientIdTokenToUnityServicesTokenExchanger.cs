@@ -5,6 +5,9 @@ using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {
+    /// <summary>
+    /// An <see cref="IAccessTokenExchanger{T, T}"/> where the T1 input is a <see cref="TargetClientIdToken"/> and T2 output is a <see cref="UnityServicesToken"/>
+    /// </summary>
     public class TargetClientIdTokenToUnityServicesTokenExchanger : IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken>
     {
         readonly IHttpClient m_HttpClient;
@@ -15,6 +18,8 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Provides Unity Services token from TargetClientIdToken
         /// </summary>
+        /// <param name="httpClient">An <see cref="IHttpClient"/> instance.</param>
+        /// <param name="serviceHostResolver">An <see cref="IServiceHostResolver"/> instance.</param>
         public TargetClientIdTokenToUnityServicesTokenExchanger(IHttpClient httpClient, IServiceHostResolver serviceHostResolver)
         {
             m_HttpClient = httpClient;

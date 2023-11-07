@@ -6,7 +6,7 @@ namespace Unity.Cloud.Identity
 {
 
     /// <summary>
-    /// An interface for authentication flow that implements <see cref="IServiceAuthorizer"/>, <see cref="IAuthenticatedUserInfoProvider"/>, and <see cref="IAuthenticationStateProvider"/>.
+    /// An interface for authentication flow that implements <see cref="IServiceAuthorizer"/>, <see cref="IAuthenticatedUserInfoProvider"/>, <see cref="IOrganizationRepository"/>, and <see cref="IAuthenticationStateProvider"/>.
     /// </summary>
     public interface IAuthenticator : IServiceAuthorizer, IAuthenticatedUserInfoProvider, IOrganizationRepository, IAuthenticationStateProvider
     {
@@ -19,6 +19,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// A task to initialize the <see cref="AuthenticationState"/> from either cache or direct injection value.
         /// </summary>
+        /// <returns>A task.</returns>
         Task InitializeAsync();
     }
 }

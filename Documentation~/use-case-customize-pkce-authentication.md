@@ -19,7 +19,7 @@ To use this sample, you must do the following:
 
 To create a new `CustomPkceConfigurationProvider` class, follow these steps:
 
-1. Open your Unity Project.
+1. Open your Unity Editor Project.
 2. Go to the **Assets** folder in the Project window.
 3. Go to **Add (+)** > **C# Script**.
 4. Rename the new script as `CustomPkceConfigurationProvider`.
@@ -45,13 +45,17 @@ To create a new `CustomPkceConfigurationProvider` class, follow these steps:
                 var pkceConfiguration = new PkceConfiguration
                 {
                     AppName = m_AppNameProvider.GetAppName(),
-                    AllowAnonymous = false,
                     CacheRefreshToken = true,
-                    ClientId = "digital_twins",
-                    LoginUrl = "https://api.unity.com/v1/oauth2/authorize",
-                    TokenUrl = "https://dt.unity.com/api/auth/token/refresh",
-                    RefreshTokenUrl = "https://dt.unity.com/api/auth/token/refresh",
-                    LogoutUrl = "https://dt.unity.com/api/auth/token/revoke",
+                    ClientId = new ClientId("digital_twins"),
+                    ProxyLoginRedirectRoute = "https://services.api.unity.com/app-linking/v1/login/redirect/",
+                    ProxyLoginCompletedRoute = "https://services.api.unity.com/app-linking/v1/login/completed/",
+                    ProxySignOutCompletedRoute = "https://services.api.unity.com/app-linking/v1/signout/completed/",
+                    LoginUrl = $"https://api.unity.com/v1/oauth2/authorize",
+                    TokenUrl = $"https://api.unity.com/v1/oauth2/token",
+                    RefreshTokenUrl = $"https://api.unity.com/v1/oauth2/token",
+                    LogoutUrl = $"https://api.unity.com/v1/oauth2/revoke",
+                    SignOutUrl = $"https://api.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
+                    UserInfoUrl = $"https://api.unity.com/v1/users/current/openid",
                     CustomLoginParams = ""
                 };
                 return await Task.FromResult(pkceConfiguration);
@@ -59,21 +63,37 @@ To create a new `CustomPkceConfigurationProvider` class, follow these steps:
         }
     ```
 
-### Inject the CustomPkceConfigurationProvider instance in the CompositeAuthenticator constructor parameters
+### Inject the CustomPkceConfigurationProvider instance in the PkceAuthenticatorSettingsBuilder
 
-Modify the `PlatformServices` class by adding the `CustomPkceConfigurationProvider` script in the `CompositeAuthenticator` constructor parameters.
+Modify the `PlatformServices` class by adding a new instance of the `CustomPkceConfigurationProvider` in the `PkceAuthenticatorSettingsBuilder` and use the
+resulting `PkceAuthenticatorSettings` to instantiate a `PkceAuthenticator`.
 
     ```csharp
-        public static async Task InitializeAsync()
+        public static void Create()
         {
+            var httpClient = new UnityHttpClient();
             var playerSettings = UnityCloudPlayerSettings.Instance;
-            s_HttpClient = new UnityHttpClient();
+            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
+            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
+            // Create new instance of CustomPkceConfigurationProvider
             var pkceConfigurationProvider = new CustomPkceConfigurationProvider(playerSettings);
+            
+            var customPkceAuthenticatorSettings = new PkceAuthenticatorSettingsBuilder(platformSupport, serviceHostResolver)
+                .AddDefaultConfigurationProviderAndRequestHandler(httpClient, playerSettings, playerSettings)
+                .AddAppIdProvider(playerSettings)
+                // Inject new instance of CustomPkceConfigurationProvider in custom PkceAuthenticatorSettings
+                .AddConfigurationProvider(pkceConfigurationProvider)
+                .AddDefaultAccessTokenExchanger(httpClient)
+                .Build();
 
-            s_CompositeAuthenticator = new CompositeAuthenticator(s_HttpClient, playerSettings, playerSettings, pkceConfigurationProvider);
+            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, platformSupport, serviceHostResolver, playerSettings)
+                .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings, playerSettings)
+                // Inject new instance of PkceAuthenticator created from custom PkceAuthenticatorSettings
+                .AddAuthenticator(new PkceAuthenticator(customPkceAuthenticatorSettings))
+                .Build();
 
-            await s_CompositeAuthenticator.InitializeAsync();
+            s_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);
         }
     ```
 

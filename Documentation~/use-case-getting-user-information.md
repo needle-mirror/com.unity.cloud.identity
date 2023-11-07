@@ -10,64 +10,28 @@ To use this sample, you must first [Integrate authentication in your scene](use-
 
 ## How do I...?
 
-### Instantiate a UserInfoProvider in PlatformServices
+### Create an IAuthenticatedUserInfoProvider and IServiceAuthorizer reference
 
-To instantiate a `UserInfoProvider` in the `PlatformServices` class, see the following steps:
-
-1. Add the following references in the `PlatformServices` class if they're not already present:
-   * A public reference to `IUserInfoProvider` and `IServiceHostResolver`
-   * A private reference to `ServiceHttpClient`, `UserInfoProvider` and `IServiceHostResolver`
+As all `IAuthenticator` inherits the `IAuthenticatedUserInfoProvider` and `IServiceAuthorizer` interface, you simply need to
+reference an `IAuthenticator`, like the `CompositeAuthenticator` as an `IAuthenticatedUserInfoProvider` or `IServiceAuthorizer` to get a reference.
 
     ```csharp
-        static ServiceHttpClient s_ServiceHttpClient;
-        static UserInfoProvider s_UserInfoProvider;
-        static ServiceHostResolver s_ServiceHostResolver;
+        static CompositeAuthenticator s_CompositeAuthenticator;
+        public static ICompositeAuthenticator CompositeAuthenticator => s_CompositeAuthenticator;
 
-        public static IUserInfoProvider UserInfoProvider => s_UserInfoProvider;
-        public static IServiceHostResolver ServiceHostResolver => s_ServiceHostResolver;
-        
+        public static IAuthenticatedUserInfoProvider AuthenticatedUserInfoProvider => s_CompositeAuthenticator;
     ```
 
-2. Initialize the services in the `InitializeAsync` method. The [Integrate authentication in your scene guide](use-case-integrating-authentication-in-your-scene.md) includes definitions of the `s_HttpClient`, `AccessTokenProvider`, and `playerSettings` variables.
+### Leverage the IAuthenticatedUserInfoProvider in your scene
 
-    ```csharp
-        public static async Task InitializeAsync()
-        {
-            // ...
-
-            s_ServiceHostResolver = UnityServiceHostResolverFactory.Create();
-
-            s_ServiceHttpClient = new ServiceHttpClient(s_HttpClient, AccessTokenProvider, playerSettings);
-            s_UserInfoProvider = new UserInfoProvider(s_ServiceHttpClient, s_ServiceHostResolver);
-
-            // ...
-        }
-    ```
-
-3. Shutdown the services in the `Shutdown` method.
-
-    ```csharp
-        public static void Shutdown()
-        {
-            // ...
-            s_ServiceHttpClient = null;
-            s_UserInfoProvider = null;
-            s_ServiceHostResolver = null;
-            
-            // ...
-        }
-    ```
-
-### Leverage the UserInfoProvider in your scene
-
-To leverage the `UserInfoProvider` in your scene, see the following steps:
+To leverage the `IAuthenticatedUserInfoProvider` in your scene, see the following steps:
 
 1. In your scene, create a `Text` field that displays the current authentication state (or the username if the user is logged in).
 ![Creating a text field in the scene](images/usecase2-usertext.png)
 
 2. Create a `UserNameUpdater` script and attach it to the **LoginManager** GameObject. This script fills the text with the correct values based on the authentication state.
 
-3. Update the `UserNameUpdater` class so it references your `Text` field, `IAuthenticator`, and `IUserInfoProvider`.
+3. Update the `UserNameUpdater` class so it references your `Text` field, `IAuthenticator`, and `IAuthenticatedUserInfoProvider`.
 
    ```csharp
         public class UserNameUpdater : MonoBehaviour
@@ -76,7 +40,7 @@ To leverage the `UserInfoProvider` in your scene, see the following steps:
             Text m_Text;
 
             IAuthenticator m_Authenticator;
-            IUserInfoProvider m_UserInfoProvider;
+            IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider;
         }
    ```
 
@@ -86,7 +50,7 @@ To leverage the `UserInfoProvider` in your scene, see the following steps:
         void Awake()
         {
             m_Authenticator = PlatformServices.Authenticator;
-            m_UserInfoProvider = PlatformServices.UserInfoProvider;
+            m_AuthenticatedUserInfoProvider = PlatformServices.AuthenticatedUserInfoProvider;
 
             m_Authenticator.AuthenticationStateChanged += OnAuthenticationStateChanged;
         }
@@ -97,10 +61,10 @@ To leverage the `UserInfoProvider` in your scene, see the following steps:
         }
    ```
 
-5. The `OnAuthenticationStateChanged` method updates the text based on the current authentication state, and the `GetUserInfoAsync` method can be called when the user is logged in.
+5. The `OnAuthenticationStateChanged` method updates the text based on the current authentication state, and the `IAuthenticatedUserInfoProvider.GetUserInfo` method can be called when the user is logged in.
 
    ```csharp
-       async void OnAuthenticationStateChanged(AuthenticationState state)
+       void OnAuthenticationStateChanged(AuthenticationState state)
        {
            switch (state)
            {
@@ -112,11 +76,27 @@ To leverage the `UserInfoProvider` in your scene, see the following steps:
                    m_Text.text = "Logged out";
                    break;
                case AuthenticationState.LoggedIn:
-                   var userInfo = await m_UserInfoProvider.GetUserInfoAsync();
-                   m_Text.text = userInfo.Name;
+                   m_Text.text = m_AuthenticatedUserInfoProvider.GetUserInfo(AuthenticatedUserInfoClaims.Name);
                    break;
            }
        }
    ```
 
-6. Select **Play**. The text updates in real time based on the authentication state.
+6. Select **Play**. The text updates based on the authentication state.
+
+### Inject an IServiceAuthorizer in ServiceHttpClient to access resources on Unity Cloud.
+
+Since all `IAuthenticator` inherits the `IServiceAuthorizer` interface, you can inject a reference from any
+`IAuthenticator` class implementation, like the `CompositeAuthenticator`, into the `ServiceHttpClient` constructor method as a valid `IServiceAuthorizer`.
+
+The `ServiceHttpClient` can then be injected in any class of other Unity.Cloud unity packages to access resources on Unity Cloud.
+
+```csharp
+        var httpClient = new UnityHttpClient();
+        var playerSettings = UnityCloudPlayerSettings.Instance;
+        var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
+        // Injecting the CompositeAuthenticator as an IServiceAuthorizer to build the ServiceHttpClient
+        var serviceHttpClient = new ServiceHttpClient(httpClient, s_CompositeAuthenticator, playerSettings);
+        // Injecting the serviceHttpClient to build an authorized IAssetRepository to retrieve IAsset, IDataset, ... from Unity Cloud.
+        var assetRepository = AssetRepositoryFactory.Create(serviceHttpClient, serviceHostResolver);
+   ```

@@ -23,10 +23,7 @@ namespace Unity.Cloud.Identity.Runtime
 #endif
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<IosPkcePlatformSupport>();
 
-        /// <summary>
-        /// Creates a IosPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
-        /// </summary>
-        /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
+        /// <inheritdoc/>
         public IosPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
             : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {

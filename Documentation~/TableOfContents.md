@@ -3,7 +3,6 @@
   * [Installation](installation.md)
   * [Basic concepts](basic-concepts.md)
   * [Security](security.md)
-  * [Upgrading](upgrade-guide.md)
 * [Get started](getting-started.md)
 * [Best practice | Dependency injection](best-practices-dependency-injection.md)
 * [URL redirection flows](url-redirection-flows.md)
@@ -13,6 +12,8 @@
 * Use cases
   * [Integrate authentication in your scene](use-case-integrating-authentication-in-your-scene.md)
   * [Get user information](use-case-getting-user-information.md)
+  * [Service Account](service-accounts.md)
+  * [Unity Editor Authenticator](unity-editor-authenticator.md)
+  * [Unity entities Roles and Permissions](entities-rbac.md)
   * [Customize the PKCE authentication flow](use-case-customize-pkce-authentication.md)
-  * [WebGL build & deployment recommendations](use-case-webgl-build-deployment.md)
 * [Troubleshooting](troubleshooting.md)

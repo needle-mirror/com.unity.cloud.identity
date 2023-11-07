@@ -527,7 +527,7 @@ namespace Unity.Cloud.Identity
             return m_AuthenticatedUserInfoProvider?.GetUserInfo(key);
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
         public async Task AddAuthorization(HttpHeaders headers)
         {
             if (m_AccessTokenRefresher != null && await m_AccessTokenRefresher.ShouldRefreshAccessToken())
@@ -548,6 +548,7 @@ namespace Unity.Cloud.Identity
             return Task.FromResult(true);
         }
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
         {
             return await m_OrganizationRepository.ListOrganizationsAsync();

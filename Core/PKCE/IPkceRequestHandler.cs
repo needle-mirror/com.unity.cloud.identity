@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// This interface defines methods related to retrieving pkce-related tokens
+    /// This interface defines methods for all Pkce authenticator http requests.
     /// </summary>
     public interface IPkceRequestHandler
     {

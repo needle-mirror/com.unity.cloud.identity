@@ -63,4 +63,4 @@ Please note that if the `CompositeAuthenticatorSettings` added <b>automated flow
 
 After you set up your login flow, communication with other Unity Cloud services is possible. All Unity Cloud services expect an instance of `IServiceAuthorizer` to apply authorization information to HTTP requests, which the `PlatformServices` provides.
 
-For an example of a service that expects an `IAccessTokenProvider`, refer to the [Get user information guide](use-case-getting-user-information.md).
+For an example of a service that expects an `IServiceAuthorizer`, refer to the [Get user information guide](use-case-getting-user-information.md).

@@ -2,7 +2,7 @@
 
 # Installation
 
-This section describes how to install Unity Cloud Identity in your Unity Project. Before you install the package, make sure you meet the [prerequisites](prerequisites.md).
+This section describes how to install Unity Cloud Identity in your Unity Editor Project. Before you install the package, make sure you meet the [prerequisites](prerequisites.md).
 
 > **Note:** This prerequisite applies only to the Internal artifactory procedure.
 
@@ -10,7 +10,7 @@ This section describes how to install Unity Cloud Identity in your Unity Project
 
 To install the Unity Cloud Identity package, follow these steps:
 
-1. In your Unity Project, go to **Windows** > **Package Manager**.
+1. In your Unity Editor Project, go to **Windows** > **Package Manager**.
 2. On the status bar, select the Add (**+**) button.
 3. From the Add menu, select  **Add + package by name**. </br>**Name** and **Version** fields appear.
 4. In the **Name** field, enter `com.unity.cloud.identity`.

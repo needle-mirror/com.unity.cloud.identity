@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Unity.Cloud.Identity.Editor
 {
     /// <summary>
-    /// Provides an <see cref="IAuthenticator"/> to access the user authenticated session in the Unity Editor.
+    /// An <see cref="IAuthenticator"/> implementation to access the user authenticated session in the Unity Editor.
     /// </summary>
     public class UnityEditorAuthenticator : IAuthenticator, IDisposable
     {
@@ -51,6 +51,7 @@ namespace Unity.Cloud.Identity.Editor
         /// <summary>
         /// Returns an <see cref="IAuthenticator"/> implementation that expects an access token from a Unity Editor environment.
         /// </summary>
+        /// <param name="accessTokenExchanger">An <see cref="IAccessTokenExchanger{T1, T2}"/> where the T1 input is a <see cref="TargetClientIdToken"/> and T2 output is a <see cref="UnityServicesToken"/></param>
         public UnityEditorAuthenticator(IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> accessTokenExchanger)
         {
             m_TargetClientIdTokenToUnityServicesTokenExchanger = accessTokenExchanger;
@@ -116,6 +117,7 @@ namespace Unity.Cloud.Identity.Editor
             }
         }
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
         {
             return await m_OrganizationRepository.ListOrganizationsAsync();
@@ -163,7 +165,7 @@ namespace Unity.Cloud.Identity.Editor
 #endif
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
         public async Task AddAuthorization(HttpHeaders headers)
         {
 #if UNITY_EDITOR
@@ -181,6 +183,7 @@ namespace Unity.Cloud.Identity.Editor
 #endif
         }
 
+        /// <inheritdoc/>
         public string GetUserInfo(string key)
         {
             return m_AuthenticatedUserInfoProvider?.GetUserInfo(key);

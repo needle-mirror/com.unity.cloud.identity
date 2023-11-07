@@ -11,10 +11,7 @@ namespace Unity.Cloud.Identity.Runtime
     {
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<WindowsActivatePlatformSupport>();
 
-        /// <summary>
-        /// Creates a WindowsActivatePlatformSupport that handles app activation from an url or key value pairs.
-        /// </summary>
-        /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
+        /// <inheritdoc/>
         public WindowsActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
             : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
@@ -45,10 +42,7 @@ namespace Unity.Cloud.Identity.Runtime
         /// </returns>
         public override string GetAppStateOverride() => UrlRedirectionInterceptor.GetRedirectProcessId().ToString();
 
-        /// <summary>
-        /// Creates a WindowsPkcePlatformSupport instance using an IUrlRedirectionInterceptor.
-        /// </summary>
-        /// <param name="urlRedirectionInterceptor">The IUrlRedirectionInterceptor that will intercept the authentication response sent after completing a login operation in browser.</param>
+        /// <inheritdoc/>
         public WindowsPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
             : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {

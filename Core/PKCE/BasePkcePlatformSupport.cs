@@ -40,6 +40,9 @@ namespace Unity.Cloud.Identity
         /// </summary>
         protected string m_LoginUrl = string.Empty;
 
+        /// <summary>
+        /// The <see cref="IUrlProcessor"/> that manages url processing after interception.
+        /// </summary>
         protected readonly IUrlProcessor m_UrlProcessor;
         readonly IAppIdProvider m_AppIdProvider;
         readonly IAppNameProvider m_AppNameProvider;
@@ -49,7 +52,12 @@ namespace Unity.Cloud.Identity
         /// Creates a BasePkcePlatformSupport that handles app activation from an url or key value pairs.
         /// </summary>
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
-        /// <param name="activationUrl">An optional activation URL</param>
+        /// <param name="urlProcessor">An <see cref="IUrlProcessor"/> that manages url processing after interception.</param>
+        /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> instance.</param>
+        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> instance.</param>
+        /// <param name="appNamespaceProvider">An <see cref="IAppNamespaceProvider"/> instance.</param>
+        /// <param name="cacheStorePath">A full path to a readable/writable directory.</param>
+        /// <param name="activationUrl">An optional activation URL.</param>
         public BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
         {
             m_UrlProcessor = urlProcessor;
@@ -130,12 +138,7 @@ namespace Unity.Cloud.Identity
             }
         }
 
-        /// <summary>
-        /// No <see cref="UrlRedirectResult"/> expected at app initializing time.
-        /// </summary>
-        /// <returns>
-        /// A null value.
-        /// </returns>
+        /// <inheritdoc/>
         public virtual UrlRedirectResult? GetRedirectionResult()
         {
             return null;

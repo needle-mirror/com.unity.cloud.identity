@@ -6,6 +6,9 @@ using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {
+    /// <summary>
+    /// An <see cref="IAccessTokenExchanger{T, T}"/> where the T1 input is a DeviceToken and T2 output is a <see cref="UnityServicesToken"/>
+    /// </summary>
     public class DeviceTokenToUnityServicesTokenExchanger : IAccessTokenExchanger<DeviceToken, UnityServicesToken>
     {
 
@@ -20,6 +23,8 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Provides Unity Services token from DeviceToken
         /// </summary>
+        /// <param name="httpClient">An <see cref="IHttpClient"/> instance.</param>
+        /// <param name="serviceHostResolver">An <see cref="IServiceHostResolver"/> instance.</param>
         public DeviceTokenToUnityServicesTokenExchanger(IHttpClient httpClient, IServiceHostResolver serviceHostResolver)
         {
             m_HttpClient = httpClient;
@@ -61,6 +66,9 @@ namespace Unity.Cloud.Identity
         }
     }
 
+    /// <summary>
+    /// An <see cref="IAccessTokenExchanger{T, T}"/> where the T1 input is a string and T2 output is a <see cref="UnityServicesToken"/>
+    /// </summary>
     public class AccessTokenToUnityServicesTokenExchanger : IAccessTokenExchanger<string, UnityServicesToken>
     {
 
@@ -75,6 +83,8 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Provides Unity Services token from DeviceToken
         /// </summary>
+        /// <param name="httpClient">An <see cref="IHttpClient"/> instance.</param>
+        /// <param name="serviceHostResolver">An <see cref="IServiceHostResolver"/> instance.</param>
         public AccessTokenToUnityServicesTokenExchanger(IHttpClient httpClient, IServiceHostResolver serviceHostResolver)
         {
             m_HttpClient = httpClient;

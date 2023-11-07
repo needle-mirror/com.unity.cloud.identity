@@ -12,13 +12,14 @@ namespace Unity.Cloud.Identity
     public interface IOrganizationRepository
     {
         /// <summary>
-        /// Returns an `IEnumerable` of type <see cref="IOrganization"/>.
+        /// List <see cref="IOrganization"/>.
         /// </summary>
+        /// <returns>A task that once completed returns an `IEnumerable` of type <see cref="IOrganization"/>.</returns>
         Task<IEnumerable<IOrganization>> ListOrganizationsAsync();
     }
 
     /// <summary>
-    /// Lists organizations from Cloud services.
+    /// An <see cref="IOrganizationRepository"/> implementation that lists organizations from Cloud services.
     /// </summary>
     public class AuthenticatorOrganizationRepository : IOrganizationRepository
     {
@@ -31,7 +32,7 @@ namespace Unity.Cloud.Identity
         /// Builds an <see cref="AuthenticatorOrganizationRepository"/> class to list organizations from Cloud services.
         /// </summary>
         /// <param name="serviceHttpClient">A <see cref="IServiceHttpClient"/> implementation.</param>
-        /// <param name="serviceHostResolver">A <see cref="ServicesHostConfiguration"/> instance.</param>
+        /// <param name="serviceHostResolver">A <see cref="IServiceHostResolver"/> instance.</param>
         public AuthenticatorOrganizationRepository(IServiceHttpClient serviceHttpClient, IServiceHostResolver serviceHostResolver)
         {
             var unityServicesDomainResolver = new UnityServicesDomainResolver(true);
