@@ -9,7 +9,7 @@ namespace Unity.Cloud.Identity
     public class UnityServicesToken
     {
         /// <summary>
-        /// The Unity Services access token
+        /// The Unity Services access token.
         /// </summary>
         public string AccessToken { get; internal set; }
     }

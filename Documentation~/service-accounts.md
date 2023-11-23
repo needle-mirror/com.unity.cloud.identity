@@ -6,7 +6,7 @@ A service account allows authorization for internal headless scenarios (automate
 
 1. As the owner or manager of a Unity Organization, you can [create a Service Account](https://services.docs.unity.com/docs/service-account-auth/#create-a-service-account), and assign it any roles for this organization and its projects (depending on your needs).
 2. Once the account is created, be sure to store its credentials (`key ID` and `secret key`) **in a secure and private location**.
-3. You can now simply refer to those credentials in your app, following the '**keyID**:**secret**' format, to authorize your calls to Unity Cloud services.
+3. You can now refer to those credentials in your app, following the '**keyID**:**secret**' format, to authorize your calls to Unity Cloud services.
 
 ## Using the ServiceAccountAuthorizer
 

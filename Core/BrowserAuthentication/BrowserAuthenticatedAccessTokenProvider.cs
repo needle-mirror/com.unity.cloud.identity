@@ -24,12 +24,9 @@ namespace Unity.Cloud.Identity
         public static Dictionary<string, string> DefaultLocalStorageKeyNames =>
             new()
             {
-                { "dev.staging.dashboard.unity3d.com", "genesis-access-token-staging" },
-                { "staging.dashboard.unity3d.com", "genesis-access-token-staging" },
-                { "dashboard.unity3d.com", "genesis-access-token" },
-                { "dev.staging.dashboard.unity.com", "genesis-access-token-staging" },
-                { "staging.dashboard.unity.com", "genesis-access-token-staging" },
-                { "dashboard.unity.com", "genesis-access-token" }
+                { "dev.staging.cloud.unity.com", "genesis-access-token-staging" },
+                { "staging.cloud.unity.com", "genesis-access-token-staging" },
+                { "cloud.unity.com", "genesis-access-token" }
             };
 
         readonly string m_LocalStorageKeyName;
@@ -154,7 +151,7 @@ namespace Unity.Cloud.Identity
         /// <returns>If the <see cref="BrowserAuthenticatedAccessTokenProvider"/> running instance has access to an access token.</returns>
         public Task<bool> HasValidPreconditionsAsync()
         {
-            if (HasValidUrl(new[]{ m_AuthenticationPlatformSupport.ActivationUrl, m_AuthenticationPlatformSupport.HostUrl }, out _))
+            if (!string.IsNullOrEmpty(m_LocalStorageKeyName))
             {
                 return m_AuthenticationPlatformSupport.SecretCacheStore.ValidateFilenameExistsAsync(m_LocalStorageKeyName);
             }
@@ -163,7 +160,7 @@ namespace Unity.Cloud.Identity
 
         string GetHostAccessTokenFilename(Dictionary<string, string> KeyNameDictionary)
         {
-            if (HasValidUrl(new[]{ m_AuthenticationPlatformSupport.ActivationUrl, m_AuthenticationPlatformSupport.HostUrl }, out Uri browserUri))
+            if (HasValidUrl(new[]{ m_AuthenticationPlatformSupport.ActivationUrl }, out Uri browserUri))
             {
                 foreach (var kvp in KeyNameDictionary)
                 {
@@ -182,7 +179,7 @@ namespace Unity.Cloud.Identity
                     }
                 }
             }
-            return "";
+            return null;
         }
 
         bool HasValidUrl(string[] urls, out Uri validUri)

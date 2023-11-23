@@ -7,7 +7,7 @@ using Unity.Cloud.Common;
 namespace Unity.Cloud.Identity
 {
     /// <summary>
-    /// An <see cref="IAccessTokenExchanger{T, T}"/> where the T1 input is a DeviceToken and T2 output is a <see cref="UnityServicesToken"/>
+    /// An <see cref="IAccessTokenExchanger{T, T}"/> where the T1 input is a DeviceToken and T2 output is a <see cref="UnityServicesToken"/>.
     /// </summary>
     public class DeviceTokenToUnityServicesTokenExchanger : IAccessTokenExchanger<DeviceToken, UnityServicesToken>
     {
@@ -67,7 +67,7 @@ namespace Unity.Cloud.Identity
     }
 
     /// <summary>
-    /// An <see cref="IAccessTokenExchanger{T, T}"/> where the T1 input is a string and T2 output is a <see cref="UnityServicesToken"/>
+    /// An <see cref="IAccessTokenExchanger{T, T}"/> where the T1 input is a string and T2 output is a <see cref="UnityServicesToken"/>.
     /// </summary>
     public class AccessTokenToUnityServicesTokenExchanger : IAccessTokenExchanger<string, UnityServicesToken>
     {

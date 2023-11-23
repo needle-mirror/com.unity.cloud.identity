@@ -1,26 +1,26 @@
 {
   "name": "com.unity.cloud.identity",
-  "version": "1.0.0-pre.1",
+  "version": "1.0.0-pre.2",
   "displayName": "Unity Cloud Identity",
   "description": "Unity Cloud Identity provides client support for all Identity and Access Management (IAM) service features.",
   "unity": "2022.3",
   "dependencies": {
-    "com.unity.cloud.common": "1.0.0-pre.1"
+    "com.unity.cloud.common": "1.0.0-pre.2"
   },
   "relatedPackages": {
-    "com.unity.cloud.identity.tests": "1.0.0-pre.1"
+    "com.unity.cloud.identity.tests": "1.0.0-pre.2"
   },
   "_upm": {
-    "changelog": "### Changed\n- Improved information in README\n- Move app registration documentation to the Common package.\n- Updated LICENSE.md file.\n- Improved manual documentation and scripting API."
+    "changelog": "### Changed\n- Improved Get User Info sample\n- Switched from multiple asmef files to one asmdef file in Samples/Shared and multiple asmref files in each sample folder.\n- Added the !UC_EXCLUDE_SAMPLES constraint to the asmdef file in Samples/Shared and removed the conditional compilation code in the sample scripts.\n- [Breaking] Removing domain host validation in `BrowserAuthenticatedAccessTokenProvider`."
   },
   "upmCi": {
-    "footprint": "79c0fe4000f327eeb507cdc9fe0b3a7270e88cb0"
+    "footprint": "e376212e54f1985096bd2165711a05ef00481bd3"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/digital-twins-sdk.git",
     "type": "git",
-    "revision": "b40c64c62e793641c7e9466906448f096c764295"
+    "revision": "9eddc958b886388f7ab226d78a4e9962a8a58728"
   },
   "samples": [
     {

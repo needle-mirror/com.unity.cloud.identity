@@ -1,10 +1,8 @@
-> :bulb: **TIP!** Automatically add the latest version of Unity Cloud Identity to the Unity Editor! <button onclick="window.location.href='com.unity3d.kharma:upmpackage/com.unity.cloud.identity';">Add package</button>
+:bulb: **TIP!** Automatically add the latest version of Unity Cloud Identity to the Unity Editor! <button onclick="window.location.href='com.unity3d.kharma:upmpackage/com.unity.cloud.identity';">Add package</button>
 
 # Installation
 
 This section describes how to install Unity Cloud Identity in your Unity Editor Project. Before you install the package, make sure you meet the [prerequisites](prerequisites.md).
-
-> **Note:** This prerequisite applies only to the Internal artifactory procedure.
 
 ## Install from the Unity Package Manager
 

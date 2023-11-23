@@ -7,7 +7,7 @@ to fetch Unity Organizations and Unity Projects of the logged in user and its as
 
 ## UnityEditorAuthenticator usage
 
-Here is an example of instanciation of the `UnityEditorAuthenticator` in a `UnityEditor.EditorWindow` derived class:
+Here is an example of instantiation of the `UnityEditorAuthenticator` in a `UnityEditor.EditorWindow` derived class:
 
 ```csharp
     internal class MyEditorWindow : EditorWindow

@@ -12,7 +12,7 @@ namespace Unity.Cloud.Identity
     public interface IOrganizationRepository
     {
         /// <summary>
-        /// List <see cref="IOrganization"/>.
+        /// Lists <see cref="IOrganization"/>.
         /// </summary>
         /// <returns>A task that once completed returns an `IEnumerable` of type <see cref="IOrganization"/>.</returns>
         Task<IEnumerable<IOrganization>> ListOrganizationsAsync();

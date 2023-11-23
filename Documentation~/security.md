@@ -14,27 +14,28 @@ The `PkceConfiguration.DefaultConfiguration` prevents guest users access to any 
 
 The `PkceConfiguration.DefaultConfiguration` has the following values:
 
-    ```csharp
-        {
-            AppName = "default",
-            CacheRefreshToken = true,
-            ClientId = new ClientId("digital_twins"),
-            ProxyLoginRedirectRoute = "https://services.api.unity.com/app-linking/v1/login/redirect/",
-            ProxyLoginCompletedRoute = "https://services.api.unity.com/app-linking/v1/login/completed/",
-            ProxySignOutCompletedRoute = "https://services.api.unity.com/app-linking/v1/signout/completed/",
-            LoginUrl = $"https://api.unity.com/v1/oauth2/authorize",
-            TokenUrl = $"https://api.unity.com/v1/oauth2/token",
-            RefreshTokenUrl = $"https://api.unity.com/v1/oauth2/token",
-            LogoutUrl = $"https://api.unity.com/v1/oauth2/revoke",
-            SignOutUrl = $"https://api.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
-            UserInfoUrl = $"https://api.unity.com/v1/users/current/openid",
-            CustomLoginParams = ""
-        }
-    ```
+```csharp
+    {
+        AppName = "default",
+        CacheRefreshToken = true,
+        ClientId = new ClientId("digital_twins"),
+        ProxyLoginRedirectRoute = "https://services.api.unity.com/app-linking/v1/login/redirect/",
+        ProxyLoginCompletedRoute = "https://services.api.unity.com/app-linking/v1/login/completed/",
+        ProxySignOutCompletedRoute = "https://services.api.unity.com/app-linking/v1/signout/completed/",
+        LoginUrl = $"https://api.unity.com/v1/oauth2/authorize",
+        TokenUrl = $"https://api.unity.com/v1/oauth2/token",
+        RefreshTokenUrl = $"https://api.unity.com/v1/oauth2/token",
+        LogoutUrl = $"https://api.unity.com/v1/oauth2/revoke",
+        SignOutUrl = $"https://api.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
+        UserInfoUrl = $"https://api.unity.com/v1/users/current/openid",
+        CustomLoginParams = ""
+    }
+```
 
 ## CacheRefreshToken setting
 
-> **Important**: Applications with high security requirements should set the `CacheRefreshToken` to `false`.
+>[!IMPORTANT]
+>Applications with high security requirements should set the `CacheRefreshToken` to `false`.
 
 The `CacheRefreshToken` configuration is the most critical setting for security. There are implications of setting it to `true` or `false` and inherent tradeoffs between security and the user experience. The following are the setting details:
 

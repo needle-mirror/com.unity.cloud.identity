@@ -1,5 +1,3 @@
-#if !UC_EXCLUDE_SAMPLES
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -92,4 +90,3 @@ namespace Unity.Cloud.Identity.Samples
         }
     }
 }
-#endif

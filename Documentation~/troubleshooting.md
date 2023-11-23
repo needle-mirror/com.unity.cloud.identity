@@ -25,7 +25,7 @@ To avoid runtime errors when building with this package, follow these steps:
 
 This sample isn't created to run with the [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest) package. If you are using this package in your Unity Editor Project, your mouse selections may not be detected.
 
-To fix this, set your Project to support both the built-in input system and the [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest) package: 
+To fix this, set your Project to support both the built-in input system and the [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest) package:
 
 1. Go to **Edit > Project Settings > Player**.
 2. Set Active Input Handling to **Both**.

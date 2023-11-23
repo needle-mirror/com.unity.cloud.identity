@@ -4,7 +4,8 @@ Unity Cloud Identity package can list Unity entities (Unity Organizations as `IO
 
 Roles and permissions assigned to a user can be listed or validated using awaitable methods from `IOrganization` and `IProject` implementations.
 
-> **Note:** Different roles and permissions can be assigned to a user on a Unity Organization and on a Unity Project. See the list of [available roles and permissions](https://services.docs.unity.com/docs/service-account-auth/#available-roles).
+>[!NOTE]
+>Different roles and permissions can be assigned to a user on a Unity Organization and on a Unity Project. See the list of [available roles and permissions](https://services.docs.unity.com/docs/service-account-auth/#available-roles).
 
 ## Fetching Unity Organizations for a user
 
@@ -72,7 +73,7 @@ The `IOrganization` interface exposes a `ListProjectsAsync()` method to fetch a 
     }
 ```
 
-## List and Validate Roles or Permissions for Unity entities
+## List and validate roles or permissions for Unity entities
 
 Both `IOrganization` and `IProject` implements the `IRoleProvider` interface. They both expose awaitable methods to list and validate roles and permissions assigned to the user.
 
@@ -90,7 +91,7 @@ You can use roles and permissions information to provide a better user experienc
     var userPermissions = await SelectedOProject.ListPermissionsAsync();
 ```
 
-> **Note:** When a user has the `IOrganization.Role` value of `owner` or `manager`, it is considered as having all available roles and permissions over all `IProject` of this `IOrganization`.
+>[!NOTE]
+>When a user has the `IOrganization.Role` value of `owner` or `manager`, it is considered as having all available roles and permissions over all `IProject` of this `IOrganization`.
 Calling ListRolesAsync() or ListPermissionsAsync() method of these `IProject` returns an empty list, and calling HasRoleAsync() or HasPermissionAsync() method of these `IProject` returns false.
 Consider validating first the `IOrganization.Role` value of the logged in user before calling `IRoleProvider` methods on any `IProject` belonging to this `IOrganization`.
-       

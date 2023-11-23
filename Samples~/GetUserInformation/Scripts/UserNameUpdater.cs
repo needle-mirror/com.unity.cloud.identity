@@ -1,7 +1,5 @@
-#if !UC_EXCLUDE_SAMPLES
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +25,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
 
         readonly List<IProject> m_Projects = new();
         IOrganization SelectedOrganization;
+        IEnumerable<string> m_OrganizationRoles;
 
         void Awake()
         {
@@ -88,6 +87,9 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
         async Task ApplyOrganizationSelectionChanged(IOrganization organization)
         {
             SelectedOrganization = organization;
+
+            m_OrganizationRoles = await SelectedOrganization.ListRolesAsync();
+
             m_Projects.Clear();
 
             var projectsEnumerator = SelectedOrganization.ListProjectsAsync(Range.All).GetAsyncEnumerator();
@@ -113,9 +115,10 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
             if (withProjects)
             {
                 sb.Append($"\n\n User has access to {m_Projects.Count()} projects in '{SelectedOrganization.Name}'.");
+                var roleList = String.Join(", ", m_OrganizationRoles);
+                sb.Append($"\n\n Full list of assigned roles in organization:\n {roleList}.");
             }
             m_UserInfoText.text = sb.ToString();
         }
     }
 }
-#endif

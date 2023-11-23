@@ -1,6 +1,6 @@
 # Get started
 
-This getting started guide outlines the basics of setting up a Unity Editor Project with Unity Cloud Identity.
+This getting started guide outlines the basics of setting up a Unity Editor Project with Unity Cloud Identity. Before you begin, make sure you meet the [prerequisites](prerequisites.md).
 
 ## Install the package
 

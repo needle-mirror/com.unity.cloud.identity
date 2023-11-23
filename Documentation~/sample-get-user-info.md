@@ -31,7 +31,8 @@ To run the sample, follow these steps:
 4. Log into the browser window that launches with your Unity ID account.
 5. Return to the sample scene to confirm that you are logged in.
 
-    > **Note:** Your device stores a refresh token until you log out. This token lets the Identity service automatically attempt to log you in when you relaunch the sample.
+    >[!NOTE]
+    >Your device stores a refresh token until you log out. This token lets the Identity service automatically attempt to log you in when you relaunch the sample.
 
 6. Your username is displayed along with information about how you received the access token, which organizations, projects you have access to and what legacy role you have on a selected organization.
 

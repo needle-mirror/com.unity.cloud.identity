@@ -7,7 +7,7 @@ This section outlines the different URL redirection flows supported in a registe
 The following are the supported flows:
 
 - Automatic URL redirection triggered from the default OS browser after a successful login
-- User triggered URL redirection when manually clicking on a link
+- User triggered URL redirection when manually selecting a link
 
 ## UrlRedirectionInterceptor class
 
