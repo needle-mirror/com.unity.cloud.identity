@@ -1,8 +1,41 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [1.0.0-pre.5] - 2024-01-15
+
+### Added
+- [Breaking] `ChannelServiceRequest`, `ChannelRequest`, `ChannelPkcePlatformSupport`, `ChannelInfo` from Unity.Cloud.Interop to Unity.Cloud.Identity.
+
+### Changed
+- [Breaking] Moved `IChannelProvider`, `ChannelProvider`, `ChannelJson`, `ChannelIdResponseJson` from Unity.Cloud.Interop to Unity.Cloud.Identity and maked them internal.
+- Update com.unity.cloud.common dependency to 1.0.0-pre.5.
+
+## [1.0.0-pre.4] - 2023-12-20
+
+### Changed
+- Migrated interoperability classes from Common to Identity.
+
+### Removed
+- [Breaking] Removed `AppInfo`, `AppInfoProvider`, `IAppInfoProvider` and `UnityCloudAppRegistration`.
+
+## [1.0.0-pre.3] - 2023-12-07
+
+### Added
+- Added `UnityCloudPlayerSettings` class and unit tests.
+
+### Changed
+- [Breaking] Moved code causing circular dependency from Common/Editor/Settings and Common/Editor/BuildTools to Identity/Editor.
+- Removed remaining hard-coded domain host validation in `BrowserAuthenticatedAccessTokenProvider`.
+- Setter of `UnityServicesToken.AccessToken` property is now public.
+- UCLogger's LogInfo extension method was renamed to LogInformation.
+
+### Removed
+- [Breaking] Removed `IAppNameProvider` and `IAppDisplayNameProvider` references in `PkceAuthenticatorSettingsBuilder`, `CompositeAuthenticatorSettingsBuilder`, `UnityEditorAuthenticator`, `PkceAuthenticator` and all classes derived from `BasePkcePlatformSupport`.
+- [Breaking] Removed `AppName` property of `PkceConfiguration`.
 
 ## [1.0.0-pre.2] - 2023-11-23
 
@@ -25,12 +58,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - `IOrganization` and `IProject` can now list their respective roles and permissions.
 
-### Removed
-- [Breaking] Removing obsolete constructors for `PkceAuthenticator`.
-- [Breaking] Removing `CommandLineAccessTokenProvider`.
-- [Breaking] Removing obsolete `IOrganization.ListProjectsAsync()`.
-- [Breaking] Removing obsolete `PkceAuthenticator.DeviceTokenRefreshed` event.
-
 ### Changed
 - Change minimal Unity version to 2022.3
 
@@ -38,15 +65,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `UnityEditorAuthenticator` now exchanges the `CloudProjectSettings.accessToken` for a Unity Cloud Services token when it's value has been internally refreshed by the Unity Editor.
 - `PkceAuthenticator` no longer empties the portalAccessToken cookie on a logout operation on WebGL.
 
-## [0.21.0] - 2023-10-18
-
 ### Removed
-- `Azure` and `GCP` service provider no longer supported.
+- [Breaking] Removing obsolete constructors for `PkceAuthenticator`.
+- [Breaking] Removing `CommandLineAccessTokenProvider`.
+- [Breaking] Removing obsolete `IOrganization.ListProjectsAsync()`.
+- [Breaking] Removing obsolete `PkceAuthenticator.DeviceTokenRefreshed` event.
 
-### Changed
-- `BasePkcePlatformSupport` and all its derived classes require an additional `IAppNamespaceProvider` parameter in the constructor method. 
-- `ListProjectsAsync` in `IOrganization` is now returning an `IAsyncEnumerable<Iproject>` to support paging.
-- [Breaking] `HttpMetadataDataSource` now expects `IServiceHttpClient` instead of `IHttpClient`.
+## [0.21.0] - 2023-10-18
 
 ### Added
 - `AddDefaultPkceAuthenticator` and `AddDefaultBrowserAuthenticatedAccessTokenProvider` methods of the `CompositeAuthenticatorSettingsBuilder` require an additional `IAppNamespaceProvider` parameter.
@@ -62,17 +87,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `BasePkcePlatformSupport` and all its derived classes require an additional `IAppNamespaceProvider` parameter in the constructor method. 
 - `ListProjectsAsync` in `IOrganization` is now returning an `IAsyncEnumerable<Iproject>` to support paging.
 - [Breaking] `HttpMetadataDataSource` now expects `IServiceHttpClient` instead of `IHttpClient`.
+- `BasePkcePlatformSupport` and all its derived classes require an additional `IAppNamespaceProvider` parameter in the constructor method. 
+- `ListProjectsAsync` in `IOrganization` is now returning an `IAsyncEnumerable<Iproject>` to support paging.
+- [Breaking] `HttpMetadataDataSource` now expects `IServiceHttpClient` instead of `IHttpClient`.
 
 ### Removed
 - `Azure` and `GCP` service provider no longer supported.
+- `Azure` and `GCP` service provider no longer supported.
 - [Breaking] Removed `PersonalAccessTokenProvider`.
+- `IUserInfoProvider` and `UserInfoProvider` have been removed, replaced by `IAuthenticatedUserInfoProvider` and `AuthenticatedUserInfoProvider`.
+- Removed all dependencies to `com.unity.cloud.storage`.
 
 ### Deprecated
 - `ListProjectsAsync` returning an `Task<IEnumerable<IProject>>` has been deprecated and will be removed in a future release.
-
-### Removed
-- `IUserInfoProvider` and `UserInfoProvider` have been removed, replaced by `IAuthenticatedUserInfoProvider` and `AuthenticatedUserInfoProvider`.
-- Removed all dependencies to `com.unity.cloud.storage`.
 
 ## [0.20.0] - 2023-09-15
 
@@ -195,12 +222,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.13.0] - 2023-03-02
 
-### Removed
-- [Breaking] the `CompositeAuthenticator` constructor that accepts a list of `IAuthenticator`.
-
 ### Added
 - New `CompositeAuthenticatorSettings` and `CompositeAuthenticatorSettingsBuilder`.
 - New constructor for `CompositeAuthenticator` accepting a `CompositeAuthenticatorSettings` instance.
+
+### Removed
+- [Breaking] the `CompositeAuthenticator` constructor that accepts a list of `IAuthenticator`.
 
 ## [0.12.1] - 2023-02-24
 
@@ -208,6 +235,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update to latest common dependency
 
 ## [0.12.0] - 2023-02-16
+
+### Added
+- New `CompositeAuthenticatorSettings` and `CompositeAuthenticatorSettingsBuilder`.
+- New constructor for `CompositeAuthenticator` accepting a `CompositeAuthenticatorSettings` instance.
+- Support PKCE authentication flow for `https://` hosted WebGL builds.
 
 ### Changed
 - `EditorPkcePlatformSupport` awaits login response from the browser at a randomly attributed port, instead of the fixed 3000 port.
@@ -217,12 +249,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - [Breaking] `IAuthenticationPlatformSupport.OpenUrlAndWaitForRedirection` can now throw a `TimeoutException`.
 - Updated tests for new exceptions thrown by url-redirection.
 
-### Added
-- New `CompositeAuthenticatorSettings` and `CompositeAuthenticatorSettingsBuilder`.
-- New constructor for `CompositeAuthenticator` accepting a `CompositeAuthenticatorSettings` instance.
-- Support PKCE authentication flow for `https://` hosted WebGL builds.
-
 ## [0.11.0] - 2023-02-02
+
+### Added
+- `ICompositeAuthenticator` interface.
 
 ### Changed
 - [Breaking] `IUrlRedirectionPlatformSupport` renamed to `IAuthenticationPlatformSupport`.
@@ -239,16 +269,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 - [Breaking] `PreAuthenticatedHostAccessTokenProvider` class.
 
-### Added
-- `ICompositeAuthenticator` interface.
-
 ## [0.10.0] - 2023-01-19
-
-### Removed
-- [Breaking] `EditorActivateFromUrl` runtime class.
 
 ### Changed
 - [Breaking] `BasePkcePlatformSupport` uses new `AesStringObfuscator` from common package to encrypt and decrypt the refresh token.
+
+### Removed
+- [Breaking] `EditorActivateFromUrl` runtime class.
 
 ## [0.9.1] - 2022-12-08
 
@@ -268,18 +295,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - AuthenticationState.AwaitingInitialization enum value.
 - BasePkcePlatformSupport.
 
-### Removed
-- Internal UnitySynchronizationContextGrabber class.
-- [Breaking] LaunchArgumentsParser has moved to the com.unity.digital-twins.common package.
-- LinuxPkcePlatformSupport, OsxPlatformSupport and AndroidPlatformSupport.
-- PlatformSupportFactory.GetActivatePlatformSupport method.
-
 ### Changed
 - Fix QueryArgumentHandler<float> registration issue in QueryArgumentsProcessor.Register().
 - Manual documentation updates
 - [Breaking] Fix PkceAuthenticator constructor override missing required IHttpClient value.
 - Renamed the samples' `Common` directory to `Shared`
 - Updated the naming convention for the sample configuration and removed the doc-link field
+
+### Removed
+- Internal UnitySynchronizationContextGrabber class.
+- [Breaking] LaunchArgumentsParser has moved to the com.unity.digital-twins.common package.
+- LinuxPkcePlatformSupport, OsxPlatformSupport and AndroidPlatformSupport.
+- PlatformSupportFactory.GetActivatePlatformSupport method.
 
 ## [0.8.0] - 2022-10-05
 
@@ -343,6 +370,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Use CloudConfiguration static method to retrieve base host address for Cloud endpoints and support DT_CLOUD override from environment variable.
 - `IdentityPlayerSettingsProvider` now attempts to resource-load existing settings rather than searching at one specific path.
 
+
+
 ## [0.3.0] - 2022-08-05
 
 ### Added
@@ -356,13 +385,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Add Personal Access Token and pre-authenticated host support.
 
+
+
 ## [0.1.1] - 2022-06-08
 
 Fix bug with ActivationUrl found in release 0.1.0.
 
+
+
 ## [0.1.0] - 2022-06-07
 
 Initial package on Artifactory. Changes are not listed here yet.
+
+
 
 ## [0.0.1] - 2022-06-01
 

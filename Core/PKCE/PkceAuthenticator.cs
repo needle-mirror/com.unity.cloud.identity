@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http.Headers;
+using Unity.Cloud.AppLinking;
 using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
@@ -96,9 +97,9 @@ namespace Unity.Cloud.Identity
             m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(pkceAuthenticatorSettings.ServiceHostResolver);
         }
 
-        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IAppNameProvider appNameProvider, IPkceRequestHandler pkceRequestHandler, IServiceHostResolver serviceHostResolver)
+        internal PkceAuthenticator(IAuthenticationPlatformSupport authenticationPlatformSupport, IHttpClient httpClient, IPkceRequestHandler pkceRequestHandler, IServiceHostResolver serviceHostResolver)
         {
-            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostResolver, appNameProvider);
+            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostResolver);
             pkceRequestHandler ??= new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
 
             m_UnityServicesTokenExchanger = new AccessTokenToUnityServicesTokenExchanger(httpClient, serviceHostResolver);
@@ -160,7 +161,7 @@ namespace Unity.Cloud.Identity
                 }
                 catch (Exception ex)
                 {
-                    s_Logger.LogInfo($"Failed to revive session. User will need to login manually. {ex.Message}");
+                    s_Logger.LogInformation($"Failed to revive session. User will need to login manually. {ex.Message}");
                     await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(m_DeviceTokenFileName);
                 }
             }
@@ -169,7 +170,7 @@ namespace Unity.Cloud.Identity
             var activationUrl = m_AuthenticationPlatformSupport.ActivationUrl;
             if (!string.IsNullOrEmpty(activationUrl))
             {
-                s_Logger.LogInfo($"ActivationUrl detected: {activationUrl}");
+                s_Logger.LogInformation($"ActivationUrl detected: {activationUrl}");
 
                 // If no user and url is a login response (WebGL context)
                 if (m_AccessTokenRefresher == null && ActivationUrlHasCodeAndStateParams(activationUrl))
@@ -185,14 +186,14 @@ namespace Unity.Cloud.Identity
                             {
                                 // Remove as soon as detected
                                 await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(s_CachedActivationUrl);
-                                s_Logger.LogInfo($"ActivationUrl detected from cache: {cachedActivationUrl}");
+                                s_Logger.LogInformation($"ActivationUrl detected from cache: {cachedActivationUrl}");
 
                                 m_AuthenticationPlatformSupport.UrlRedirectionInterceptor.InterceptAwaitedUrl(cachedActivationUrl);
                             }
                         }
                         catch (FileNotFoundException)
                         {
-                            s_Logger.LogInfo("ActivationUrl could not be found in cache.");
+                            s_Logger.LogInformation("ActivationUrl could not be found in cache.");
                         }
                     }
                 }
@@ -210,7 +211,7 @@ namespace Unity.Cloud.Identity
 
         async Task<bool> CompleteLoginFromActivationUrlAsync(string activationUrl, PkceConfiguration pkceConfiguration)
         {
-            s_Logger.LogInfo($"Completing login...");
+            s_Logger.LogInformation($"Completing login...");
 
             if (m_AuthenticationPlatformSupport.CodeVerifierCacheStore == null)
                 return false;
@@ -224,7 +225,7 @@ namespace Unity.Cloud.Identity
             }
             catch (FileNotFoundException)
             {
-                s_Logger.LogInfo("CodeVerifier could not be found in cache.");
+                s_Logger.LogInformation("CodeVerifier could not be found in cache.");
             }
 
             if (string.IsNullOrEmpty(codeVerifier))
@@ -273,7 +274,7 @@ namespace Unity.Cloud.Identity
             }
             catch (FileNotFoundException e)
             {
-                s_Logger.LogInfo($"Token could not be found in cache: {e.Message}");
+                s_Logger.LogInformation($"Token could not be found in cache: {e.Message}");
             }
 
             if (string.IsNullOrEmpty(refreshToken))
@@ -284,12 +285,12 @@ namespace Unity.Cloud.Identity
 
             if (newDeviceToken != null && !string.IsNullOrEmpty(newDeviceToken.AccessToken))
             {
-                s_Logger.LogInfo("Revived access token from cached refresh token.");
+                s_Logger.LogInformation("Revived access token from cached refresh token.");
                 await RegisterNewDeviceTokenAsync(pkceConfiguration, newDeviceToken);
             }
             else
             {
-                s_Logger.LogInfo("Invalid refresh token from cache. Awaiting manual logging.");
+                s_Logger.LogInformation("Invalid refresh token from cache. Awaiting manual logging.");
                 await m_AuthenticationPlatformSupport.SecretCacheStore.DeleteCacheAsync(m_DeviceTokenFileName);
             }
         }
@@ -379,7 +380,7 @@ namespace Unity.Cloud.Identity
                 AuthenticationState = AuthenticationState.LoggedOut;
                 if (urlRedirectResult.QueryArguments["state"].Equals(s_StateCancelled))
                 {
-                    s_Logger.LogInfo($"User manually cancelled the login operation.");
+                    s_Logger.LogInformation($"User manually cancelled the login operation.");
                 }
                 else
                 {
@@ -424,7 +425,7 @@ namespace Unity.Cloud.Identity
             catch (Exception ex)
             {
                 // Silent fail, token was not revoked, but we still want to log the user out
-                s_Logger.LogInfo($"EX: {ex}");
+                s_Logger.LogInformation($"EX: {ex}");
             }
 
             if (clearBrowserCache)
@@ -498,7 +499,7 @@ namespace Unity.Cloud.Identity
                 throw;
             }
 
-            s_Logger.LogInfo($"Access Token provided from successful PKCE authentication flow.");
+            s_Logger.LogInformation($"Access Token provided from successful PKCE authentication flow.");
             await RegisterNewDeviceTokenAsync(pkceConfiguration, newDeviceToken);
         }
 
@@ -600,7 +601,7 @@ namespace Unity.Cloud.Identity
             }
             catch (Exception ex)
             {
-                s_Logger.LogInfo(ex.Message);
+                s_Logger.LogInformation(ex.Message);
             }
             finally
             {

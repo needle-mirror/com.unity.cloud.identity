@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Threading.Tasks;
+using Unity.Cloud.AppLinking.Runtime;
 using Unity.Cloud.Identity.Runtime;
 using Unity.Cloud.Common.Runtime;
 
@@ -21,7 +22,7 @@ namespace Unity.Cloud.Identity.Documentation
             var playerSettings = UnityCloudPlayerSettings.Instance;
 
             var pkceAuthenticatorSettingsBuilder = new PkceAuthenticatorSettingsBuilder(authenticationPlatformSupport, serviceHostResolver);
-            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(httpClient, playerSettings, playerSettings)
+            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(httpClient, playerSettings)
                                             .AddDefaultAccessTokenExchanger(httpClient);
 
             var pkceAuthenticatorSettings = pkceAuthenticatorSettingsBuilder.Build();

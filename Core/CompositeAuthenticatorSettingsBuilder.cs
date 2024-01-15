@@ -48,13 +48,12 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Adds a default <see cref="PkceAuthenticator"/> to the list of <see cref="IAuthenticator"/>.
         /// </summary>
-        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> instance.</param>
         /// <param name="appNamespaceProvider">An <see cref="IAppNamespaceProvider"/> instance.</param>
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
-        public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider)
+        public CompositeAuthenticatorSettingsBuilder AddDefaultPkceAuthenticator(IAppNamespaceProvider appNamespaceProvider)
         {
             var pkceAuthenticatorSettingsBuilder = new PkceAuthenticatorSettingsBuilder(m_AuthenticationPlatformSupport, m_ServiceHostResolver);
-            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(m_HttpClient, appNameProvider, appNamespaceProvider)
+            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(m_HttpClient, appNamespaceProvider)
                 .AddAppIdProvider(m_AppIdProvider)
                 .AddDefaultAccessTokenExchanger(m_HttpClient);
 
@@ -67,15 +66,14 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Adds a default <see cref="BrowserAuthenticatedAccessTokenProvider"/> to the list of <see cref="IAuthenticator"/>.
         /// </summary>
-        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> instance.</param>
         /// <param name="appNamespaceProvider">An <see cref="IAppNamespaceProvider"/> instance.</param>
         /// <param name="localStorageKeyNames">An optional Dictionary to define, per hosted domain, what key name to look for an access token in local storage of the browser.</param>
         /// <returns>The modified <see cref="CompositeAuthenticatorSettingsBuilder"/>.</returns>
-        public CompositeAuthenticatorSettingsBuilder AddDefaultBrowserAuthenticatedAccessTokenProvider(IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, Dictionary<string, string> localStorageKeyNames = null)
+        public CompositeAuthenticatorSettingsBuilder AddDefaultBrowserAuthenticatedAccessTokenProvider(IAppNamespaceProvider appNamespaceProvider, Dictionary<string, string> localStorageKeyNames = null)
         {
             localStorageKeyNames ??= BrowserAuthenticatedAccessTokenProvider.DefaultLocalStorageKeyNames;
             var pkceAuthenticatorSettingsBuilder = new PkceAuthenticatorSettingsBuilder(m_AuthenticationPlatformSupport, m_ServiceHostResolver);
-            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(m_HttpClient, appNameProvider, appNamespaceProvider)
+            pkceAuthenticatorSettingsBuilder.AddDefaultConfigurationProviderAndRequestHandler(m_HttpClient, appNamespaceProvider)
                 .AddAppIdProvider(m_AppIdProvider)
                 .AddDefaultAccessTokenExchanger(m_HttpClient);
 

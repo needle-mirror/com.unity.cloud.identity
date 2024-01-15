@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
@@ -89,7 +90,7 @@ namespace Unity.Cloud.Identity
 
                 if (!string.IsNullOrEmpty(m_SessionBrowserAccessTokenValue))
                 {
-                    s_Logger.LogInfo("genesis Access Token provided from a browser environment.");
+                    s_Logger.LogInformation("genesis Access Token provided from a browser environment.");
                    await RefreshAuthenticatedUserInfo();
                 }
 
@@ -102,16 +103,20 @@ namespace Unity.Cloud.Identity
             }
             catch (FileNotFoundException)
             {
-                s_Logger.LogInfo("Token could not be found in cache.");
+                s_Logger.LogInformation("Token could not be found in cache.");
                 AuthenticationState = AuthenticationState.LoggedOut;
             }
         }
 
         async Task RefreshAuthenticatedUserInfo()
         {
-            m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(m_SessionBrowserAccessTokenValue);
+            try
+            {
+                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(m_SessionBrowserAccessTokenValue);
+            }
+            catch (Exception) {  /*silent fail*/}
+
             m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(m_SessionBrowserAccessTokenValue);
-            m_AuthenticationPlatformSupport.ExportServiceAuthorizerToken("Bearer", m_UnityServicesToken.AccessToken);
         }
 
         /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
@@ -158,21 +163,28 @@ namespace Unity.Cloud.Identity
             return Task.FromResult(false);
         }
 
-        string GetHostAccessTokenFilename(Dictionary<string, string> KeyNameDictionary)
+        string GetHostAccessTokenFilename(Dictionary<string, string> keyNameDictionary)
         {
-            if (HasValidUrl(new[]{ m_AuthenticationPlatformSupport.ActivationUrl }, out Uri browserUri))
+            var aboutBlankIframeSrcValue = "about:blank";
+            if (!string.IsNullOrEmpty(m_AuthenticationPlatformSupport.ActivationUrl) && m_AuthenticationPlatformSupport.ActivationUrl.Equals(aboutBlankIframeSrcValue))
             {
-                foreach (var kvp in KeyNameDictionary)
+                return keyNameDictionary.TryGetValue(aboutBlankIframeSrcValue, out var keyValue) ? keyValue : null;
+            }
+            return ValidateUrlSrc(keyNameDictionary);
+        }
+
+        string ValidateUrlSrc(Dictionary<string, string> keyNameDictionary)
+        {
+            if (Uri.TryCreate(m_AuthenticationPlatformSupport.ActivationUrl, UriKind.Absolute, out Uri browserUri))
+            {
+                foreach (var kvp in keyNameDictionary)
                 {
                     var prefixKey = $"https://{kvp.Key}";
-                    if (HasValidUrl( new[]{ kvp.Key, prefixKey }, out Uri uriExpected))
+                    if (Uri.TryCreate(prefixKey, UriKind.Absolute, out Uri uriExpected))
                     {
                         var expectedAbsolutePath = $"{uriExpected.Scheme}://{uriExpected.Host}{uriExpected.AbsolutePath}";
-                        if (expectedAbsolutePath.Equals($"{browserUri.Scheme}://{browserUri.Host}{browserUri.AbsolutePath}"))
-                        {
-                            return kvp.Value;
-                        }
-                        if (uriExpected.Host.Equals(browserUri.Host))
+                        var browserAbsolutePath = $"{browserUri.Scheme}://{browserUri.Host}{browserUri.AbsolutePath}";
+                        if (browserAbsolutePath.StartsWith(expectedAbsolutePath))
                         {
                             return kvp.Value;
                         }
@@ -182,24 +194,10 @@ namespace Unity.Cloud.Identity
             return null;
         }
 
-        bool HasValidUrl(string[] urls, out Uri validUri)
-        {
-            validUri = default;
-            foreach (var url in urls)
-            {
-                if (Uri.TryCreate(url, UriKind.Absolute, out validUri)
-                    && (validUri.Host.EndsWith("dashboard.unity3d.com") || validUri.Host.EndsWith("dashboard.unity.com")))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         /// <inheritdoc/>
         public string GetUserInfo(string key)
         {
-            return m_AuthenticatedUserInfoProvider.GetUserInfo(key);
+            return m_AuthenticatedUserInfoProvider?.GetUserInfo(key);
         }
     }
 }

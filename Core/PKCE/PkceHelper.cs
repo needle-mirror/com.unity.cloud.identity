@@ -58,7 +58,7 @@ namespace Unity.Cloud.Identity
 
         public static string CreateTokenUrlRequestStringContent(string appNamespace, string authCode, string codeVerifier, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenLoginState = "")
         {
-            var redirectHint = CreateRedirectHint($"{appNamespace}.{pkceConfiguration.AppName}", redirectUri);
+            var redirectHint = CreateRedirectHint($"{appNamespace}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenLoginState) ? $"{overriddenLoginState}/" : "";
             redirectUri = $"https://{pkceConfiguration.ProxyLoginCompletedRoute}{redirectHint}/{redirectProcessId}";
             return $"client_id={pkceConfiguration.ClientId}&grant_type=authorization_code&code={authCode}&code_verifier={codeVerifier}&redirect_uri={redirectUri}";
@@ -66,7 +66,7 @@ namespace Unity.Cloud.Identity
 
         public static string CreateAuthenticateUrl(string appNamespace, string state, string codeChallenge, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenLoginState = "")
         {
-            var redirectHint = CreateRedirectHint($"{appNamespace}.{pkceConfiguration.AppName}", redirectUri);
+            var redirectHint = CreateRedirectHint($"{appNamespace}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenLoginState) ? $"/{overriddenLoginState}" : "";
             var encodedAuthorizeEndpointUrl = System.Net.WebUtility.UrlEncode(pkceConfiguration.LoginUrl);
             var genesisLoginRedirectUrl = $"https://{pkceConfiguration.ProxyLoginRedirectRoute}{redirectHint}/{encodedAuthorizeEndpointUrl}{redirectProcessId}";
@@ -75,7 +75,7 @@ namespace Unity.Cloud.Identity
 
         public static string CreateSignOutUrl(string appNamespace,  string state, string redirectUri, PkceConfiguration pkceConfiguration, string overriddenState = "")
         {
-            var redirectHint = CreateRedirectHint($"{appNamespace}.{pkceConfiguration.AppName}", redirectUri);
+            var redirectHint = CreateRedirectHint($"{appNamespace}", redirectUri);
             var redirectProcessId = !string.IsNullOrEmpty(overriddenState) ? $"/{overriddenState}" : "";
             var redirectProxyUri = $"https://{pkceConfiguration.ProxySignOutCompletedRoute}{redirectHint}{redirectProcessId}/?state={state}";
             // External IDP will need to support

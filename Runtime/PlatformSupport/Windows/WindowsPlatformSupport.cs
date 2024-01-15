@@ -1,4 +1,5 @@
 using System;
+using Unity.Cloud.AppLinking;
 using Unity.Cloud.Common;
 using UnityEngine;
 
@@ -12,15 +13,15 @@ namespace Unity.Cloud.Identity.Runtime
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<WindowsActivatePlatformSupport>();
 
         /// <inheritdoc/>
-        public WindowsActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
+        public WindowsActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
             // Check deep link on startup
             var launchArgumentsParser = new LaunchArgumentsParser();
 
             if (Uri.TryCreate(launchArgumentsParser.ActivationUrl, UriKind.Absolute, out Uri _))
             {
-                s_Logger.LogInfo($"App was activated from url: {launchArgumentsParser.ActivationUrl}");
+                s_Logger.LogInformation($"App was activated from url: {launchArgumentsParser.ActivationUrl}");
                 ActivationUrl = launchArgumentsParser.ActivationUrl;
             }
 
@@ -43,8 +44,8 @@ namespace Unity.Cloud.Identity.Runtime
         public override string GetAppStateOverride() => UrlRedirectionInterceptor.GetRedirectProcessId().ToString();
 
         /// <inheritdoc/>
-        public WindowsPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
+        public WindowsPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
         }
     }

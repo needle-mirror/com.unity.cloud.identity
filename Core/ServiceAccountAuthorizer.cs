@@ -45,7 +45,7 @@ namespace Unity.Cloud.Identity
             // If launch arguments key value pairs contains the token key name
             if (m_AuthenticationPlatformSupport != null && m_AuthenticationPlatformSupport.ActivationKeyValue.Count > 0 && m_AuthenticationPlatformSupport.ActivationKeyValue.TryGetValue(keyName, out var value))
             {
-                s_Logger.LogInfo($"Service account credentials provided from CLI -{s_ServiceAccountKeyName} key value pair");
+                s_Logger.LogInformation($"Service account credentials provided from CLI -{s_ServiceAccountKeyName} key value pair");
                 m_AccountCredentials = ToBase64(value);
             }
             else
@@ -54,7 +54,7 @@ namespace Unity.Cloud.Identity
                 var envServiceAccountValue = Environment.GetEnvironmentVariable(s_ServiceAccountKeyName);
                 if (!string.IsNullOrEmpty(envServiceAccountValue))
                 {
-                    s_Logger.LogInfo($"Service account credentials provided from { s_ServiceAccountKeyName} environment variable");
+                    s_Logger.LogInformation($"Service account credentials provided from { s_ServiceAccountKeyName} environment variable");
                     m_AccountCredentials = ToBase64(envServiceAccountValue);
                     if (m_AuthenticationPlatformSupport != null && !string.IsNullOrEmpty(m_AuthenticationPlatformSupport.ActivationUrl))
                     {

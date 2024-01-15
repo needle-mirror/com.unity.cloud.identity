@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Unity.Cloud.AppLinking;
 using Unity.Cloud.Common;
 using Unity.Cloud.Common.Runtime;
 using UnityEngine;
@@ -15,13 +16,13 @@ namespace Unity.Cloud.Identity.Runtime
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<WebglActivatePlatformSupport>();
 
         /// <inheritdoc/>
-        public WebglActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
+        public WebglActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
             ActivationKeyValue = new Dictionary<string, string>();
             if (Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri uri) && !string.IsNullOrEmpty(uri.Query))
             {
-                s_Logger.LogInfo($"App was activated from url: {activationUrl}");
+                s_Logger.LogInformation($"App was activated from url: {activationUrl}");
                 ActivationUrl = activationUrl;
                 ActivationKeyValue = QueryArgumentsParser.GetDictionaryFromArguments(uri);
             }
@@ -48,8 +49,8 @@ namespace Unity.Cloud.Identity.Runtime
         public override IKeyValueStore CodeVerifierCacheStore { get; } = new BrowserKeyValueStore();
 
         /// <inheritdoc/>
-        public WebglPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
+        public WebglPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
         }
 
@@ -63,7 +64,7 @@ namespace Unity.Cloud.Identity.Runtime
         /// </returns>
         public override async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
         {
-            s_Logger.LogInfo($"Awaiting redirect on url: {url}");
+            s_Logger.LogInformation($"Awaiting redirect on url: {url}");
 
             // If login while an ActivationUrl has not been consumed
             if (!string.IsNullOrEmpty(ActivationUrl) && !ActivationUrlHasCodeAndStateParams(ActivationUrl))

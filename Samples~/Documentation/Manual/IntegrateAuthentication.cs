@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Cloud.AppLinking.Runtime;
 using Unity.Cloud.Common;
 using Unity.Cloud.Common.Runtime;
 using Unity.Cloud.Identity.Runtime;
@@ -28,8 +29,8 @@ namespace Unity.Cloud.Identity.Documentation
             var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
             var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, PlatformSupportFactory.GetAuthenticationPlatformSupport(), serviceHostResolver, playerSettings)
-                .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings, playerSettings)
-                .AddDefaultPkceAuthenticator(playerSettings, playerSettings)
+                .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings)
+                .AddDefaultPkceAuthenticator(playerSettings)
                 .Build();
 
             s_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);

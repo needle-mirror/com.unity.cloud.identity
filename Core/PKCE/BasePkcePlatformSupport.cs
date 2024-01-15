@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Cloud.AppLinking;
 using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
@@ -45,7 +46,6 @@ namespace Unity.Cloud.Identity
         /// </summary>
         protected readonly IUrlProcessor m_UrlProcessor;
         readonly IAppIdProvider m_AppIdProvider;
-        readonly IAppNameProvider m_AppNameProvider;
         readonly IAppNamespaceProvider m_AppNamespaceProvider;
 
         /// <summary>
@@ -54,15 +54,13 @@ namespace Unity.Cloud.Identity
         /// <param name="urlRedirectionInterceptor">An <see cref="IUrlRedirectionInterceptor"/> that manages url redirection interception.</param>
         /// <param name="urlProcessor">An <see cref="IUrlProcessor"/> that manages url processing after interception.</param>
         /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> instance.</param>
-        /// <param name="appNameProvider">An <see cref="IAppNameProvider"/> instance.</param>
         /// <param name="appNamespaceProvider">An <see cref="IAppNamespaceProvider"/> instance.</param>
         /// <param name="cacheStorePath">A full path to a readable/writable directory.</param>
         /// <param name="activationUrl">An optional activation URL.</param>
-        public BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+        public BasePkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
         {
             m_UrlProcessor = urlProcessor;
             m_AppIdProvider = appIdProvider;
-            m_AppNameProvider = appNameProvider;
             m_AppNamespaceProvider = appNamespaceProvider;
             m_CacheStorePath = cacheStorePath;
 
@@ -70,7 +68,7 @@ namespace Unity.Cloud.Identity
             SecretCacheStore = new FileKeyValueStore(m_CacheStorePath, new AesStringObfuscator(!string.IsNullOrEmpty(appIdString) ? appIdString : "default"));
             if (!string.IsNullOrEmpty(activationUrl) && Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri _))
             {
-                s_Logger.LogInfo($"App was activated from url: {activationUrl}");
+                s_Logger.LogInformation($"App was activated from url: {activationUrl}");
                 ActivationUrl = activationUrl;
             }
 
@@ -84,7 +82,7 @@ namespace Unity.Cloud.Identity
         public virtual async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
         {
             m_LoginUrl = url;
-            s_Logger.LogInfo($"Awaiting redirect on url: {url}");
+            s_Logger.LogInformation($"Awaiting redirect on url: {url}");
 
             OpenUrlAction(url);
             await Task.Delay(50);
@@ -108,7 +106,7 @@ namespace Unity.Cloud.Identity
         public virtual string GetRedirectUri(string operation = null)
         {
             var operationPath = string.IsNullOrEmpty(operation) ? string.Empty : $"/{operation}";
-            return $"{m_AppNamespaceProvider.GetAppNamespace()}.{m_AppNameProvider.GetAppName()}://implicit/callback{operationPath}";
+            return $"{m_AppNamespaceProvider.GetAppNamespace()}://implicit/callback{operationPath}";
         }
 
         /// <inheritdoc/>

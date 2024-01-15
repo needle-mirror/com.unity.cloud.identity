@@ -10,18 +10,15 @@ namespace Unity.Cloud.Identity
     /// </summary>
     public class PkceConfigurationProvider : IPkceConfigurationProvider
     {
-        readonly IAppNameProvider m_AppNameProvider;
         IServiceHostResolver m_ServiceHostResolver;
 
         /// <summary>
         /// Builds a `PkceConfigurationProvider` handles the access to a <see cref="PkceConfiguration"/>.
         /// </summary>
         /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
-        /// <param name="appNameProvider">An optional <see cref="IAppNameProvider"/> to build the unique uri scheme used to bind the app to the browser response in a login operation.</param>
-        public PkceConfigurationProvider(IServiceHostResolver serviceHostResolver, IAppNameProvider appNameProvider)
+        public PkceConfigurationProvider(IServiceHostResolver serviceHostResolver)
         {
             m_ServiceHostResolver = serviceHostResolver;
-            m_AppNameProvider = appNameProvider;
         }
 
         /// <summary>
@@ -38,12 +35,6 @@ namespace Unity.Cloud.Identity
         async Task<PkceConfiguration> UpdatePkceConfiguration()
         {
             var pkceConfiguration = CreateConfiguration();
-
-            if (m_AppNameProvider != null)
-            {
-                pkceConfiguration.AppName = m_AppNameProvider.GetAppName();
-            }
-
             return await Task.FromResult(pkceConfiguration);
         }
 
@@ -61,7 +52,6 @@ namespace Unity.Cloud.Identity
 
             return new PkceConfiguration
             {
-                AppName = "default",
                 AllowAnonymous = false,
                 CacheRefreshToken = true,
                 ClientId = new ClientId("digital_twins"),

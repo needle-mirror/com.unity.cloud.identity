@@ -11,10 +11,6 @@ namespace Unity.Cloud.Identity
     {
 #pragma warning disable S1104 // Fields should not have public accessibility
         /// <summary>
-        /// The unique name of the app. Used to bind the app to browser redirection in login operation.
-        /// </summary>
-        public string AppName = "";
-        /// <summary>
         /// The unique client identifier as registered with the authentication service.
         /// </summary>
         public ClientId ClientId = ClientId.None;
@@ -80,7 +76,6 @@ namespace Unity.Cloud.Identity
         /// </summary>
         public void Sanitize()
         {
-            AppName = AppName?.Trim();
             ClientId = new ClientId(ClientId.ToString().Trim());
             LoginUrl = LoginUrl?.Trim();
             TokenUrl = TokenUrl?.Trim();

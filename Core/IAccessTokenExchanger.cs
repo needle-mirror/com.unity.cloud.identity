@@ -11,7 +11,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// The Unity Services access token.
         /// </summary>
-        public string AccessToken { get; internal set; }
+        public string AccessToken { get; set; }
     }
 
     /// <summary>

@@ -6,11 +6,11 @@ This getting started guide outlines the basics of setting up a Unity Editor Proj
 
 To install Unity Cloud Identity on a new or existing Unity Editor Project, install the Identity package using the [installation instructions](installation.md).
 
-# Unity Cloud App Registration
+### Unity Cloud Application Namespace
 
-Application that uses Unity Cloud packages require an application identifier. The application identifier identifies your application in the Unity Cloud services and also enables the custom URI scheme association with the OS that's used in login operations.
+Application that uses Unity Cloud packages require an application namespace. This namespace enables custom URI scheme association with the OS for Deep Linking and login operations.
 
-For more information, see the **Unity Cloud App Registration** section in the [Common package documentation](https://docs.unity3d.com/Packages/com.unity.cloud.common@latest).
+For more information, see the **Unity Cloud Application Namespace** section in the [Common package documentation](https://docs.unity3d.com/Packages/com.unity.cloud.common@latest).
 
 ## Troubleshooting
 

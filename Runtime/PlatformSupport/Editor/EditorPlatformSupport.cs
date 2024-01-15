@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Cloud.AppLinking;
+using Unity.Cloud.AppLinking.Runtime;
 using Unity.Cloud.Common;
 using Unity.Cloud.Common.Runtime;
 using UnityEngine;
@@ -18,13 +20,13 @@ namespace Unity.Cloud.Identity.Runtime
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<EditorActivatePlatformSupport>();
 
         /// <inheritdoc/>
-        public EditorActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
+        public EditorActivatePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
             var activateAppFromUrl = UnityEngine.Object.FindObjectOfType(typeof(ActivateAppFromUrl)) as ActivateAppFromUrl;
             if (activateAppFromUrl != null && activateAppFromUrl.ActivateAtStartUp && Uri.TryCreate(activateAppFromUrl.ActivationUrl, UriKind.Absolute, out Uri _))
             {
-                s_Logger.LogInfo($"User provided activation Url: {activateAppFromUrl.ActivationUrl}");
+                s_Logger.LogInformation($"User provided activation Url: {activateAppFromUrl.ActivationUrl}");
                 ActivationUrl = activateAppFromUrl.ActivationUrl;
             }
             else
@@ -54,8 +56,8 @@ namespace Unity.Cloud.Identity.Runtime
         List<string> m_AwaitedArguments;
 
         /// <inheritdoc/>
-        public EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
-            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNameProvider, appNamespaceProvider, cacheStorePath, activationUrl)
+        public EditorPkcePlatformSupport(IUrlRedirectionInterceptor urlRedirectionInterceptor, IUrlProcessor urlProcessor, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider, string cacheStorePath, string activationUrl = null)
+            : base(urlRedirectionInterceptor, urlProcessor, appIdProvider, appNamespaceProvider, cacheStorePath, activationUrl)
         {
             m_UrlProcessor = urlProcessor;
             GenerateUniquePath();
@@ -140,7 +142,7 @@ namespace Unity.Cloud.Identity.Runtime
         {
             if (!string.IsNullOrEmpty(ActivationUrl))
             {
-                s_Logger.LogInfo("Activation Url not currently supported in PlayMode.");
+                s_Logger.LogInformation("Activation Url not currently supported in PlayMode.");
                 // Only process once
                 ActivationUrl = string.Empty;
             }

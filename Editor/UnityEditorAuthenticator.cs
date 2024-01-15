@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.Cloud.AppLinking.Runtime;
 using Unity.Cloud.Common;
 using Unity.Cloud.Common.Runtime;
 using Unity.Cloud.Identity.Runtime;
@@ -47,19 +48,31 @@ namespace Unity.Cloud.Identity.Editor
 
         readonly IPkceRequestHandler m_PkceRequestHandler;
         readonly IOrganizationRepository m_OrganizationRepository;
+        readonly IUnityEditorAccessTokenProvider m_UnityEditorAccessTokenProvider;
 
         /// <summary>
         /// Returns an <see cref="IAuthenticator"/> implementation that expects an access token from a Unity Editor environment.
         /// </summary>
         /// <param name="accessTokenExchanger">An <see cref="IAccessTokenExchanger{T1, T2}"/> where the T1 input is a <see cref="TargetClientIdToken"/> and T2 output is a <see cref="UnityServicesToken"/></param>
         public UnityEditorAuthenticator(IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> accessTokenExchanger)
+        : this(accessTokenExchanger, new CloudProjectSettingsUnityEditorAccessTokenProvider())
+        {
+        }
+
+        /// <summary>
+        /// Returns an <see cref="IAuthenticator"/> implementation that expects an access token from a Unity Editor environment.
+        /// </summary>
+        /// <param name="accessTokenExchanger">An <see cref="IAccessTokenExchanger{T1, T2}"/> where the T1 input is a <see cref="TargetClientIdToken"/> and T2 output is a <see cref="UnityServicesToken"/></param>
+        /// <param name="unityEditorAccessTokenProvider">An <see cref="IUnityEditorAccessTokenProvider"/> reference.</param>
+        internal UnityEditorAuthenticator(IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> accessTokenExchanger, IUnityEditorAccessTokenProvider unityEditorAccessTokenProvider)
         {
             m_TargetClientIdTokenToUnityServicesTokenExchanger = accessTokenExchanger;
+            m_UnityEditorAccessTokenProvider = unityEditorAccessTokenProvider;
 
             var httpClient = new UnityHttpClient();
             var playerSettings = UnityCloudPlayerSettings.Instance;
             var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
-            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostResolver, playerSettings);
+            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostResolver);
             m_PkceRequestHandler = new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
 
             m_OrganizationRepository = new AuthenticatorOrganizationRepository(
@@ -73,7 +86,8 @@ namespace Unity.Cloud.Identity.Editor
 
         async void Update()
         {
-            var isLoggedIn = !string.IsNullOrEmpty(CloudProjectSettings.accessToken);
+            var accessToken = await m_UnityEditorAccessTokenProvider.GetAccessTokenAsync();
+            var isLoggedIn = !string.IsNullOrEmpty(accessToken);
             if (m_AuthenticationState.Equals(Identity.AuthenticationState.LoggedIn) && !isLoggedIn)
             {
                 m_UnityServicesToken = null;
@@ -83,13 +97,17 @@ namespace Unity.Cloud.Identity.Editor
             {
                 AuthenticationState = AuthenticationState.AwaitingLogin;
 
-                m_EditorAccessToken = CloudProjectSettings.accessToken;
-                var targetClientIdToken = new TargetClientIdToken() { token = m_EditorAccessToken};
+                m_EditorAccessToken = accessToken;
 
                 m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(m_EditorAccessToken).ConfigureAwait(true);
 
-                m_UnityServicesToken =
-                    await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
+                if (m_TargetClientIdTokenToUnityServicesTokenExchanger != null)
+                {
+                    var targetClientIdToken = new TargetClientIdToken() { token = m_EditorAccessToken};
+                    m_UnityServicesToken =
+                        await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
+                }
+
                 AuthenticationState = AuthenticationState.LoggedIn;
             }
         }
@@ -132,13 +150,19 @@ namespace Unity.Cloud.Identity.Editor
             EditorApplication.update += Update;
 #pragma warning restore S2696
 
-            if (!string.IsNullOrEmpty(CloudProjectSettings.accessToken))
+            var accessToken = await m_UnityEditorAccessTokenProvider.GetAccessTokenAsync();
+            if (!string.IsNullOrEmpty(accessToken))
             {
-                var targetClientIdToken = new TargetClientIdToken() { token = CloudProjectSettings.accessToken};
-                m_UnityServicesToken =
-                    await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
+                m_EditorAccessToken = accessToken;
 
-                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(CloudProjectSettings.accessToken).ConfigureAwait(true);
+                if (m_TargetClientIdTokenToUnityServicesTokenExchanger != null)
+                {
+                    var targetClientIdToken = new TargetClientIdToken() { token = accessToken};
+                    m_UnityServicesToken =
+                        await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
+                }
+
+                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(accessToken).ConfigureAwait(true);
 
                 AuthenticationState = AuthenticationState.LoggedIn;
             }
@@ -169,15 +193,22 @@ namespace Unity.Cloud.Identity.Editor
         public async Task AddAuthorization(HttpHeaders headers)
         {
 #if UNITY_EDITOR
-            if (!m_EditorAccessToken.Equals(CloudProjectSettings.accessToken))
+            var accessToken = await m_UnityEditorAccessTokenProvider.GetAccessTokenAsync();
+            if (!m_EditorAccessToken.Equals(accessToken))
             {
-                m_EditorAccessToken = CloudProjectSettings.accessToken;
-                var targetClientIdToken = new TargetClientIdToken() { token = m_EditorAccessToken};
-                m_UnityServicesToken =
-                    await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
+                m_EditorAccessToken = accessToken;
+                if (m_TargetClientIdTokenToUnityServicesTokenExchanger != null)
+                {
+                    var targetClientIdToken = new TargetClientIdToken() { token = m_EditorAccessToken};
+                    m_UnityServicesToken =
+                        await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
+                }
             }
 
-            headers.AddAuthorization(m_UnityServicesToken.AccessToken, ServiceHeaderUtils.k_BearerScheme);
+            headers.AddAuthorization(
+                m_TargetClientIdTokenToUnityServicesTokenExchanger != null
+                    ? m_UnityServicesToken.AccessToken
+                    : accessToken, ServiceHeaderUtils.k_BearerScheme);
 #else
             throw new InvalidOperationException(k_InvalidOperationMessage);
 #endif

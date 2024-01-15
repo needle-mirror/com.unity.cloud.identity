@@ -38,18 +38,16 @@ namespace Unity.Cloud.Identity
         /// Adds a default implementation of <see cref="IPkceConfigurationProvider"/> to the authenticator settings.
         /// </summary>
         /// <param name="httpClient">The <see cref="IHttpClient"/> with which to build the default <see cref="IPkceRequestHandler"/>.</param>
-        /// <param name="appNameProvider">The <see cref="IAppNameProvider"/> with which to build the default <see cref="IPkceConfigurationProvider"/>.</param>
         /// <param name="appNamespaceProvider">The <see cref="IAppNamespaceProvider"/> to fetch the namespace required to identify the app on the device.</param>
         /// <returns>The modified <see cref="PkceAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
         public PkceAuthenticatorSettingsBuilder AddDefaultConfigurationProviderAndRequestHandler(IHttpClient httpClient,
-            IAppNameProvider appNameProvider, IAppNamespaceProvider appNamespaceProvider)
+            IAppNamespaceProvider appNamespaceProvider)
         {
             ThrowIfNull(httpClient, nameof(httpClient));
-            ThrowIfNull(appNameProvider, nameof(appNameProvider));
             ThrowIfNull(appNamespaceProvider, nameof(appNamespaceProvider));
 
-            m_PkceConfigurationProvider = new PkceConfigurationProvider(m_ServiceHostResolver, appNameProvider);
+            m_PkceConfigurationProvider = new PkceConfigurationProvider(m_ServiceHostResolver);
             m_PkceRequestHandler = new HttpPkceRequestHandler(httpClient, m_PkceConfigurationProvider);
             m_HttpClient = httpClient;
             m_AppNamespaceProvider = appNamespaceProvider;

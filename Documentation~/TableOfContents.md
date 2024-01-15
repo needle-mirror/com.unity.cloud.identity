@@ -5,7 +5,6 @@
   * [Security](security.md)
 * [Get started](getting-started.md)
 * [Best practice | Dependency injection](best-practices-dependency-injection.md)
-* [URL redirection flows](url-redirection-flows.md)
 * Samples
   * [Integrate Identity in a Unity Project](sample-authentication.md)
   * [Get user information](sample-get-user-info.md)

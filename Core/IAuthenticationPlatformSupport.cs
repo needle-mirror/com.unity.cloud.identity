@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Cloud.AppLinking;
 using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
