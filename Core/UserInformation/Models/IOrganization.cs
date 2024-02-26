@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
@@ -10,7 +12,7 @@ namespace Unity.Cloud.Identity
     /// <summary>
     /// The interface for an organization.
     /// </summary>
-    public interface IOrganization : IRoleProvider
+    public interface IOrganization : IRoleProvider, IMemberInfoProvider
     {
         /// <summary>
         /// Gets the Genesis id of the organization.
@@ -25,7 +27,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// Gets the legacy role of the user in the organization.
         /// </summary>
-        string Role { get; }
+        Role Role { get; }
 
         /// <summary>
         /// An awaitable Task that returns the list of <see cref="IProject"/> the user can access in the organization.
@@ -34,78 +36,5 @@ namespace Unity.Cloud.Identity
         /// <param name="cancellationToken">The cancellation token. </param>
         /// <returns>A task whose result is an async enumeration of <see cref="IProject"/>.</returns>
         public IAsyncEnumerable<IProject> ListProjectsAsync(Range range, CancellationToken cancellationToken = default);
-    }
-
-    internal class OrganizationJson
-    {
-        public string Id { get; set; }
-
-        public string GenesisId { get; set; }
-
-        public string Name { get; set; }
-
-        public string Role { get; set; }
-    }
-
-    /// <summary>
-    /// A class implementing <see cref="IOrganization"/>.
-    /// </summary>
-    [Serializable]
-    internal class Organization : IOrganization
-    {
-        readonly IProjectProvider m_ProjectProvider;
-        readonly IEntityRoleProvider m_EntityRoleProvider;
-
-        internal Organization(OrganizationJson organizationJson, IProjectProvider projectProvider, IEntityRoleProvider entityRoleProvider)
-        {
-            Id = new OrganizationId(organizationJson.GenesisId);
-            EntityId = organizationJson.Id;
-            Name = organizationJson.Name;
-            Role = organizationJson.Role;
-
-            m_ProjectProvider = projectProvider;
-            m_EntityRoleProvider = entityRoleProvider;
-        }
-
-        /// <inheritdoc />
-        public OrganizationId Id { get; }
-
-        string EntityId { get; }
-
-        /// <inheritdoc />
-        public string Name { get; }
-
-        /// <inheritdoc />
-        public string Role { get; }
-
-        /// <inheritdoc />
-        public IAsyncEnumerable<IProject> ListProjectsAsync(Range range, CancellationToken cancellationToken = default)
-        {
-            return m_ProjectProvider.GetOrganizationProjects(Id, m_EntityRoleProvider, range, cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> HasRoleAsync(string roleName)
-        {
-            return await m_EntityRoleProvider.HasEntityRoleAsync(roleName, Id.ToString(), EntityType.Organization);
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> HasPermissionAsync(string permission)
-        {
-            return await m_EntityRoleProvider.HasEntityPermissionAsync(permission, Id.ToString(), EntityType.Organization);
-        }
-
-        /// <inheritdoc/>
-        public async Task<IEnumerable<string>> ListRolesAsync()
-        {
-            return await m_EntityRoleProvider.ListEntityRolesAsync(Id.ToString(), EntityType.Organization);
-        }
-
-        /// <inheritdoc/>
-        public async Task<IEnumerable<string>> ListPermissionsAsync()
-        {
-            return await m_EntityRoleProvider.ListEntityPermissionsAsync(Id.ToString(), EntityType.Organization);
-        }
     }
 }

@@ -36,19 +36,17 @@ namespace Unity.Cloud.Identity.Samples
         Text m_UserNameText;
 
         ICompositeAuthenticator m_CompositeAuthenticator;
-        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider => m_CompositeAuthenticator;
         IOrganizationRepository m_OrganizationRepository => m_CompositeAuthenticator;
+        IUserInfoProvider m_UserInfoProvider => m_CompositeAuthenticator;
 
-        IEnumerable<IOrganization> m_Organizations;
+        readonly List<IOrganization> m_Organizations = new();
 
         IOrganization SelectedOrganization;
 
         readonly List<IOrganization> m_OrganizationDropdownValue = new();
+        private IUserInfo m_UserInfo;
 
-        [SerializeField]
-        UnityEvent m_UserUnauthorized;
-
-        void Start()
+        async Task Start()
         {
             RegisterButtons();
 
@@ -63,9 +61,8 @@ namespace Unity.Cloud.Identity.Samples
                 m_CompositeAuthenticator = PlatformServices.CompositeAuthenticator;
                 m_CompositeAuthenticator.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
-
                 // Update UI with current state
-                _ = ApplyAuthenticationState(m_CompositeAuthenticator.AuthenticationState);
+                await ApplyAuthenticationState(m_CompositeAuthenticator.AuthenticationState);
             }
 
         }
@@ -144,9 +141,9 @@ namespace Unity.Cloud.Identity.Samples
             }
         }
 
-        void OnAuthenticationStateChanged(AuthenticationState newAuthenticationState)
+        async void OnAuthenticationStateChanged(AuthenticationState newAuthenticationState)
         {
-            _ = ApplyAuthenticationState(newAuthenticationState);
+            await ApplyAuthenticationState(newAuthenticationState);
         }
 
         async Task ApplyAuthenticationState(AuthenticationState state)
@@ -167,11 +164,13 @@ namespace Unity.Cloud.Identity.Samples
                     UpdateButton(m_LoginButton, false);
                     UpdateButton(m_LogoutButton, m_CompositeAuthenticator.RequiresGUI);
                     UpdateButton(m_SignOutButton, m_CompositeAuthenticator.RequiresGUI);
-
-                    m_Organizations = await m_OrganizationRepository.ListOrganizationsAsync();
-                    SelectedOrganization = m_Organizations.FirstOrDefault(p => p.Role.Equals("owner")) ?? m_Organizations.ElementAt(0);
-
-                    FillOrganizationsDropDown();
+                    m_UserInfo = await m_UserInfoProvider.GetUserInfoAsync();
+                    var organizationsAsyncEnumerable = m_OrganizationRepository.ListOrganizationsAsync(Range.All);
+                    await foreach (var organization in organizationsAsyncEnumerable)
+                    {
+                        m_Organizations.Add(organization);
+                    }
+                    BuildOrganizationsDropDown();
                     break;
                 case AuthenticationState.LoggedOut:
                     UpdateButton(m_LoginButton, m_CompositeAuthenticator.RequiresGUI);
@@ -185,7 +184,7 @@ namespace Unity.Cloud.Identity.Samples
         void ClearUserInformation()
         {
             m_UserNameText.text = "No User";
-            m_Organizations = null;
+            m_Organizations.Clear();
             SelectedOrganization = null;
             if (m_OrganizationsDropdown != null)
             {
@@ -195,39 +194,47 @@ namespace Unity.Cloud.Identity.Samples
             }
         }
 
-        void FillOrganizationsDropDown()
+        void BuildOrganizationsDropDown()
         {
-            int selectedOrganizationIndex = -1;
             var list = new List<Dropdown.OptionData>();
-            if (m_Organizations != null && m_OrganizationsDropdown != null)
+            if (m_OrganizationsDropdown != null)
             {
-                m_OrganizationsDropdown.ClearOptions();
-                m_OrganizationDropdownValue.Clear();
-
-                m_OrganizationsDropdown.enabled = true;
-
-                foreach (var org in m_Organizations)
+                var FirstOwnerOrganizationOrDefault = m_Organizations.FirstOrDefault(p => p.Role.Equals("owner")) ?? m_Organizations.ElementAt(0);
+                var selectedOrganizationIndex = 0;
+                if (m_Organizations != null && m_Organizations.Any())
                 {
-                    list.Add(new Dropdown.OptionData(org.Name));
-                    m_OrganizationDropdownValue.Add(org);
+                    m_OrganizationsDropdown.ClearOptions();
+                    m_OrganizationDropdownValue.Clear();
 
-                    if (SelectedOrganization != null && SelectedOrganization.Id.Equals(org.Id))
+                    m_OrganizationsDropdown.enabled = true;
+
+                    foreach (var org in m_Organizations)
                     {
-                        selectedOrganizationIndex = list.Count - 1;
+                        list.Add(new Dropdown.OptionData(org.Name));
+                        if (org.Id.Equals(FirstOwnerOrganizationOrDefault.Id))
+                        {
+                            selectedOrganizationIndex = list.Count - 1;
+                        }
+
+                        m_OrganizationDropdownValue.Add(org);
                     }
                 }
+                FillOrganizationsDropDown(list, selectedOrganizationIndex);
             }
+        }
 
+        void FillOrganizationsDropDown(List<Dropdown.OptionData> list, int selectionIndex)
+        {
             if (list.Count > 0)
             {
-                m_OrganizationsDropdown?.AddOptions(list);
+                m_OrganizationsDropdown.AddOptions(list);
+                if (m_OrganizationsDropdown.value != selectionIndex)
+                {
+                    m_OrganizationsDropdown.value = selectionIndex;
+                }
+                if (SelectedOrganization == null)
+                    ApplyDropDownValueChanged(selectionIndex);
             }
-
-            if (selectedOrganizationIndex != -1 && m_OrganizationsDropdown != null)
-            {
-                m_OrganizationsDropdown.value = selectedOrganizationIndex;
-            }
-
         }
 
         void ApplyDropDownValueChanged(int value)
@@ -240,7 +247,7 @@ namespace Unity.Cloud.Identity.Samples
 
         void OnSelectOrganization()
         {
-            var username = m_AuthenticatedUserInfoProvider.GetUserInfo(AuthenticatedUserInfoClaims.Name);
+            var username = m_UserInfo.Name;
             m_UserNameText.text = !string.IsNullOrEmpty(username) ? $"{username}" : "No User";
         }
 

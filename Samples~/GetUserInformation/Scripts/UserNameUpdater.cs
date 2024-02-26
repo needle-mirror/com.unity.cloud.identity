@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Unity.Cloud.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,17 +23,20 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
 
         IAuthenticationStateProvider m_AuthenticationStateProvider;
         ICompositeAuthenticator m_CompositeAuthenticator;
-        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider;
+        IUserInfoProvider m_UserInfoProvider => m_CompositeAuthenticator;
 
         readonly List<IProject> m_Projects = new();
+        readonly List<IMemberInfo> m_Members = new();
+        readonly List<IMemberInfo> m_FirstProjectMembers = new();
+
         IOrganization SelectedOrganization;
-        IEnumerable<string> m_OrganizationRoles;
+        IEnumerable<Role> m_OrganizationRoles;
+        IUserInfo m_UserInfo;
 
         void Awake()
         {
             m_AuthenticationStateProvider = PlatformServices.AuthenticationStateProvider;
             m_CompositeAuthenticator = PlatformServices.CompositeAuthenticator;
-            m_AuthenticatedUserInfoProvider = PlatformServices.AuthenticatedUserInfoProvider;
 
             m_AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
             if (m_ActiveUserController)
@@ -55,9 +60,9 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
             }
         }
 
-        void OnAuthenticationStateChanged(AuthenticationState state)
+        async void OnAuthenticationStateChanged(AuthenticationState state)
         {
-            _ = ApplyAuthenticationState(state);
+            await ApplyAuthenticationState(state);
         }
 
         async Task ApplyAuthenticationState(AuthenticationState state)
@@ -68,34 +73,57 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
                 case AuthenticationState.AwaitingLogout:
                 case AuthenticationState.LoggedOut:
                     m_UserInfoText.text = "...";
+                    m_Members.Clear();
                     m_Projects.Clear();
                     break;
                 case AuthenticationState.AwaitingLogin:
                     m_UserInfoText.text = "Awaiting completion of a user initiated manual login operation...";
                     break;
                 case AuthenticationState.LoggedIn:
+                    m_UserInfo = await m_UserInfoProvider.GetUserInfoAsync();
                     BuildUserInfoText();
                     break;
             }
         }
 
-        void OnOrganizationSelectionChanged(IOrganization organization)
+        async void OnOrganizationSelectionChanged(IOrganization organization)
         {
-            _ = ApplyOrganizationSelectionChanged(organization);
+            await ApplyOrganizationSelectionChanged(organization);
         }
 
         async Task ApplyOrganizationSelectionChanged(IOrganization organization)
         {
+            if (organization == null)
+                return;
+
             SelectedOrganization = organization;
+
+            m_Members.Clear();
+
+            var membersAsyncEnumerable = SelectedOrganization.ListMembersAsync(Range.All);
+            await foreach (var member in membersAsyncEnumerable)
+            {
+                m_Members.Add(member);
+            }
 
             m_OrganizationRoles = await SelectedOrganization.ListRolesAsync();
 
             m_Projects.Clear();
 
-            var projectsEnumerator = SelectedOrganization.ListProjectsAsync(Range.All).GetAsyncEnumerator();
-            while (await projectsEnumerator.MoveNextAsync())
+            var projectsAsyncEnumerable = SelectedOrganization.ListProjectsAsync(Range.All);
+            await foreach (var project in projectsAsyncEnumerable)
             {
-                m_Projects.Add(projectsEnumerator.Current);
+                m_Projects.Add(project);
+            }
+
+            m_FirstProjectMembers.Clear();
+            if (m_Projects.Count > 0)
+            {
+                var projectMembersAsyncEnumerable = m_Projects[0].ListMembersAsync(Range.All);
+                await foreach (var member in projectMembersAsyncEnumerable)
+                {
+                    m_FirstProjectMembers.Add(member);
+                }
             }
             BuildUserInfoText(true);
         }
@@ -103,7 +131,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
         void BuildUserInfoText(bool withProjects = false)
         {
             var sb = new StringBuilder();
-            sb.Append(m_AuthenticatedUserInfoProvider.GetUserInfo(AuthenticatedUserInfoClaims.Name));
+            sb.Append(m_UserInfo.Name);
             if (m_CompositeAuthenticator.RequiresGUI)
             {
                 sb.Append(" is logged in with an access token issued after a successful user initiated login operation.");
@@ -114,7 +142,18 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
             }
             if (withProjects)
             {
-                sb.Append($"\n\n User has access to {m_Projects.Count()} projects in '{SelectedOrganization.Name}'.");
+                sb.Append($"\n\n User has access to {m_Projects.Count} projects in '{SelectedOrganization.Name}' that has {m_Members.Count} members.");
+                if (m_FirstProjectMembers.Count > 0)
+                {
+                    sb.Append($"\n\n The first project has {m_FirstProjectMembers.Count} member(s).");
+                }
+
+                if (m_Projects.Count > 0)
+                {
+                    var isEnabledInAssetManager = m_Projects[0].EnabledInAssetManager ? "enabled" : "not enabled";
+                    sb.Append($"\n\n This project ({m_Projects[0].Name}) is {isEnabledInAssetManager} in the Asset Manager.");
+                }
+
                 var roleList = String.Join(", ", m_OrganizationRoles);
                 sb.Append($"\n\n Full list of assigned roles in organization:\n {roleList}.");
             }

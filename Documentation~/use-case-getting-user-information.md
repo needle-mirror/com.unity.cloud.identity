@@ -10,77 +10,34 @@ To use this sample, you must first [Integrate authentication in your scene](use-
 
 ## How do I...?
 
-### Create an IAuthenticatedUserInfoProvider and IServiceAuthorizer reference
+### Create references to IAuthenticator inherited interfaces
 
-As all `IAuthenticator` inherits the `IAuthenticatedUserInfoProvider` and `IServiceAuthorizer` interface, you simply need to
-reference an `IAuthenticator`, like the `CompositeAuthenticator` as an `IAuthenticatedUserInfoProvider` or `IServiceAuthorizer` to get a reference.
+The `CompositeAuthenticator`, like all `IAuthenticator`, inherits `IServiceAuthorizer`, `IAuthenticationStateProvider`, `IUserInfoProvider` and `IOrganizationRepository` interfaces. 
+Create an instance of the `CompositeAuthenticator` and use it to reference all inherited interfaces.
 
-    ```csharp
-        static CompositeAuthenticator s_CompositeAuthenticator;
-        public static ICompositeAuthenticator CompositeAuthenticator => s_CompositeAuthenticator;
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#PlatformServices)]
 
-        public static IAuthenticatedUserInfoProvider AuthenticatedUserInfoProvider => s_CompositeAuthenticator;
-    ```
+### Leverage the IUserInfoProvider in your scene
 
-### Leverage the IAuthenticatedUserInfoProvider in your scene
-
-To leverage the `IAuthenticatedUserInfoProvider` in your scene, see the following steps:
+To leverage the `IUserInfoProvider` in your scene, see the following steps:
 
 1. In your scene, create a `Text` field that displays the current authentication state (or the username if the user is logged in).
 ![Creating a text field in the scene](images/usecase2-usertext.png)
 
 2. Create a `UserNameUpdater` script and attach it to the **LoginManager** GameObject. This script fills the text with the correct values based on the authentication state.
 
-3. Update the `UserNameUpdater` class so it references your `Text` field, `IAuthenticator`, and `IAuthenticatedUserInfoProvider`.
+3. Update the `UserNameUpdater` class so it references your `Text` field, `IAuthenticator`, and `IUserInfoProvider`.
 
-   ```csharp
-        public class UserNameUpdater : MonoBehaviour
-        {
-            [SerializeField]
-            Text m_Text;
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#UserInfoProvider)]
 
-            IAuthenticator m_Authenticator;
-            IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider;
-        }
-   ```
+4. The `Awake` and `Destroy` method should manage `PlatformServices` references and events. The async `Start` method should apply the initial authentication state.
 
-4. The `Awake` method should retrieve services from `PlatformServices`. You can then subscribe (and unsubscribe in `OnDestroy`) to the `AuthenticationStateChanged` event.
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#AwakeStartDestroy)]
 
-   ```csharp
-        void Awake()
-        {
-            m_Authenticator = PlatformServices.Authenticator;
-            m_AuthenticatedUserInfoProvider = PlatformServices.AuthenticatedUserInfoProvider;
+5. The `OnAuthenticationStateChanged` method updates the text based on the current authentication state, and the `IUserInfoProvider.GetUserInfoAsync` method can be called when the user is logged in.
 
-            m_Authenticator.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        }
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#GetUserInfo)]
 
-        void OnDestroy()
-        {
-            m_Authenticator.AuthenticationStateChanged -= OnAuthenticationStateChanged;
-        }
-   ```
-
-5. The `OnAuthenticationStateChanged` method updates the text based on the current authentication state, and the `IAuthenticatedUserInfoProvider.GetUserInfo` method can be called when the user is logged in.
-
-   ```csharp
-       void OnAuthenticationStateChanged(AuthenticationState state)
-       {
-           switch (state)
-           {
-               case AuthenticationState.AwaitingLogin:
-               case AuthenticationState.AwaitingLogout:
-                   m_Text.text = "...";
-                   break;
-               case AuthenticationState.LoggedOut:
-                   m_Text.text = "Logged out";
-                   break;
-               case AuthenticationState.LoggedIn:
-                   m_Text.text = m_AuthenticatedUserInfoProvider.GetUserInfo(AuthenticatedUserInfoClaims.Name);
-                   break;
-           }
-       }
-   ```
 
 6. Select **Play**. The text updates based on the authentication state.
 
@@ -91,12 +48,5 @@ Since all `IAuthenticator` inherits the `IServiceAuthorizer` interface, you can 
 
 The `ServiceHttpClient` can then be injected in any class of other Unity.Cloud unity packages to access resources on Unity Cloud.
 
-```csharp
-        var httpClient = new UnityHttpClient();
-        var playerSettings = UnityCloudPlayerSettings.Instance;
-        var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
-        // Injecting the CompositeAuthenticator as an IServiceAuthorizer to build the ServiceHttpClient
-        var serviceHttpClient = new ServiceHttpClient(httpClient, s_CompositeAuthenticator, playerSettings);
-        // Injecting the serviceHttpClient to build an authorized IAssetRepository to retrieve IAsset, IDataset, ... from Unity Cloud.
-        var assetRepository = AssetRepositoryFactory.Create(serviceHttpClient, serviceHostResolver);
-   ```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/ServiceAuthorizerExample.cs#ServiceAuthorizer)]
+

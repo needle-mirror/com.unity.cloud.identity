@@ -28,8 +28,6 @@ namespace Unity.Cloud.Identity.Editor
         /// <inheritdoc/>
         public event Action<AuthenticationState> AuthenticationStateChanged;
 
-        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider;
-
         /// <inheritdoc/>
         public AuthenticationState AuthenticationState
         {
@@ -46,8 +44,8 @@ namespace Unity.Cloud.Identity.Editor
         readonly IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> m_TargetClientIdTokenToUnityServicesTokenExchanger;
         UnityServicesToken m_UnityServicesToken;
 
-        readonly IPkceRequestHandler m_PkceRequestHandler;
-        readonly IOrganizationRepository m_OrganizationRepository;
+        readonly AuthenticatedUserSession m_AuthenticatedUserSession;
+
         readonly IUnityEditorAccessTokenProvider m_UnityEditorAccessTokenProvider;
 
         /// <summary>
@@ -64,7 +62,7 @@ namespace Unity.Cloud.Identity.Editor
         /// </summary>
         /// <param name="accessTokenExchanger">An <see cref="IAccessTokenExchanger{T1, T2}"/> where the T1 input is a <see cref="TargetClientIdToken"/> and T2 output is a <see cref="UnityServicesToken"/></param>
         /// <param name="unityEditorAccessTokenProvider">An <see cref="IUnityEditorAccessTokenProvider"/> reference.</param>
-        internal UnityEditorAuthenticator(IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> accessTokenExchanger, IUnityEditorAccessTokenProvider unityEditorAccessTokenProvider)
+        public UnityEditorAuthenticator(IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> accessTokenExchanger, IUnityEditorAccessTokenProvider unityEditorAccessTokenProvider)
         {
             m_TargetClientIdTokenToUnityServicesTokenExchanger = accessTokenExchanger;
             m_UnityEditorAccessTokenProvider = unityEditorAccessTokenProvider;
@@ -72,10 +70,8 @@ namespace Unity.Cloud.Identity.Editor
             var httpClient = new UnityHttpClient();
             var playerSettings = UnityCloudPlayerSettings.Instance;
             var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
-            var pkceConfigurationProvider = new PkceConfigurationProvider(serviceHostResolver);
-            m_PkceRequestHandler = new HttpPkceRequestHandler(httpClient, pkceConfigurationProvider);
 
-            m_OrganizationRepository = new AuthenticatorOrganizationRepository(
+            m_AuthenticatedUserSession = new AuthenticatedUserSession(
                 new ServiceHttpClient(httpClient, this,
                     playerSettings), serviceHostResolver);
 
@@ -98,8 +94,6 @@ namespace Unity.Cloud.Identity.Editor
                 AuthenticationState = AuthenticationState.AwaitingLogin;
 
                 m_EditorAccessToken = accessToken;
-
-                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(m_EditorAccessToken).ConfigureAwait(true);
 
                 if (m_TargetClientIdTokenToUnityServicesTokenExchanger != null)
                 {
@@ -136,9 +130,15 @@ namespace Unity.Cloud.Identity.Editor
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
+        public IAsyncEnumerable<IOrganization> ListOrganizationsAsync(Range range, CancellationToken cancellationToken = default)
         {
-            return await m_OrganizationRepository.ListOrganizationsAsync();
+            return m_AuthenticatedUserSession.ListOrganizationsAsync(range, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IOrganization> GetOrganizationAsync(OrganizationId organizationId)
+        {
+            return await m_AuthenticatedUserSession.GetOrganizationAsync(organizationId);
         }
 
         /// <inheritdoc/>
@@ -161,8 +161,6 @@ namespace Unity.Cloud.Identity.Editor
                     m_UnityServicesToken =
                         await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
                 }
-
-                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(accessToken).ConfigureAwait(true);
 
                 AuthenticationState = AuthenticationState.LoggedIn;
             }
@@ -215,9 +213,9 @@ namespace Unity.Cloud.Identity.Editor
         }
 
         /// <inheritdoc/>
-        public string GetUserInfo(string key)
+        public async Task<IUserInfo> GetUserInfoAsync()
         {
-            return m_AuthenticatedUserInfoProvider?.GetUserInfo(key);
+            return await m_AuthenticatedUserSession.GetUserInfoAsync();
         }
     }
 }

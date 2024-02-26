@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
 
@@ -56,9 +57,11 @@ namespace Unity.Cloud.Identity
         string m_SessionBrowserAccessTokenValue;
 
         readonly IPkceRequestHandler m_PkceRequestHandler;
-        readonly IOrganizationRepository m_OrganizationRepository;
 
-        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider;
+        readonly AuthenticatedUserSession m_AuthenticatedUserSession;
+
+        readonly IOrganizationRepository m_OrganizationRepository;
+        readonly IUserInfoProvider m_UserInfoProvider;
 
         /// <summary>
         /// Returns an <see cref="IAuthenticator"/> implementation that expects an access token from a browser environment.
@@ -66,8 +69,9 @@ namespace Unity.Cloud.Identity
         /// <remarks>The `BrowserAuthenticatedAccessTokenProvider` tries to match running host location with location provided in <see cref="localStorageKeyNames"/>. Use a single wildcard character (*) to match any host location.</remarks>
         /// <param name="pkceAuthenticatorSettings">The <see cref="PkceAuthenticatorSettings"/> that contains all PKCE authentication classes</param>
         /// <param name="localStorageKeyNames">A dictionary with browser locations as keys and local storage key name as values.</param>
-        /// <param name="organizationsRepository">An optional <see cref="IOrganizationRepository"/>.</param>
-        public BrowserAuthenticatedAccessTokenProvider(PkceAuthenticatorSettings pkceAuthenticatorSettings, Dictionary<string, string> localStorageKeyNames = null, IOrganizationRepository organizationsRepository = null)
+        /// <param name="organizationRepository">An optional <see cref="IOrganizationRepository"/>.</param>
+        /// <param name="userInfoProvider">An optional <see cref="IUserInfoProvider"/>.</param>
+        public BrowserAuthenticatedAccessTokenProvider(PkceAuthenticatorSettings pkceAuthenticatorSettings, Dictionary<string, string> localStorageKeyNames = null, IOrganizationRepository organizationRepository = null, IUserInfoProvider userInfoProvider = null)
         {
             localStorageKeyNames ??= DefaultLocalStorageKeyNames;
             m_AuthenticationPlatformSupport = pkceAuthenticatorSettings.AuthenticationPlatformSupport;
@@ -76,9 +80,12 @@ namespace Unity.Cloud.Identity
 
             m_LocalStorageKeyName = GetHostAccessTokenFilename(localStorageKeyNames);
 
-            m_OrganizationRepository = organizationsRepository ?? new AuthenticatorOrganizationRepository(
+            m_AuthenticatedUserSession = new AuthenticatedUserSession(
                 new ServiceHttpClient(pkceAuthenticatorSettings.HttpClient, this,
                     pkceAuthenticatorSettings.AppIdProvider), pkceAuthenticatorSettings.ServiceHostResolver);
+
+            m_OrganizationRepository = organizationRepository;
+            m_UserInfoProvider = userInfoProvider;
         }
 
         /// <inheritdoc/>
@@ -91,7 +98,7 @@ namespace Unity.Cloud.Identity
                 if (!string.IsNullOrEmpty(m_SessionBrowserAccessTokenValue))
                 {
                     s_Logger.LogInformation("genesis Access Token provided from a browser environment.");
-                   await RefreshAuthenticatedUserInfo();
+                   await RefreshUnityServicesToken();
                 }
 
                 AuthenticationState = string.IsNullOrEmpty(m_SessionBrowserAccessTokenValue) ? AuthenticationState.LoggedOut : AuthenticationState.LoggedIn;
@@ -108,14 +115,8 @@ namespace Unity.Cloud.Identity
             }
         }
 
-        async Task RefreshAuthenticatedUserInfo()
+        async Task RefreshUnityServicesToken()
         {
-            try
-            {
-                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(m_SessionBrowserAccessTokenValue);
-            }
-            catch (Exception) {  /*silent fail*/}
-
             m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(m_SessionBrowserAccessTokenValue);
         }
 
@@ -133,7 +134,7 @@ namespace Unity.Cloud.Identity
                 if (!browserAccessTokenValue.Equals(m_SessionBrowserAccessTokenValue))
                 {
                     m_SessionBrowserAccessTokenValue = browserAccessTokenValue;
-                    await RefreshAuthenticatedUserInfo();
+                    await RefreshUnityServicesToken();
                 }
 
                 headers.AddAuthorization(m_UnityServicesToken.AccessToken, ServiceHeaderUtils.k_BearerScheme);
@@ -142,12 +143,6 @@ namespace Unity.Cloud.Identity
             {
                 throw new InvalidOperationException($"Missing '{m_LocalStorageKeyName}' value from browser local storage.");
             }
-        }
-
-        /// <inheritdoc/>
-        public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
-        {
-            return await m_OrganizationRepository.ListOrganizationsAsync();
         }
 
         /// <summary>
@@ -195,9 +190,33 @@ namespace Unity.Cloud.Identity
         }
 
         /// <inheritdoc/>
-        public string GetUserInfo(string key)
+        public IAsyncEnumerable<IOrganization> ListOrganizationsAsync(Range range, CancellationToken cancellationToken = default)
         {
-            return m_AuthenticatedUserInfoProvider?.GetUserInfo(key);
+            if (m_OrganizationRepository != null)
+            {
+                return m_OrganizationRepository.ListOrganizationsAsync(range, cancellationToken);
+            }
+            return m_AuthenticatedUserSession.ListOrganizationsAsync(range, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IOrganization> GetOrganizationAsync(OrganizationId organizationId)
+        {
+            if (m_OrganizationRepository != null)
+            {
+                return await m_OrganizationRepository.GetOrganizationAsync(organizationId);
+            }
+            return await m_AuthenticatedUserSession.GetOrganizationAsync(organizationId);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IUserInfo> GetUserInfoAsync()
+        {
+            if (m_UserInfoProvider != null)
+            {
+                return await m_UserInfoProvider.GetUserInfoAsync();
+            }
+            return await m_AuthenticatedUserSession.GetUserInfoAsync();
         }
     }
 }

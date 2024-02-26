@@ -1,26 +1,26 @@
 {
   "name": "com.unity.cloud.identity",
-  "version": "1.0.0-pre.5",
+  "version": "1.0.0",
   "displayName": "Unity Cloud Identity",
   "description": "Unity Cloud Identity provides client support for all Identity and Access Management (IAM) service features.",
   "unity": "2022.3",
   "dependencies": {
-    "com.unity.cloud.common": "1.0.0-pre.5"
+    "com.unity.cloud.common": "1.0.0"
   },
   "relatedPackages": {
-    "com.unity.cloud.identity.tests": "1.0.0-pre.5"
+    "com.unity.cloud.identity.tests": "1.0.0"
   },
   "_upm": {
-    "changelog": "### Added\n- [Breaking] `ChannelServiceRequest`, `ChannelRequest`, `ChannelPkcePlatformSupport`, `ChannelInfo` from Unity.Cloud.Interop to Unity.Cloud.Identity.\n\n### Changed\n- [Breaking] Moved `IChannelProvider`, `ChannelProvider`, `ChannelJson`, `ChannelIdResponseJson` from Unity.Cloud.Interop to Unity.Cloud.Identity and maked them internal.\n- Update com.unity.cloud.common dependency to 1.0.0-pre.5."
+    "changelog": "### Added\n- Add `IUnityUserInfo`, `IMemberInfo`, `IUnityUserInfoProvider` and `IMemberInfoProvider` interfaces.\n- `IOrganization` and `IProject` interfaces now inherits `IMemberInfoProvider` interface.\n- `IProject` interface now exposes an `EnabledInAssetManager` boolean property.\n- `IAuthenticator` interface and all implementations now inherits `IUnityUserInfoProvider` interface.\n\n### Changed\n- Updated Manual Documentation.\n- [Breaking] Renamed `IUnityUserInfo` interface to `IUserInfo`.\n- [Breaking] Renamed `IUnityUserInfoProvider` interface to `IUserInfoProvider`.\n- [Breaking] Renamed `GetUnityUserInfoAsync` method of `IUserInfoProvider` interface to `GetUserInfoAsync`.\n- [Breaking] Renamed `GenesisId` property to `UserId` in `IUnityUserInfo` interface.\n- [Breaking] Renamed `GroupGenesisId` property to `GroupId` in `IMemberInfo` interface.\n- `UnityEditorAuthenticator`, `IUnityEditorAccessTokenProvider` and `LaunchArgumentsUnityEditorAccessTokenProvider` are now public.\n- [Breaking] Replaced `IPkceRequestHandler.GetAuthenticatedUserInfoAsync` method with `IPkceRequestHandler.GetUserInfoAsync`.\n- [Breaking] Renamed `AuthenticatedUserInfoClaims` to `OpenIdUserInfoClaims`.\n- [Breaking] Changed `IOrganization.Role` property type from `string` to `Role`.\n- [Breaking] Changed `ListOrganizationsAsync` methods signature of `IOrganizationRepository` interface to return an `IAsyncEnumerable<IOrganization>` and accept `Range` and `CancellationToken` arguments.\n- [Breaking] Removed `HasRoleAsync` and `HasPermissionAsync` methods from `IRoleProvider` interface in favor of `IEnumerable<Role>` and `IEnumerable<Permission>` type extensions.\n- [Breaking] Moved `UserId` struct to Unity.Cloud.Common.\n- Update com.unity.cloud.common dependency to 1.0.0.\n\n### Removed\n- [Breaking] Removed `Id` property in `IUnityUserInfo` interface.\n- [Breaking] Removed `Coppa`, `KidsStoreCompliance` and `DefaultEnvironmentId` properties from `IProject` interface and its implementation.\n- [Breaking] Removed `LicenseInfo` class and `LicenseType` enum.\n- [Breaking] Removed `IAuthenticatedUserInfoProvider` interface and its implementation in all `IAuthenticator`.\n- [Breaking] Renamed `AuthenticatorOrganizationRepository` to `AuthenticatedUserSession` and set as internal."
   },
   "upmCi": {
-    "footprint": "fce570048634e63e11e3ad720a0e0f8d5991101a"
+    "footprint": "b34c8dc458b72ec91ada26f15ce884539317ef62"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.cloud.identity@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/digital-twins-sdk.git",
     "type": "git",
-    "revision": "44f0674ab386c5aca17820ddebdb81fbab081c5e"
+    "revision": "bed3b2af9ad90affe06d12875fdb221a2496a3c1"
   },
   "samples": [
     {

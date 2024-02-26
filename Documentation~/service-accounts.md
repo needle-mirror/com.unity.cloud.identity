@@ -13,14 +13,7 @@ A service account allows authorization for internal headless scenarios (automate
 The `ServiceAccountAuthorizer` class implements the `IServiceAuthorizer` interface. Once instantiated, it can be injected in a `ServiceHttpClient` to
 access Unity Cloud services.
 
-```csharp
-    var httpClient = new UnityHttpClient();
-    var playerSettings = UnityCloudPlayerSettings.Instance;
-
-    m_ServiceAccountAuthorizer = new ServiceAccountAuthorizer(PlatformSupportFactory.GetAuthenticationPlatformSupport());
-
-    m_ServiceHttpClient = new ServiceHttpClient(httpClient, m_ServiceAccountAuthorizer, playerSettings);
-```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/ServiceAccountsExample.cs#ServiceAuthorizer)]
 
 ### Inject the Service Account credentials in your Unity Cloud application
 

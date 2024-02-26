@@ -12,66 +12,13 @@ Roles and permissions assigned to a user can be listed or validated using awaita
 Once the `IAuthenticationStateProvider.AuthenticationStateChanged` event is triggered with a value of `AuthenticationState.LoggedIn` you can call the `IOrganizationRepository.ListOrganizationsAsync()`
 method to return the list of Unity Organizations accessible to the logged in user.
 
-```csharp
-    public class MyMonoBehaviour : MonoBehaviour
-    {
-        ICompositeAuthenticator m_CompositeAuthenticator;
-        IOrganizationRepository m_OrganizationRepository => m_CompositeAuthenticator;
-        IEnumerable<IOrganization> m_Organizations;
-        
-        void Start()
-        {
-           
-            if (m_CompositeAuthenticator == null)
-            {
-                m_CompositeAuthenticator = PlatformServices.CompositeAuthenticator;
-                m_CompositeAuthenticator.AuthenticationStateChanged += OnAuthenticationStateChanged;
-
-                // Update UI with current state
-                _ = ApplyAuthenticationState(m_CompositeAuthenticator.AuthenticationState);
-            }
-        }
-
-        void OnDestroy()
-        {
-            m_CompositeAuthenticator.AuthenticationStateChanged -= OnAuthenticationStateChanged;
-        }
-
-        void OnAuthenticationStateChanged(AuthenticationState newAuthenticationState)
-        {
-            _ = ApplyAuthenticationState(newAuthenticationState);
-        }
-
-        async Task ApplyAuthenticationState(AuthenticationState state)
-        {
-            switch (state)
-            {
-                case AuthenticationState.AwaitingInitialization:
-                case AuthenticationState.AwaitingLogin:
-                case AuthenticationState.AwaitingLogout:
-                    break;
-                case AuthenticationState.LoggedIn:
-                    m_Organizations = await m_OrganizationRepository.ListOrganizationsAsync();
-                    break;
-                case AuthenticationState.LoggedOut:
-                    break;
-            }
-        }
-
-    }
-```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/EntitiesRbacExample.cs#ListOrganizations)]
 
 ## Fetching Unity Projects for an IOrganization
 
 The `IOrganization` interface exposes a `ListProjectsAsync()` method to fetch a range of Unity Project in an awaitable `IAsyncEnumerable<IProject>` object.
 
-```csharp
-    void FetchOrganizationProjects(IOrganization organization)
-    {
-        var projects = organization.ListProjectsAsync(Range.All);
-        var projectsList = await ToList(projects);
-    }
-```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/EntitiesRbacExample.cs#ListOrganizationProjects)]
 
 ## List and validate roles or permissions for Unity entities
 
@@ -79,17 +26,9 @@ Both `IOrganization` and `IProject` implements the `IRoleProvider` interface. Th
 
 You can use roles and permissions information to provide a better user experience by adjusting the UI element available and displayed to the user.
 
-```csharp
-    // Validate if a user has the "owner" role on an IOrganization
-    var hasOwnerRole = await SelectedOrganization.HasRoleAsync("owner");
-    // List user assigned roles in an IOrganization
-    var userRoles = await SelectedOrganization.ListRolesAsync();
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/EntitiesRbacExample.cs#ListOrganizationRoles)]
 
-    // Validate if a user has the "amc.assets.create" permission on an IProject
-    var hasAssetsCreateRole = await SelectedProject.HasPermissionAsync("amc.assets.create");
-    // List user assigned permissions in an IProject
-    var userPermissions = await SelectedOProject.ListPermissionsAsync();
-```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/EntitiesRbacExample.cs#ListProjectPermissions)]
 
 >[!NOTE]
 >When a user has the `IOrganization.Role` value of `owner` or `manager`, it is considered as having all available roles and permissions over all `IProject` of this `IOrganization`.

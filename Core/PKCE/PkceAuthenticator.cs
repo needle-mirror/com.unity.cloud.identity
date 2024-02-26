@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using Unity.Cloud.AppLinking;
 using Unity.Cloud.Common;
 
@@ -28,8 +29,6 @@ namespace Unity.Cloud.Identity
 
         static readonly List<string> s_AwaitedQueryArguments = new List<string>() { "code", "state" };
         static readonly string s_StateCancelled = "cancelled";
-
-        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider;
 
         /// <inheritdoc/>
         public event Action<AuthenticationState> AuthenticationStateChanged;
@@ -63,7 +62,7 @@ namespace Unity.Cloud.Identity
                     m_AccessTokenRefresher = null;
 
                     m_UnityServicesToken = null;
-                    m_AuthenticatedUserInfoProvider = null;
+                    m_AuthenticatedUserSession = null;
                 }
 
                 m_AuthenticationState = value;
@@ -71,28 +70,38 @@ namespace Unity.Cloud.Identity
             }
         }
 
+        readonly PkceAuthenticatorSettings m_PkceAuthenticatorSettings;
         readonly IPkceConfigurationProvider m_PkceConfigurationProvider;
         readonly IAuthenticationPlatformSupport m_AuthenticationPlatformSupport;
         readonly IPkceRequestHandler m_PkceRequestHandler;
         readonly IAppNamespaceProvider m_AppNamespaceProvider = new DefaultAppNamespaceProvider();
+
+        AuthenticatedUserSession m_AuthenticatedUserSession;
+
         readonly IOrganizationRepository m_OrganizationRepository;
+        readonly IUserInfoProvider m_UserInfoProvider;
 
         /// <summary>
         /// Provides a <see cref="PkceAuthenticator"/> that accepts a <see cref="PkceAuthenticatorSettings"/> to handle Proof Key Code Exchange (PKCE) authentication contexts.
         /// </summary>
         /// <param name="pkceAuthenticatorSettings">A <see cref="PkceAuthenticatorSettings"/> that contains the parameters required for constructing the authenticator.</param>
-        /// <param name="organizationsRepository">An optional <see cref="IOrganizationRepository"/>.</param>
-        public PkceAuthenticator(PkceAuthenticatorSettings pkceAuthenticatorSettings, IOrganizationRepository organizationsRepository = null)
+        /// <param name="organizationRepository">An optional <see cref="IOrganizationRepository"/>.</param>
+        /// <param name="userInfoProvider">An optional <see cref="IUserInfoProvider"/>.</param>
+        public PkceAuthenticator(PkceAuthenticatorSettings pkceAuthenticatorSettings, IOrganizationRepository organizationRepository = null, IUserInfoProvider userInfoProvider = null)
         {
+            m_PkceAuthenticatorSettings = pkceAuthenticatorSettings;
             m_AuthenticationPlatformSupport = pkceAuthenticatorSettings.AuthenticationPlatformSupport;
             m_PkceConfigurationProvider = pkceAuthenticatorSettings.PkceConfigurationProvider;
             m_PkceRequestHandler = pkceAuthenticatorSettings.PkceRequestHandler;
             m_UnityServicesTokenExchanger = pkceAuthenticatorSettings.AccessTokenExchanger;
             m_AppNamespaceProvider = pkceAuthenticatorSettings.AppNamespaceProvider;
 
-            m_OrganizationRepository = organizationsRepository ?? new AuthenticatorOrganizationRepository(
+            m_AuthenticatedUserSession = new AuthenticatedUserSession(
                 new ServiceHttpClient(pkceAuthenticatorSettings.HttpClient, this,
                     pkceAuthenticatorSettings.AppIdProvider), pkceAuthenticatorSettings.ServiceHostResolver);
+
+            m_OrganizationRepository = organizationRepository;
+            m_UserInfoProvider = userInfoProvider;
 
             m_DeviceTokenFileName = BuildDeviceTokenFileNameFromHostConfiguration(pkceAuthenticatorSettings.ServiceHostResolver);
         }
@@ -508,7 +517,9 @@ namespace Unity.Cloud.Identity
             if (pkceConfiguration.CacheRefreshToken && m_AuthenticationPlatformSupport.SecretCacheStore != null)
                 await m_AuthenticationPlatformSupport.SecretCacheStore?.WriteToCacheAsync(m_DeviceTokenFileName, deviceToken.RefreshToken);
 
-            m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(deviceToken.AccessToken);
+            m_AuthenticatedUserSession = new AuthenticatedUserSession(
+                new ServiceHttpClient(m_PkceAuthenticatorSettings.HttpClient, this,
+                    m_PkceAuthenticatorSettings.AppIdProvider), m_PkceAuthenticatorSettings.ServiceHostResolver);
 
             m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(deviceToken.AccessToken);
 
@@ -522,20 +533,12 @@ namespace Unity.Cloud.Identity
             await m_PkceRequestHandler.RevokeRefreshTokenAsync(PkceHelper.CreateRevokeRefreshTokenUrlRequestStringContent(refreshToken, pkceConfiguration));
         }
 
-        /// <inheritdoc/>
-        public string GetUserInfo(string key)
-        {
-            return m_AuthenticatedUserInfoProvider?.GetUserInfo(key);
-        }
-
         /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
         public async Task AddAuthorization(HttpHeaders headers)
         {
             if (m_AccessTokenRefresher != null && await m_AccessTokenRefresher.ShouldRefreshAccessToken())
             {
                 var newDeviceToken = await m_AccessTokenRefresher.RefreshAccessTokenAsync();
-
-                m_AuthenticatedUserInfoProvider = await m_PkceRequestHandler.GetAuthenticatedUserInfoAsync(newDeviceToken.AccessToken);
 
                 m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(newDeviceToken.AccessToken);
             }
@@ -550,9 +553,33 @@ namespace Unity.Cloud.Identity
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
+        public IAsyncEnumerable<IOrganization> ListOrganizationsAsync(Range range, CancellationToken cancellationToken = default)
         {
-            return await m_OrganizationRepository.ListOrganizationsAsync();
+            if (m_OrganizationRepository != null)
+            {
+                return m_OrganizationRepository.ListOrganizationsAsync(range, cancellationToken);
+            }
+            return m_AuthenticatedUserSession.ListOrganizationsAsync(range, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IOrganization> GetOrganizationAsync(OrganizationId organizationId)
+        {
+            if (m_OrganizationRepository != null)
+            {
+                return await m_OrganizationRepository.GetOrganizationAsync(organizationId);
+            }
+            return await m_AuthenticatedUserSession.GetOrganizationAsync(organizationId);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IUserInfo> GetUserInfoAsync()
+        {
+            if (m_UserInfoProvider != null)
+            {
+                return await m_UserInfoProvider.GetUserInfoAsync();
+            }
+            return await m_AuthenticatedUserSession.GetUserInfoAsync();
         }
     }
 

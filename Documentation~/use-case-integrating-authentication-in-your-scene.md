@@ -26,7 +26,7 @@ To instantiate a `CompositeAuthenticator` in the `PlatformServices` class, follo
     <li> Shutdown the <code>CompositeAuthenticator</code> and any other services in the <code>Shutdown</code> method. </li>
 </ol>
 
-[!code-cs [PlatformServices](../Samples/Documentation/Manual/IntegrateAuthentication.cs#PlatformServices)]
+[!code-cs [PlatformServices](../Samples/Documentation/Manual/IntegrateAuthenticationExample.cs#PlatformServices)]
 
 ### Tie the CompositeAuthenticator with UI
 
@@ -57,7 +57,7 @@ Please note that if the `CompositeAuthenticatorSettings` added <b>automated flow
 <li> Test your scene to see how the buttons update along with the authentication state of the user. </li>
 </ol>
 
-[!code-cs [LoginManager](../Samples/Documentation/Manual/IntegrateAuthentication.cs#LoginManager)]
+[!code-cs [LoginManager](../Samples/Documentation/Manual/IntegrateAuthenticationExample.cs#LoginManager)]
 
 ### Leverage the authorization headers to communicate with other Unity Cloud services
 

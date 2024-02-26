@@ -1,0 +1,52 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Unity.Cloud.Common;
+
+namespace Unity.Cloud.Identity
+{
+    internal class OrganizationProjectsJsonProvider : IOrganizationProjectsJsonProvider
+    {
+        readonly IServiceHostResolver m_ServiceHostResolver;
+        readonly IServiceHttpClient m_ServiceHttpClient;
+
+        readonly GetRequestResponseCache<RangeResultsJson<ProjectJson>> m_GetRequestResponseCache;
+
+        public OrganizationProjectsJsonProvider(IServiceHttpClient serviceHttpClient, IServiceHostResolver serviceHostResolver)
+        {
+            m_ServiceHostResolver = serviceHostResolver.CreateCopyWithDomainResolverOverride(new UnityServicesDomainResolver(true));
+            m_ServiceHttpClient = serviceHttpClient;
+
+            m_GetRequestResponseCache = new GetRequestResponseCache<RangeResultsJson<ProjectJson>>(60);
+        }
+
+        public async IAsyncEnumerable<ProjectJson> GetOrganizationProjectsJson(OrganizationId organizationId, IEntityRoleProvider entityRoleProvider,
+            Range range, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var rangeRequest = new RangeRequest<ProjectJson>(GetOrganizationProjects, 1000);
+            var requestBasePath = $"/api/unity/legacy/v1/organizations/{organizationId}/projects";
+            var results = rangeRequest.Execute(requestBasePath, range, cancellationToken);
+            await foreach (var projectJson in results)
+            {
+                yield return projectJson;
+            }
+        }
+
+        async Task<RangeResultsJson<ProjectJson>> GetOrganizationProjects(string rangeRequestPath, CancellationToken cancellationToken)
+        {
+            var url = m_ServiceHostResolver.GetResolvedRequestUri(rangeRequestPath);
+            if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(url, out RangeResultsJson<ProjectJson> value))
+            {
+                return value;
+            }
+            var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken: cancellationToken);
+            var deserializedResponse = await response.JsonDeserializeAsync<RangeResultsJson<ProjectJson>>();
+            return m_GetRequestResponseCache.AddGetRequestResponseToCache(url, deserializedResponse);
+        }
+
+    }
+}
+

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
 
@@ -147,15 +149,22 @@ namespace Unity.Cloud.Identity
         }
 
         /// <inheritdoc/>
-        public string GetUserInfo(string key)
+        public IAsyncEnumerable<IOrganization> ListOrganizationsAsync(Range range,
+            CancellationToken cancellationToken = default)
         {
-            return m_Authenticator.GetUserInfo(key);
+            return m_Authenticator.ListOrganizationsAsync(range, cancellationToken);
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<IOrganization>> ListOrganizationsAsync()
+        public async Task<IOrganization> GetOrganizationAsync(OrganizationId organizationId)
         {
-            return await m_Authenticator.ListOrganizationsAsync();
+            return await m_Authenticator.GetOrganizationAsync(organizationId);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IUserInfo> GetUserInfoAsync()
+        {
+            return await m_Authenticator.GetUserInfoAsync();
         }
     }
 }

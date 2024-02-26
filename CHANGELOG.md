@@ -5,6 +5,46 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2024-02-26
+
+### Added
+- Add `IUnityUserInfo`, `IMemberInfo`, `IUnityUserInfoProvider` and `IMemberInfoProvider` interfaces.
+- `IOrganization` and `IProject` interfaces now inherits `IMemberInfoProvider` interface.
+- `IProject` interface now exposes an `EnabledInAssetManager` boolean property.
+- `IAuthenticator` interface and all implementations now inherits `IUnityUserInfoProvider` interface.
+
+### Changed
+- Updated Manual Documentation.
+- [Breaking] Renamed `IUnityUserInfo` interface to `IUserInfo`.
+- [Breaking] Renamed `IUnityUserInfoProvider` interface to `IUserInfoProvider`.
+- [Breaking] Renamed `GetUnityUserInfoAsync` method of `IUserInfoProvider` interface to `GetUserInfoAsync`.
+- [Breaking] Renamed `GenesisId` property to `UserId` in `IUnityUserInfo` interface.
+- [Breaking] Renamed `GroupGenesisId` property to `GroupId` in `IMemberInfo` interface.
+- `UnityEditorAuthenticator`, `IUnityEditorAccessTokenProvider` and `LaunchArgumentsUnityEditorAccessTokenProvider` are now public.
+- [Breaking] Replaced `IPkceRequestHandler.GetAuthenticatedUserInfoAsync` method with `IPkceRequestHandler.GetUserInfoAsync`.
+- [Breaking] Renamed `AuthenticatedUserInfoClaims` to `OpenIdUserInfoClaims`.
+- [Breaking] Changed `IOrganization.Role` property type from `string` to `Role`.
+- [Breaking] Changed `ListOrganizationsAsync` methods signature of `IOrganizationRepository` interface to return an `IAsyncEnumerable<IOrganization>` and accept `Range` and `CancellationToken` arguments.
+- [Breaking] Removed `HasRoleAsync` and `HasPermissionAsync` methods from `IRoleProvider` interface in favor of `IEnumerable<Role>` and `IEnumerable<Permission>` type extensions.
+- [Breaking] Moved `UserId` struct to Unity.Cloud.Common.
+- Update com.unity.cloud.common dependency to 1.0.0.
+
+### Removed
+- [Breaking] Removed `Id` property in `IUnityUserInfo` interface.
+- [Breaking] Removed `Coppa`, `KidsStoreCompliance` and `DefaultEnvironmentId` properties from `IProject` interface and its implementation.
+- [Breaking] Removed `LicenseInfo` class and `LicenseType` enum.
+- [Breaking] Removed `IAuthenticatedUserInfoProvider` interface and its implementation in all `IAuthenticator`.
+- [Breaking] Renamed `AuthenticatorOrganizationRepository` to `AuthenticatedUserSession` and set as internal. 
+
+## [1.0.0-pre.6] - 2024-02-13
+
+### Added
+- Add `GetOrganizationAsync` method in `IOrganizationRepository` interface.
+- Added missing await operator in the `UserNameUpdater` class.
+
+### Changed
+- Update com.unity.cloud.common dependency to 1.0.0-pre.6.
+
 ## [1.0.0-pre.5] - 2024-01-15
 
 ### Added

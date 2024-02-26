@@ -5,7 +5,7 @@ namespace Unity.Cloud.Identity.Editor
     /// <summary>
     /// An interface to provide a Unity Editor access token.
     /// </summary>
-    internal interface IUnityEditorAccessTokenProvider
+    public interface IUnityEditorAccessTokenProvider
     {
         /// <summary>
         /// Returns an access token.

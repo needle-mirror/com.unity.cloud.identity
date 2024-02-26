@@ -84,8 +84,9 @@ namespace Unity.Cloud.Identity
             }
             catch (Exception ex)
             {
-                s_Logger.LogWarning($"error creating channel:{requestUri}, {ex}");
-                return "";
+                s_Logger.LogError($"Error creating channel: {requestUri}, {ex}");
+
+                throw;
             }
         }
 

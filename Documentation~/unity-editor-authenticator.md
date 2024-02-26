@@ -2,61 +2,26 @@
 
 The `UnityEditorAuthenticator` class is an `IAuthenticator` implementation to be used only in the context of Unity Editor scripting.
 
-It relies on the running Unity Editor's user session to provide `IAuthenticationStateProvider.AuthenticationStateChanged` event and all `IOrganizationRepository` methods
+It relies on the running Unity Editor's user session to provide `IAuthenticationStateProvider.AuthenticationStateChanged` event and all `IOrganizationRepository` and `IUserInfoProvider` methods
 to fetch Unity Organizations and Unity Projects of the logged in user and its assigned roles and permissions in them.
 
-## UnityEditorAuthenticator usage
+## UnityEditorAuthenticator default usage
 
-Here is an example of instantiation of the `UnityEditorAuthenticator` in a `UnityEditor.EditorWindow` derived class:
+Here is an example of a default instantiation of the `UnityEditorAuthenticator` in a `UnityEditor.EditorWindow` derived class to fetch the name of the logged in user:
 
-```csharp
-    internal class MyEditorWindow : EditorWindow
-    {
-        UnityEditorAuthenticator m_UnityEditorAuthenticator;
-        IAuthenticatedUserInfoProvider m_AuthenticatedUserInfoProvider => m_UnityEditorAuthenticator;
-        bool m_LoggedIn;
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/UnityEditorAuthenticatorExample.cs#EditorWindow)]
 
-        [MenuItem("Window/My Window")]
-        static void Init()
-        {
-            // Get existing open window or if none, make a new one:
-            MyEditorWindow window = (MyEditorWindow)EditorWindow.GetWindow(typeof(MyEditorWindow));
-            window.titleContent.text = "My Window";
-            window.Show();
-        }
+### Use a UnityEditorAuthenticator with a custom Access Token provider usage
 
-        async void OnEnable()
-        {
-            InitPlatformServices();
-            await m_UnityEditorAuthenticator.InitializeAsync();
-        }
+Here is an example of instantiation of the `UnityEditorAuthenticator` that uses a custom `IUnityEditorAccessTokenProvider` implementation:
 
-        void InitPlatformServices()
-        {
-            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
-            var httpClient = new UnityHttpClient();
-            var targetClientIdTokenToUnityServicesTokenExchanger = new TargetClientIdTokenToUnityServicesTokenExchanger(httpClient, serviceHostResolver);
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/UnityEditorAuthenticatorExample.cs#EditorWindowCustomTokenProvider)]
 
-            m_UnityEditorAuthenticator = new UnityEditorAuthenticator(targetClientIdTokenToUnityServicesTokenExchanger);
-            m_UnityEditorAuthenticator.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        }
+## Use a UnityEditorAuthenticator with CLI Unity Editor launch arguments --username --password
 
-        void OnAuthenticationStateChanged(AuthenticationState authenticationState)
-        {
-            m_LoggedIn = m_UnityEditorAuthenticator.AuthenticationState.Equals(AuthenticationState.LoggedIn);
-            Repaint();
-        }
+>[!IMPORTANT]
+>Never expose or commit your personal credentials in code. Use proper secret injection from your automation platform to add credentials to your CLI command.
 
-        void OnGUI()
-        {
-            if (m_LoggedIn)
-            {
-                GUILayout.Label($"You are Logged in as {m_AuthenticatedUserInfoProvider.GetUserInfo(AuthenticatedUserInfoClaims.Name)}.");
-            }
-            else
-            {
-                GUILayout.Label($"You are Logged out.");
-            }
-        }
-    }
-```
+Here is an example of instantiation of the `UnityEditorAuthenticator` that uses the `LaunchArgumentsUnityEditorAccessTokenProvider` implementation:
+
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/UnityEditorAuthenticatorExample.cs#EditorWindowLaunchArguments)]

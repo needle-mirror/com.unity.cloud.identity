@@ -16,6 +16,9 @@ namespace Unity.Cloud.Identity
         readonly IHttpClient m_HttpClient;
         readonly IPkceConfigurationProvider m_PkceConfigurationProvider;
 
+        DeviceToken m_DeviceToken;
+        PkceUserInfoClaims m_PkceUserInfoClaims;
+
         /// <summary>
         /// Creates a <see cref="HttpPkceRequestHandler"/> that handles all HTTP requests required in the Proof Key Code Exchange authentication flow.
         /// </summary>
@@ -38,9 +41,10 @@ namespace Unity.Cloud.Identity
         {
             var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
             var response = await m_HttpClient.PostAsync(pkceConfiguration.TokenUrl, new StringContent(tokenEndPointParams, Encoding.UTF8, "application/x-www-form-urlencoded"));
-            var responseContent = await response.Content.ReadAsStringAsync();
             var exchangeCodeToken = await response.JsonDeserializeAsync<ExchangeCodeToken>();
-            return new DeviceToken(exchangeCodeToken.access_token, exchangeCodeToken.refresh_token, exchangeCodeToken.expires_in);
+            m_DeviceToken = new DeviceToken(exchangeCodeToken.access_token, exchangeCodeToken.refresh_token, exchangeCodeToken.expires_in);
+            m_PkceUserInfoClaims = null;
+            return m_DeviceToken;
         }
 
         /// <summary>
@@ -56,7 +60,9 @@ namespace Unity.Cloud.Identity
             var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
             var response = await m_HttpClient.PostAsync(pkceConfiguration.RefreshTokenUrl, new StringContent(tokenEndPointParams, Encoding.UTF8, "application/x-www-form-urlencoded"));
             var refreshDeviceToken = await response.JsonDeserializeAsync<RefreshDeviceToken>();
-            return new DeviceToken(refreshDeviceToken.access_token, refreshDeviceToken.refresh_token, refreshDeviceToken.expires_in, refreshToken);
+            m_DeviceToken = new DeviceToken(refreshDeviceToken.access_token, refreshDeviceToken.refresh_token, refreshDeviceToken.expires_in, refreshToken);
+            m_PkceUserInfoClaims = null;
+            return m_DeviceToken;
         }
 
         /// <summary>
@@ -68,20 +74,23 @@ namespace Unity.Cloud.Identity
         /// </returns>
         public async Task RevokeRefreshTokenAsync(string revokeEndPointParams)
         {
+            m_PkceUserInfoClaims = null;
             var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
             await m_HttpClient.PostAsync(pkceConfiguration.LogoutUrl, new StringContent(revokeEndPointParams, Encoding.UTF8, "application/x-www-form-urlencoded"));
         }
 
         /// <inheritdoc />
-        public async Task<IAuthenticatedUserInfoProvider> GetAuthenticatedUserInfoAsync(string accessToken)
+        public async Task<string> GetUserInfoAsync(string userInfoClaim)
         {
-            var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, pkceConfiguration.UserInfoUrl);
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var response = await m_HttpClient.SendAsync(requestMessage);
-            var pkceUserInfoClaims = await response.JsonDeserializeAsync<PkceUserInfoClaims>();
-            pkceUserInfoClaims.access_token = accessToken;
-            return pkceUserInfoClaims;
+            if (m_PkceUserInfoClaims == null)
+            {
+                var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, pkceConfiguration.UserInfoUrl);
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", m_DeviceToken?.AccessToken);
+                var response = await m_HttpClient.SendAsync(requestMessage);
+                m_PkceUserInfoClaims = await response.JsonDeserializeAsync<PkceUserInfoClaims>();
+            }
+            return m_PkceUserInfoClaims.GetUserInfo(userInfoClaim);
         }
     }
 }

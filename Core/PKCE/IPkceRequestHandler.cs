@@ -36,12 +36,12 @@ namespace Unity.Cloud.Identity
         Task RevokeRefreshTokenAsync(string revokeEndPointParams);
 
         /// <summary>
-        /// Returns the authenticated user information from the PKCEConfiguration /userinfo endpoint.
+        /// Returns the user information claims from the PKCEConfiguration /userinfo endpoint.
         /// </summary>
-        /// <param name="accessToken">The access token delivered by the PKCE identity provider.</param>
+        /// <param name="userInfoClaims">The userInfo claims to fetch.</param>
         /// <returns>
-        /// A task that results in a <see cref="IAuthenticatedUserInfoProvider"/> when completed.
+        /// A task that results in the string value of the userInfo claims when completed.
         /// </returns>
-        Task<IAuthenticatedUserInfoProvider> GetAuthenticatedUserInfoAsync(string accessToken);
+        Task<string> GetUserInfoAsync(string userInfoClaims);
     }
 }

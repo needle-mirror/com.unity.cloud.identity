@@ -21,30 +21,16 @@ namespace Unity.Cloud.Identity
     public interface IRoleProvider
     {
         /// <summary>
-        /// Validates if a role is assigned to a user.
-        /// </summary>
-        /// <param name="roleName">The name of the role to look for.</param>
-        /// <returns>A task that once completed returns if a role is assigned to a user.</returns>
-        Task<bool> HasRoleAsync(string roleName);
-
-        /// <summary>
-        /// Validates if a permission is assigned to a user.
-        /// </summary>
-        /// <param name="permission">The permission to look for.</param>
-        /// <returns>A task that once completed returns if a permission is assigned to a user.</returns>
-        Task<bool> HasPermissionAsync(string permission);
-
-        /// <summary>
         /// Lists roles assigned to a user.
         /// </summary>
         /// <returns>A task that once completed returns the list of roles assigned to a user.</returns>
-        Task<IEnumerable<string>> ListRolesAsync();
+        Task<IEnumerable<Role>> ListRolesAsync();
 
         /// <summary>
         /// Lists permissions assigned to a user.
         /// </summary>
         /// <returns>A task that once completed returns the list of permissions assigned to a user.</returns>
-        Task<IEnumerable<string>> ListPermissionsAsync();
+        Task<IEnumerable<Permission>> ListPermissionsAsync();
     }
 
     /// <summary>
@@ -53,28 +39,12 @@ namespace Unity.Cloud.Identity
     internal interface IEntityRoleProvider
     {
         /// <summary>
-        /// A Task to return if a role is assigned to a user on an entity.
-        /// </summary>
-        /// <param name="roleName">The name of the role to look for.</param>
-        /// <param name="entityId">The string id of the entity.</param>
-        /// <param name="entityType">The type of the entity.</param>
-        Task<bool> HasEntityRoleAsync(string roleName, string entityId, string entityType);
-
-        /// <summary>
-        /// A Task to return if a permission is assigned to a user on an entity.
-        /// </summary>
-        /// <param name="permission">The name of the permission to look for.</param>
-        /// <param name="entityId">The string id of the entity.</param>
-        /// <param name="entityType">The type of the entity.</param>
-        Task<bool> HasEntityPermissionAsync(string permission, string entityId, string entityType);
-
-        /// <summary>
         /// A Task to return the list of roles assigned to a user on an entity.
         /// </summary>
         /// <param name="entityId">The string id of the entity.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <returns>The list of roles assigned to a user on an entity.</returns>
-        Task<IEnumerable<string>> ListEntityRolesAsync(string entityId, string entityType);
+        Task<IEnumerable<Role>> ListEntityRolesAsync(string entityId, string entityType);
 
         /// <summary>
         /// A Task to return the list of permissions assigned to a user on an entity.
@@ -82,7 +52,7 @@ namespace Unity.Cloud.Identity
         /// <param name="entityId">The string id of the entity.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <returns>The list of permissions assigned to a user on an entity.</returns>
-        Task<IEnumerable<string>> ListEntityPermissionsAsync(string entityId, string entityType);
+        Task<IEnumerable<Permission>> ListEntityPermissionsAsync(string entityId, string entityType);
     }
 
     [Serializable]
@@ -113,70 +83,63 @@ namespace Unity.Cloud.Identity
     {
         readonly IServiceHostResolver m_ServiceHostResolver;
         readonly IServiceHttpClient m_ServiceHttpClient;
+        readonly IEntityJsonProvider m_EntityJsonProvider;
+
         readonly string m_UserId;
 
-        // InMemory caching of requests result
-        readonly Dictionary<string, (DateTime, IEnumerable<EntityJson>)> m_ServiceCallResultSnapshot = new ();
-        // Time in seconds before the request is allowed to reach the service endpoint again.
-        readonly int m_ServiceCallResultSnapshotTimeLimitInSeconds = 10;
+        readonly GetRequestResponseCache<IEnumerable<EntityJson>> m_GetRequestResponseCache;
 
-        public AuthenticatorRoleProvider(string userId, IServiceHttpClient serviceHttpClient, IServiceHostResolver serviceHostResolver)
+        public AuthenticatorRoleProvider(string userId, IServiceHttpClient serviceHttpClient, IServiceHostResolver serviceHostResolver, IEntityJsonProvider entityJsonProvider = null)
         {
             m_ServiceHostResolver = serviceHostResolver;
             m_ServiceHttpClient = serviceHttpClient;
+            m_EntityJsonProvider = entityJsonProvider;
             m_UserId = userId;
+
+            m_GetRequestResponseCache = new GetRequestResponseCache<IEnumerable<EntityJson>>(60);
         }
 
         async Task<IEnumerable<EntityJson>> GetUserEntityRoles(string entityId, string entityType)
         {
-            var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/access/legacy/v1/users/{m_UserId}/entities?entityType={entityType}&entityId={entityId}&filterByEntityType[]={entityType}");
-
-            // Use cached result before making a new call to service
-            if (m_ServiceCallResultSnapshot.ContainsKey(url) && (DateTime.Now - m_ServiceCallResultSnapshot[url].Item1).Seconds < m_ServiceCallResultSnapshotTimeLimitInSeconds)
+            if (m_EntityJsonProvider != null)
             {
-                return m_ServiceCallResultSnapshot[url].Item2;
+                return m_EntityJsonProvider.GetEntityJsonAsync(entityId, entityType);
             }
+            else
+            {
+                var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/access/legacy/v1/users/{m_UserId}/entities?entityType={entityType}&entityId={entityId}&filterByEntityType[]={entityType}");
+                if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(url, out IEnumerable<EntityJson> value))
+                {
+                    return value;
+                }
 
-            // First time, or time to refresh if cached result has expired
-            var response = await m_ServiceHttpClient.GetAsync(url);
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var returnValue = JsonSerialization.Deserialize<IEnumerable<EntityJson>>(responseContent);
+                // First time, or time to refresh if cached result has expired
+                var response = await m_ServiceHttpClient.GetAsync(url);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var returnValue = JsonSerialization.Deserialize<IEnumerable<EntityJson>>(responseContent);
 
-            // Memorize, then return value
-            m_ServiceCallResultSnapshot[url] = (DateTime.Now, returnValue);
-            return m_ServiceCallResultSnapshot[url].Item2;
+                return m_GetRequestResponseCache.AddGetRequestResponseToCache(url, returnValue);
+            }
         }
 
-        public async Task<bool> HasEntityRoleAsync(string roleName, string entityId, string entityType)
+        public async Task<IEnumerable<Role>> ListEntityRolesAsync(string entityId, string entityType)
         {
             var entityListJson = await GetUserEntityRoles(entityId, entityType);
-            return entityListJson
-                .Any(entity => entity.Policies.Any(policy => policy.RoleName.Equals(roleName)));
-        }
-
-        public async Task<bool> HasEntityPermissionAsync(string permission, string entityId, string entityType)
-        {
-            var entityListJson = await GetUserEntityRoles(entityId, entityType);
-            return entityListJson
-                .Any(entity => entity.Policies.Any(policy => policy.RolePermissions.Contains(permission)));
-        }
-
-        public async Task<IEnumerable<string>> ListEntityRolesAsync(string entityId, string entityType)
-        {
-            var entityListJson = await GetUserEntityRoles(entityId, entityType);
-            var roles = new List<string>();
+            var roles = new List<Role>();
             foreach (var entity in entityListJson)
-                roles.AddRange(entity.Policies.Select(policy => policy.RoleName));
+                roles.AddRange(entity.Policies.Select(policy => new Role(policy.RoleName)));
 
             return roles;
         }
 
-        public async Task<IEnumerable<string>> ListEntityPermissionsAsync(string entityId, string entityType)
+        public async Task<IEnumerable<Permission>> ListEntityPermissionsAsync(string entityId, string entityType)
         {
             var entityListJson = await GetUserEntityRoles(entityId, entityType);
-            var permissions = new List<string>();
+            var permissions = new List<Permission>();
             foreach (var entity in entityListJson)
-                permissions.AddRange(entity.Policies.SelectMany(policy => policy.RolePermissions));
+            {
+                permissions.AddRange(entity.Policies.SelectMany(policy => policy.RolePermissions).ToList().ConvertAll(rolePermission => new Permission(rolePermission)));
+            }
 
             return permissions;
         }

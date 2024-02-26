@@ -14,57 +14,15 @@ The samples and documentation for Identity use a best practice pattern and this 
 
 1. Create a `PlatformServices` static class with `Create`,  `InitializeAsync` and `Shutdown` methods. This class initializes and disposes of all Unity Cloud services, while also publicly exposing the services as singletons.
 
-    ```csharp
-        public static class PlatformServices
-        {
-            public static void Create()
-            {
-                
-            }
-
-            public static async Task InitializeAsync()
-            {
-                
-            }
-
-            public static void Shutdown()
-            {
-                
-            }
-        }
-    ```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/BestPracticesExample.cs#PlatformServices)]
 
 2. Create a `PlatformServicesInitialization` MonoBehaviour that calls the `PlatformService`'s `Create` in `Awake` and `InitializeAsync` in `Start`. The `DefaultExecutionOrder` attribute ensures this script is called before any other script in your project and `DontDestroyOnLoad` ensures the GameObject isn't destroyed when loading another scene.
 
-    ```csharp
-        [DefaultExecutionOrder(int.MinValue)]
-        public class PlatformServicesInitialization : MonoBehaviour
-        {
-            void Awake()
-            {
-                DontDestroyOnLoad(gameObject);
-                PlatformServices.Create();
-            }
-            
-            async Task Start()
-            {
-                await PlatformServices.InitializeAsync();
-            }
-        }
-    ```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/BestPracticesExample.cs#PlatformServicesInitialization)]
 
 3. Create a `PlatformServicesShutdown` MonoBehavior that calls the `PlatformService`'s `Shutdown` in `OnDestroy`. The `DefaultExecutionOrder` attribute ensures this script is called after any other script in your project.
 
-    ```csharp
-        [DefaultExecutionOrder(int.MaxValue)]
-        public class PlatformServicesShutdown : MonoBehaviour
-        {
-            void OnDestroy()
-            {
-                PlatformServices.Shutdown();
-            }
-        }
-    ```
+[!code-cs [behaviour-script](../Samples/Documentation/Manual/BestPracticesExample.cs#PlatformServicesShutdown)]
 
 4. Create a `PlatformServices` GameObject and attach the `PlatformServicesInitialization` and `PlatformServicesShutdown` scripts. Make sure this GameObject instantiates only once in your project, which is when the application launches.
 5. Populate the `PlatformServices` class with the services you require.

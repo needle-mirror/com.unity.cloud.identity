@@ -6,9 +6,9 @@ namespace Unity.Cloud.Identity
 {
 
     /// <summary>
-    /// An interface for authentication flow that implements <see cref="IServiceAuthorizer"/>, <see cref="IAuthenticatedUserInfoProvider"/>, <see cref="IOrganizationRepository"/>, and <see cref="IAuthenticationStateProvider"/>.
+    /// An interface for authentication flow that implements <see cref="IServiceAuthorizer"/>, <see cref="IAuthenticationStateProvider"/>, <see cref="IUserInfoProvider"/> and <see cref="IOrganizationRepository"/>.
     /// </summary>
-    public interface IAuthenticator : IServiceAuthorizer, IAuthenticatedUserInfoProvider, IOrganizationRepository, IAuthenticationStateProvider
+    public interface IAuthenticator : IServiceAuthorizer, IAuthenticationStateProvider, IUserInfoProvider, IOrganizationRepository
     {
         /// <summary>
         /// Indicates if the `IAuthenticator` has valid preconditions to provide authentication in the current execution context.
