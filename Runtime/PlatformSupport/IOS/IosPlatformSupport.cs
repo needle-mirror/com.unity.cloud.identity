@@ -39,7 +39,7 @@ namespace Unity.Cloud.Identity.Runtime
         public override async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
         {
             m_LoginUrl = url;
-            s_Logger.LogInformation($"Awaiting redirect on url: {url}");
+            s_Logger.LogDebug($"Awaiting redirect on url: {url}");
 #if UNITY_IOS && !UNITY_EDITOR
             // Append extra parameters to remove cookie banner in Genesis login page and avoid App Tracking Authorization requirements from Apple.
             LaunchCaptiveSafariWebViewUrl($"{url}&extra_hide_cookie=true&extra_hide_onetrust=true");

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -6,9 +7,24 @@ namespace Unity.Cloud.Identity.Editor
 {
     internal class CloudProjectSettingsUnityEditorAccessTokenProvider : IUnityEditorAccessTokenProvider
     {
+        string m_AccessToken;
+        readonly SynchronizationContext m_SynchronizationContext;
+
+        internal CloudProjectSettingsUnityEditorAccessTokenProvider()
+        {
+            m_AccessToken = CloudProjectSettings.accessToken;
+            m_SynchronizationContext = SynchronizationContext.Current;
+        }
+
         public Task<string> GetAccessTokenAsync()
         {
-            return Task.FromResult(CloudProjectSettings.accessToken);
+            // CloudProjectSettings can only be reach from main thread
+            m_SynchronizationContext.Post( _ =>
+            {
+                m_AccessToken = CloudProjectSettings.accessToken;
+            }, null);
+
+            return Task.FromResult(m_AccessToken);
         }
     }
 }

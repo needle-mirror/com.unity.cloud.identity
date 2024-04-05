@@ -32,7 +32,7 @@ namespace Unity.Cloud.Identity
         public override async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
         {
             m_LoginUrl = url;
-            s_Logger.LogInformation($"Open and await redirect on url: {url}");
+            s_Logger.LogDebug($"Open and await redirect on url: {url}");
 
             m_UrlProcessor?.ProcessURL(url);
             await Task.Delay(50);
@@ -70,7 +70,7 @@ namespace Unity.Cloud.Identity
                 }
                 catch (Exception ex)
                 {
-                    s_Logger.LogInformation($"Error getting channel: {m_ChannelId}. {ex.Message}");
+                    s_Logger.LogDebug($"Error getting channel: {m_ChannelId}. {ex.Message}");
                 }
                 finally
                 {
@@ -85,7 +85,7 @@ namespace Unity.Cloud.Identity
             }
             else
             {
-                s_Logger.LogInformation($"Login awaiting timed out or was cancelled");
+                s_Logger.LogInformation("Login awaiting timed out or was cancelled");
             }
 
             m_Cancelled = false;
@@ -106,7 +106,7 @@ namespace Unity.Cloud.Identity
             if (!string.IsNullOrEmpty(operation) && operation.Equals(k_LoginOperationString))
             {
                 m_ChannelId = await m_ChannelProvider.CreateChannelAsync(ChannelServiceRequestDefinition.PKCE_LOGIN);
-                s_Logger.LogInformation($"Created channel with Id: {m_ChannelId}");
+                s_Logger.LogDebug($"Created channel with Id: {m_ChannelId}");
             }
             else
             {

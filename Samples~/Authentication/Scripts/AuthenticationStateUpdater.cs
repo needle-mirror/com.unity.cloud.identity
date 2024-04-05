@@ -13,11 +13,12 @@ namespace Unity.Cloud.Identity.Samples.Authenticate
         [SerializeField]
         Text m_AuthenticationStateInfoText;
 
-        IAuthenticationStateProvider m_AuthenticationStateProvider;
+        IAuthenticator m_CompositeAuthenticator;
+        IAuthenticationStateProvider m_AuthenticationStateProvider => m_CompositeAuthenticator;
 
         void Awake()
         {
-            m_AuthenticationStateProvider = PlatformServices.AuthenticationStateProvider;
+            m_CompositeAuthenticator = PlatformServices.CompositeAuthenticator;
             m_AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         }
 

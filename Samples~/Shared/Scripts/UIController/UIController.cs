@@ -17,14 +17,13 @@ namespace Unity.Cloud.Identity.Samples
         [SerializeField, Tooltip("UI Elements required for manual logout.")]
         List<GameObject> m_ManualLogoutUIElements = new();
 
-        IAuthenticationStateProvider m_AuthenticationStateProvider;
         ICompositeAuthenticator m_CompositeAuthenticator;
+        IAuthenticationStateProvider m_AuthenticationStateProvider => m_CompositeAuthenticator;
         AuthenticationState m_AuthenticationState;
 
         void Awake()
         {
             m_CompositeAuthenticator = PlatformServices.CompositeAuthenticator;
-            m_AuthenticationStateProvider = PlatformServices.AuthenticationStateProvider;
             m_AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         }
 

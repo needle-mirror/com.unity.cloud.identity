@@ -68,7 +68,7 @@ namespace Unity.Cloud.Identity
             SecretCacheStore = new FileKeyValueStore(m_CacheStorePath, new AesStringObfuscator(!string.IsNullOrEmpty(appIdString) ? appIdString : "default"));
             if (!string.IsNullOrEmpty(activationUrl) && Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri _))
             {
-                s_Logger.LogInformation($"App was activated from url: {activationUrl}");
+                s_Logger.LogDebug($"App was activated from url: {activationUrl}");
                 ActivationUrl = activationUrl;
             }
 
@@ -82,7 +82,7 @@ namespace Unity.Cloud.Identity
         public virtual async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
         {
             m_LoginUrl = url;
-            s_Logger.LogInformation($"Awaiting redirect on url: {url}");
+            s_Logger.LogDebug($"Awaiting redirect on url: {url}");
 
             OpenUrlAction(url);
             await Task.Delay(50);

@@ -5,6 +5,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-04-05
+
+### Added
+- Add `UnityEditorAuthenticator` parameter less default constructor.
+- Added Apple Privacy Manifest file to `/Plugins` directory.
+
+### Changed
+- Modified the `LogLevel` for several log messages to reduce the default amount of logs in the console.
+- Manual documentation code-snippets set to compile only in editor.
+
+### Fixed
+- `CloudProjectSettingsUnityEditorAccessTokenProvider` multithread support.
+
 ## [1.0.0] - 2024-02-26
 
 ### Added

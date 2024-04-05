@@ -21,7 +21,7 @@ namespace Unity.Cloud.Identity.Runtime
 
             if (Uri.TryCreate(launchArgumentsParser.ActivationUrl, UriKind.Absolute, out Uri _))
             {
-                s_Logger.LogInformation($"App was activated from url: {launchArgumentsParser.ActivationUrl}");
+                s_Logger.LogDebug($"App was activated from url: {launchArgumentsParser.ActivationUrl}");
                 ActivationUrl = launchArgumentsParser.ActivationUrl;
             }
 

@@ -35,11 +35,7 @@ namespace Unity.Cloud.Identity.Documentation
 
         void InitPlatformServices()
         {
-            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
-            var httpClient = new UnityHttpClient();
-            var targetClientIdTokenToUnityServicesTokenExchanger = new TargetClientIdTokenToUnityServicesTokenExchanger(httpClient, serviceHostResolver);
-
-            m_UnityEditorAuthenticator = new UnityEditorAuthenticator(targetClientIdTokenToUnityServicesTokenExchanger);
+            m_UnityEditorAuthenticator = new UnityEditorAuthenticator();
             m_UnityEditorAuthenticator.AuthenticationStateChanged += OnAuthenticationStateChanged;
         }
 

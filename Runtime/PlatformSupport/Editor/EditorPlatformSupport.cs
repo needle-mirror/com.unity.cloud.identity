@@ -26,7 +26,7 @@ namespace Unity.Cloud.Identity.Runtime
             var activateAppFromUrl = UnityEngine.Object.FindObjectOfType(typeof(ActivateAppFromUrl)) as ActivateAppFromUrl;
             if (activateAppFromUrl != null && activateAppFromUrl.ActivateAtStartUp && Uri.TryCreate(activateAppFromUrl.ActivationUrl, UriKind.Absolute, out Uri _))
             {
-                s_Logger.LogInformation($"User provided activation Url: {activateAppFromUrl.ActivationUrl}");
+                s_Logger.LogDebug($"User provided activation Url: {activateAppFromUrl.ActivationUrl}");
                 ActivationUrl = activateAppFromUrl.ActivationUrl;
             }
             else
@@ -142,7 +142,7 @@ namespace Unity.Cloud.Identity.Runtime
         {
             if (!string.IsNullOrEmpty(ActivationUrl))
             {
-                s_Logger.LogInformation("Activation Url not currently supported in PlayMode.");
+                s_Logger.LogDebug("Activation Url not currently supported in PlayMode.");
                 // Only process once
                 ActivationUrl = string.Empty;
             }

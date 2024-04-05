@@ -21,11 +21,6 @@ namespace Unity.Cloud.Identity.Samples
         public static ICompositeAuthenticator CompositeAuthenticator => s_CompositeAuthenticator;
 
         /// <summary>
-        /// Returns a <see cref="IAuthenticationStateProvider"/>.
-        /// </summary>
-        public static IAuthenticationStateProvider AuthenticationStateProvider => s_CompositeAuthenticator;
-
-        /// <summary>
         /// Creates all platform services.
         /// </summary>
         public static void Create()

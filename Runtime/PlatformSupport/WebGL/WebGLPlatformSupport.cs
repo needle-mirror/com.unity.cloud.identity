@@ -22,7 +22,7 @@ namespace Unity.Cloud.Identity.Runtime
             ActivationKeyValue = new Dictionary<string, string>();
             if (Uri.TryCreate(activationUrl, UriKind.Absolute, out Uri uri) && !string.IsNullOrEmpty(uri.Query))
             {
-                s_Logger.LogInformation($"App was activated from url: {activationUrl}");
+                s_Logger.LogDebug($"App was activated from url: {activationUrl}");
                 ActivationUrl = activationUrl;
                 ActivationKeyValue = QueryArgumentsParser.GetDictionaryFromArguments(uri);
             }
@@ -64,7 +64,7 @@ namespace Unity.Cloud.Identity.Runtime
         /// </returns>
         public override async Task<UrlRedirectResult> OpenUrlAndWaitForRedirectAsync(string url, List<string> awaitedQueryArguments = null)
         {
-            s_Logger.LogInformation($"Awaiting redirect on url: {url}");
+            s_Logger.LogDebug($"Awaiting redirect on url: {url}");
 
             // If login while an ActivationUrl has not been consumed
             if (!string.IsNullOrEmpty(ActivationUrl) && !ActivationUrlHasCodeAndStateParams(ActivationUrl))

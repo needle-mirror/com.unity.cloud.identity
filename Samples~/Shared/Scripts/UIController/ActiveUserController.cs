@@ -74,7 +74,7 @@ namespace Unity.Cloud.Identity.Samples
             m_CompositeAuthenticator.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         }
 
-        public void Login()
+        void Login()
         {
             try
             {
@@ -91,7 +91,7 @@ namespace Unity.Cloud.Identity.Samples
             }
         }
 
-        public void CancelLogin()
+        void CancelLogin()
         {
             try
             {
@@ -107,7 +107,7 @@ namespace Unity.Cloud.Identity.Samples
             }
         }
 
-        public void Logout()
+        void Logout()
         {
             try
             {

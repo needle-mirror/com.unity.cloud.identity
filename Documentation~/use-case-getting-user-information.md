@@ -12,14 +12,14 @@ To use this sample, you must first [Integrate authentication in your scene](use-
 
 ### Create references to IAuthenticator inherited interfaces
 
-The `CompositeAuthenticator`, like all `IAuthenticator`, inherits `IServiceAuthorizer`, `IAuthenticationStateProvider`, `IUserInfoProvider` and `IOrganizationRepository` interfaces. 
+The `CompositeAuthenticator`, like all `IAuthenticator`, inherits `IServiceAuthorizer`, `IAuthenticationStateProvider`, `IUserInfoProvider` and `IOrganizationRepository` interfaces.
 Create an instance of the `CompositeAuthenticator` and use it to reference all inherited interfaces.
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#PlatformServices)]
 
 ### Leverage the IUserInfoProvider in your scene
 
-To leverage the `IUserInfoProvider` in your scene, see the following steps:
+To leverage the `IUserInfoProvider` in your scene, follow these steps:
 
 1. In your scene, create a `Text` field that displays the current authentication state (or the username if the user is logged in).
 ![Creating a text field in the scene](images/usecase2-usertext.png)
@@ -38,15 +38,13 @@ To leverage the `IUserInfoProvider` in your scene, see the following steps:
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#GetUserInfo)]
 
-
 6. Select **Play**. The text updates based on the authentication state.
 
-### Inject an IServiceAuthorizer in ServiceHttpClient to access resources on Unity Cloud.
+### Inject an IServiceAuthorizer in ServiceHttpClient to access resources on Unity Cloud
 
 Since all `IAuthenticator` inherits the `IServiceAuthorizer` interface, you can inject a reference from any
 `IAuthenticator` class implementation, like the `CompositeAuthenticator`, into the `ServiceHttpClient` constructor method as a valid `IServiceAuthorizer`.
 
-The `ServiceHttpClient` can then be injected in any class of other Unity.Cloud unity packages to access resources on Unity Cloud.
+The `ServiceHttpClient` can then be injected in any class of other `Unity.Cloud` Unity packages to access resources on Unity Cloud.
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/ServiceAuthorizerExample.cs#ServiceAuthorizer)]
-

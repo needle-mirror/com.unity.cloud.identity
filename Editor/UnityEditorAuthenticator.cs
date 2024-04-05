@@ -51,6 +51,14 @@ namespace Unity.Cloud.Identity.Editor
         /// <summary>
         /// Returns an <see cref="IAuthenticator"/> implementation that expects an access token from a Unity Editor environment.
         /// </summary>
+        public UnityEditorAuthenticator()
+            : this(new TargetClientIdTokenToUnityServicesTokenExchanger(new UnityHttpClient(), UnityRuntimeServiceHostResolverFactory.Create()), new CloudProjectSettingsUnityEditorAccessTokenProvider())
+        {
+        }
+
+        /// <summary>
+        /// Returns an <see cref="IAuthenticator"/> implementation that expects an access token from a Unity Editor environment.
+        /// </summary>
         /// <param name="accessTokenExchanger">An <see cref="IAccessTokenExchanger{T1, T2}"/> where the T1 input is a <see cref="TargetClientIdToken"/> and T2 output is a <see cref="UnityServicesToken"/></param>
         public UnityEditorAuthenticator(IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> accessTokenExchanger)
         : this(accessTokenExchanger, new CloudProjectSettingsUnityEditorAccessTokenProvider())

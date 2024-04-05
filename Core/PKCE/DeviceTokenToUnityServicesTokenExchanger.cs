@@ -71,7 +71,6 @@ namespace Unity.Cloud.Identity
     /// </summary>
     public class AccessTokenToUnityServicesTokenExchanger : IAccessTokenExchanger<string, UnityServicesToken>
     {
-
         readonly IHttpClient m_HttpClient;
 
         static readonly string s_BaseUnityApiUrl = ".unity.com";
@@ -112,6 +111,7 @@ namespace Unity.Cloud.Identity
             };
             var stringContent = new StringContent(JsonSerialization.Serialize(exchangeGenesisTokenRequest), Encoding.UTF8,
                     "application/json");
+
             var clientTargetIdTokenResponse = await m_HttpClient.PostAsync($"https://{m_UnityApiUrl}/v1/oauth2/token/exchange", stringContent);
             var exchangeGenesisAccessTokenResponse = await clientTargetIdTokenResponse.JsonDeserializeAsync<ExchangeGenesisAccessTokenResponse>();
 

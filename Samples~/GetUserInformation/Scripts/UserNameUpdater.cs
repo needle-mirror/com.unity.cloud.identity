@@ -21,8 +21,8 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
         [SerializeField]
         ActiveUserController m_ActiveUserController;
 
-        IAuthenticationStateProvider m_AuthenticationStateProvider;
         ICompositeAuthenticator m_CompositeAuthenticator;
+        IAuthenticationStateProvider m_AuthenticationStateProvider => m_CompositeAuthenticator;
         IUserInfoProvider m_UserInfoProvider => m_CompositeAuthenticator;
 
         readonly List<IProject> m_Projects = new();
@@ -35,9 +35,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
 
         void Awake()
         {
-            m_AuthenticationStateProvider = PlatformServices.AuthenticationStateProvider;
             m_CompositeAuthenticator = PlatformServices.CompositeAuthenticator;
-
             m_AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
             if (m_ActiveUserController)
             {

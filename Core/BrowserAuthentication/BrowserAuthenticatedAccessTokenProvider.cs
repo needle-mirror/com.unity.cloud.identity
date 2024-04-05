@@ -97,7 +97,7 @@ namespace Unity.Cloud.Identity
 
                 if (!string.IsNullOrEmpty(m_SessionBrowserAccessTokenValue))
                 {
-                    s_Logger.LogInformation("genesis Access Token provided from a browser environment.");
+                    s_Logger.LogDebug("genesis Access Token provided from a browser environment.");
                    await RefreshUnityServicesToken();
                 }
 
@@ -110,7 +110,7 @@ namespace Unity.Cloud.Identity
             }
             catch (FileNotFoundException)
             {
-                s_Logger.LogInformation("Token could not be found in cache.");
+                s_Logger.LogDebug("Token could not be found in cache.");
                 AuthenticationState = AuthenticationState.LoggedOut;
             }
         }
