@@ -22,12 +22,13 @@ namespace Unity.Cloud.Identity
         readonly IGuestProjectJsonProvider m_GuestProjectJsonProvider;
         readonly IAssetProjectsJsonProvider m_AssetProjectsJsonProvider;
         readonly IMemberInfoJsonProvider m_MemberInfoJsonProvider;
+        readonly ICloudStorageJsonProvider m_CloudStorageJsonProvider;
 
         readonly GetRequestResponseCache<RangeResultsJson<MemberInfoJson>> m_GetRequestResponseCache;
 
         readonly GetRequestResponseCache<AssetProjectPageResultsJson<AssetProjectJson>> m_GetAssetProjectRequestResponseCache;
 
-        internal Organization(OrganizationJson organizationJson, IServiceHttpClient serviceHttpClient, IServiceHostResolver serviceHostResolver, IOrganizationProjectsJsonProvider organizationProjectsJsonProvider, IEntityRoleProvider entityRoleProvider, IGuestProjectJsonProvider guestProjectJsonProvider, IAssetProjectsJsonProvider assetProjectsJsonProvider = null, IMemberInfoJsonProvider memberInfoJsonProvider = null)
+        internal Organization(OrganizationJson organizationJson, IServiceHttpClient serviceHttpClient, IServiceHostResolver serviceHostResolver, IOrganizationProjectsJsonProvider organizationProjectsJsonProvider, IEntityRoleProvider entityRoleProvider, IGuestProjectJsonProvider guestProjectJsonProvider, IAssetProjectsJsonProvider assetProjectsJsonProvider = null, IMemberInfoJsonProvider memberInfoJsonProvider = null, ICloudStorageJsonProvider cloudStorageUsageJsonProvider = null)
         {
             Id = new OrganizationId(organizationJson.GenesisId);
 
@@ -40,6 +41,7 @@ namespace Unity.Cloud.Identity
             m_GuestProjectJsonProvider = guestProjectJsonProvider;
             m_AssetProjectsJsonProvider = assetProjectsJsonProvider;
             m_MemberInfoJsonProvider = memberInfoJsonProvider;
+            m_CloudStorageJsonProvider = cloudStorageUsageJsonProvider;
 
             EntityId = organizationJson.Id;
             Name = organizationJson.Name;
@@ -175,6 +177,50 @@ namespace Unity.Cloud.Identity
         public async Task<IEnumerable<Permission>> ListPermissionsAsync()
         {
             return await m_EntityRoleProvider.ListEntityPermissionsAsync(Id.ToString(), EntityType.Organization);
+        }
+
+        public async Task<ICloudStorageUsage> GetCloudStorageUsageAsync(CancellationToken cancellationToken)
+        {
+            CloudStorageUsageJson cloudStorageUsageJson;
+            if (m_CloudStorageJsonProvider != null)
+            {
+                cloudStorageUsageJson = await m_CloudStorageJsonProvider.GetCloudStorageUsageAsync(cancellationToken);
+            }
+            else
+            {
+                cloudStorageUsageJson = await GetCloudStorageUsageJsonAsync(cancellationToken);
+            }
+
+            return new CloudStorageUsage(cloudStorageUsageJson);
+        }
+
+        async Task<CloudStorageUsageJson> GetCloudStorageUsageJsonAsync(CancellationToken cancellationToken)
+        {
+            var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/cloud-storage/v1/organizations/{Id}/usage");
+            var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken:cancellationToken);
+            return await response.JsonDeserializeAsync<CloudStorageUsageJson>();
+        }
+
+        public async Task<ICloudStorageEntitlements> GetCloudStorageEntitlementsAsync(CancellationToken cancellationToken)
+        {
+            CloudStorageEntitlementsJson cloudStorageEntitlementsJson;
+            if (m_CloudStorageJsonProvider != null)
+            {
+                cloudStorageEntitlementsJson = await m_CloudStorageJsonProvider.GetCloudStorageEntitlementsAsync(cancellationToken);
+            }
+            else
+            {
+                cloudStorageEntitlementsJson = await GetCloudStorageEntitlementsJsonAsync(cancellationToken);
+            }
+
+            return new CloudStorageEntitlements(cloudStorageEntitlementsJson);
+        }
+
+        async Task<CloudStorageEntitlementsJson> GetCloudStorageEntitlementsJsonAsync(CancellationToken cancellationToken)
+        {
+            var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/cloud-storage/v1/organizations/{Id}/entitlements");
+            var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken:cancellationToken);
+            return await response.JsonDeserializeAsync<CloudStorageEntitlementsJson>();
         }
     }
 }

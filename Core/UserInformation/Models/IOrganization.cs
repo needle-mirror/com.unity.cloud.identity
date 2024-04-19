@@ -12,7 +12,7 @@ namespace Unity.Cloud.Identity
     /// <summary>
     /// The interface for an organization.
     /// </summary>
-    public interface IOrganization : IRoleProvider, IMemberInfoProvider
+    public interface IOrganization : IRoleProvider, IMemberInfoProvider, ICloudStorageInfoProvider
     {
         /// <summary>
         /// Gets the Genesis id of the organization.

@@ -103,7 +103,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
             {
                 m_Members.Add(member);
             }
-
+            
             m_OrganizationRoles = await SelectedOrganization.ListRolesAsync();
 
             m_Projects.Clear();

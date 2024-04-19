@@ -227,4 +227,3 @@ namespace Unity.Cloud.Identity.Editor
         }
     }
 }
-
