@@ -79,6 +79,12 @@ namespace Unity.Cloud.Identity.Editor
             return m_DeviceToken.AccessToken;
         }
 
+        /// <inheritdoc/>
+        public string GetAccessToken()
+        {
+            return m_DeviceToken?.AccessToken;
+        }
+
         /// <summary>
         /// Disposes of any `IDisposable` references.
         /// </summary>

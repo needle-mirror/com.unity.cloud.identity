@@ -1,0 +1,4 @@
+{
+     "displayName": "UnityEditorServiceAuthorizer",        
+     "description": "An EditorWindow sample that uses the UnityEditorServiceAuthorizer to fetch user information from Unity Cloud services."
+}

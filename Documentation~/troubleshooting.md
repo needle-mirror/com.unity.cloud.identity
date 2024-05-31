@@ -10,7 +10,7 @@ To avoid runtime errors when building with this package, follow these steps:
 
 1. In your Unity Editor Project window, go to **Edit** > **Project settings**. <br/> The Project setting window opens.
 2. Select the **Player** option.
-3. Scroll to the **Additional Compiler Arguments** section.
+3. Scroll to the **Optimization** section.
 4. Set the **Managed stripping level** option to:
 
 - **Disabled**
@@ -31,11 +31,3 @@ To fix this, set your Project to support both the built-in input system and the 
 2. Set Active Input Handling to **Both**.
 
 ![Input system settings](images/input-handling-both.png)
-
-**The automatic browser redirection doesn't work**
-
-If you run the sample in the Unity Editor, you will see the following page after you successfully log in through your browser.
-
-![Login Successful](images/login-redirect-editor.png)
-
-If the browser fails to redirect you to the Editor, and selecting **Launch Application**  does nothing, return to the Editor. Manually returning to the continues the authentication process.

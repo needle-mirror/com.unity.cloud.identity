@@ -15,6 +15,7 @@ namespace Unity.Cloud.Identity.Editor
     /// <summary>
     /// An <see cref="IAuthenticator"/> implementation to access the user authenticated session in the Unity Editor.
     /// </summary>
+    [Obsolete("Deprecated in favor of the UnityEditorServiceAuthorizer.")]
     public class UnityEditorAuthenticator : IAuthenticator, IDisposable
     {
 #if !UNITY_EDITOR

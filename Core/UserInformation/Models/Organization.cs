@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
@@ -13,8 +16,9 @@ namespace Unity.Cloud.Identity
     [Serializable]
     internal class Organization : IOrganization
     {
+        static readonly UCLogger s_Logger = LoggerProvider.GetLogger<Organization>();
+
         readonly IServiceHostResolver m_ServiceHostResolver;
-        readonly IServiceHostResolver m_PublicServiceHostResolver;
         readonly IServiceHttpClient m_ServiceHttpClient;
 
         readonly IOrganizationProjectsJsonProvider m_OrganizationProjectsJsonProvider;
@@ -34,9 +38,6 @@ namespace Unity.Cloud.Identity
 
             m_ServiceHostResolver = serviceHostResolver;
             m_ServiceHttpClient = serviceHttpClient;
-
-            var unityServicesDomainResolver = new UnityServicesDomainResolver();
-            m_PublicServiceHostResolver = serviceHostResolver.CreateCopyWithDomainResolverOverride(unityServicesDomainResolver);
 
             m_GuestProjectJsonProvider = guestProjectJsonProvider;
             m_AssetProjectsJsonProvider = assetProjectsJsonProvider;
@@ -123,7 +124,7 @@ namespace Unity.Cloud.Identity
 
         async Task<AssetProjectPageResultsJson<AssetProjectJson>> GetAssetProjects(string pageRequestPath, CancellationToken cancellationToken)
         {
-            var url = m_PublicServiceHostResolver.GetResolvedRequestUri(pageRequestPath);
+            var url = m_ServiceHostResolver.GetResolvedRequestUri(pageRequestPath);
             if (m_GetAssetProjectRequestResponseCache.TryGetRequestResponseFromCache(url, out AssetProjectPageResultsJson<AssetProjectJson> value))
             {
                 return value;
@@ -144,7 +145,7 @@ namespace Unity.Cloud.Identity
             else
             {
                 var rangeRequest = new RangeRequest<MemberInfoJson>(GetOrganizationMembers, 1000);
-                var requestBasePath = $"/api/unity/legacy/v1/organizations/{Id}/members";
+                var requestBasePath = $"api/unity/legacy/v1/organizations/{Id}/members";
                 asyncEnumerableMemberInfoJson = rangeRequest.Execute(requestBasePath, range, cancellationToken);
             }
             await foreach (var memberInfoJson in asyncEnumerableMemberInfoJson.WithCancellation(cancellationToken))
@@ -155,7 +156,27 @@ namespace Unity.Cloud.Identity
 
         async Task<RangeResultsJson<MemberInfoJson>> GetOrganizationMembers(string rangeRequestPath, CancellationToken cancellationToken)
         {
-            var url = m_ServiceHostResolver.GetResolvedRequestUri(rangeRequestPath);
+#if EXPERIMENTAL_WEBGL_PROXY
+            var url = m_ServiceHostResolver.GetResolvedRequestUri("/app-linking/v1alpha1/core");
+
+            if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(rangeRequestPath, out RangeResultsJson<MemberInfoJson> value))
+            {
+                return value;
+            }
+
+            var coreApiRequest = new CoreApiRequestParams
+            {
+                Path = rangeRequestPath,
+                Method = "Get",
+            };
+            var content = new StringContent(JsonSerialization.Serialize(coreApiRequest), Encoding.UTF8, "application/json");
+            var response = await m_ServiceHttpClient.PostAsync(url, content, cancellationToken: cancellationToken);
+
+            var deserializedResponse = await response.JsonDeserializeAsync<RangeResultsJson<MemberInfoJson>>();
+            return m_GetRequestResponseCache.AddGetRequestResponseToCache(rangeRequestPath, deserializedResponse);
+#else
+            var internalServiceHostResolver = m_ServiceHostResolver.CreateCopyWithDomainResolverOverride(new UnityServicesDomainResolver(true));
+            var url = internalServiceHostResolver.GetResolvedRequestUri($"/{rangeRequestPath}");
 
             if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(url, out RangeResultsJson<MemberInfoJson> value))
             {
@@ -165,6 +186,7 @@ namespace Unity.Cloud.Identity
             var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken: cancellationToken);
             var deserializedResponse = await response.JsonDeserializeAsync<RangeResultsJson<MemberInfoJson>>();
             return m_GetRequestResponseCache.AddGetRequestResponseToCache(url, deserializedResponse);
+#endif
         }
 
         /// <inheritdoc/>
@@ -179,7 +201,8 @@ namespace Unity.Cloud.Identity
             return await m_EntityRoleProvider.ListEntityPermissionsAsync(Id.ToString(), EntityType.Organization);
         }
 
-        public async Task<ICloudStorageUsage> GetCloudStorageUsageAsync(CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task<ICloudStorageUsage> GetCloudStorageUsageAsync(CancellationToken cancellationToken = default)
         {
             CloudStorageUsageJson cloudStorageUsageJson;
             if (m_CloudStorageJsonProvider != null)
@@ -196,12 +219,25 @@ namespace Unity.Cloud.Identity
 
         async Task<CloudStorageUsageJson> GetCloudStorageUsageJsonAsync(CancellationToken cancellationToken)
         {
-            var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/cloud-storage/v1/organizations/{Id}/usage");
+#if EXPERIMENTAL_WEBGL_PROXY
+            var url = m_ServiceHostResolver.GetResolvedRequestUri("/app-linking/v1alpha1/core");
+            var coreApiRequest = new CoreApiRequestParams
+            {
+                Path = $"api/cloud-storage/v1/organizations/{Id}/usage",
+                Method = "Get",
+            };
+            var content = new StringContent(JsonSerialization.Serialize(coreApiRequest), Encoding.UTF8, "application/json");
+            var response = await m_ServiceHttpClient.PostAsync(url, content, cancellationToken: cancellationToken);
+            return await response.JsonDeserializeAsync<CloudStorageUsageJson>();
+#else
+            var internalServiceHostResolver = m_ServiceHostResolver.CreateCopyWithDomainResolverOverride(new UnityServicesDomainResolver(true));
+            var url = internalServiceHostResolver.GetResolvedRequestUri($"/api/cloud-storage/v1/organizations/{Id}/usage");
             var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken:cancellationToken);
             return await response.JsonDeserializeAsync<CloudStorageUsageJson>();
+#endif
         }
 
-        public async Task<ICloudStorageEntitlements> GetCloudStorageEntitlementsAsync(CancellationToken cancellationToken)
+        internal async Task<ICloudStorageEntitlements> GetCloudStorageEntitlementsAsync(CancellationToken cancellationToken)
         {
             CloudStorageEntitlementsJson cloudStorageEntitlementsJson;
             if (m_CloudStorageJsonProvider != null)
@@ -216,11 +252,31 @@ namespace Unity.Cloud.Identity
             return new CloudStorageEntitlements(cloudStorageEntitlementsJson);
         }
 
+        /// <inheritdoc/>
+        public async Task<bool> HasMeteredBillingActivatedAsync(CancellationToken cancellationToken = default)
+        {
+            var cloudStorageEntitlements = await GetCloudStorageEntitlementsAsync(cancellationToken);
+            return cloudStorageEntitlements.MeteredOptInEnabled;
+        }
+
         async Task<CloudStorageEntitlementsJson> GetCloudStorageEntitlementsJsonAsync(CancellationToken cancellationToken)
         {
-            var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/cloud-storage/v1/organizations/{Id}/entitlements");
+#if EXPERIMENTAL_WEBGL_PROXY
+            var url = m_ServiceHostResolver.GetResolvedRequestUri("/app-linking/v1alpha1/core");
+            var coreApiRequest = new CoreApiRequestParams
+            {
+                Path = $"api/cloud-storage/v1/organizations/{Id}/entitlements",
+                Method = "Get",
+            };
+            var content = new StringContent(JsonSerialization.Serialize(coreApiRequest), Encoding.UTF8, "application/json");
+            var response = await m_ServiceHttpClient.PostAsync(url, content, cancellationToken: cancellationToken);
+            return await response.JsonDeserializeAsync<CloudStorageEntitlementsJson>();
+#else
+            var internalServiceHostResolver = m_ServiceHostResolver.CreateCopyWithDomainResolverOverride(new UnityServicesDomainResolver(true));
+            var url = internalServiceHostResolver.GetResolvedRequestUri($"/api/cloud-storage/v1/organizations/{Id}/entitlements");
             var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken:cancellationToken);
             return await response.JsonDeserializeAsync<CloudStorageEntitlementsJson>();
+#endif
         }
     }
 }

@@ -8,12 +8,15 @@
 * Samples
   * [Integrate Identity in a Unity Project](sample-authentication.md)
   * [Get user information](sample-get-user-info.md)
+  * [Unity Editor Service Authorizer](sample-unity-editor-service-authorizer.md)
 * Use cases
   * [Integrate authentication in your scene](use-case-integrating-authentication-in-your-scene.md)
   * [Get user information](use-case-getting-user-information.md)
   * [Service Account](service-accounts.md)
-  * [Unity Editor Authenticator](unity-editor-authenticator.md)
+  * [Unity Editor Service Authorizer](unity-editor-service-authorizer.md)
   * [Unity entities Roles and Permissions](entities-rbac.md)
+  * [Cloud Storage usage and metered billing information](cloud-storage.md)
   * [Customize the PKCE authentication flow](use-case-customize-pkce-authentication.md)
+* [WebGL Proxy Experimental Support](experimental-feature-usage.md)
 * [Troubleshooting](troubleshooting.md)
 * [Apple privacy manifest](apple-privacy-manifest.md)

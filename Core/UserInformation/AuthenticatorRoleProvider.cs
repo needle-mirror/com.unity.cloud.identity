@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Unity.Cloud.Common;
 
@@ -105,21 +107,41 @@ namespace Unity.Cloud.Identity
             {
                 return m_EntityJsonProvider.GetEntityJsonAsync(entityId, entityType);
             }
-            else
+#if EXPERIMENTAL_WEBGL_PROXY
+            var coreApiRequestPath = $"api/access/legacy/v1/users/{m_UserId}/entities?entityType={entityType}&entityId={entityId}&filterByEntityType[]={entityType}";
+            var url = m_ServiceHostResolver.GetResolvedRequestUri("/app-linking/v1alpha1/core");
+            if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(coreApiRequestPath, out IEnumerable<EntityJson> value))
             {
-                var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/access/legacy/v1/users/{m_UserId}/entities?entityType={entityType}&entityId={entityId}&filterByEntityType[]={entityType}");
-                if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(url, out IEnumerable<EntityJson> value))
-                {
-                    return value;
-                }
-
-                // First time, or time to refresh if cached result has expired
-                var response = await m_ServiceHttpClient.GetAsync(url);
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var returnValue = JsonSerialization.Deserialize<IEnumerable<EntityJson>>(responseContent);
-
-                return m_GetRequestResponseCache.AddGetRequestResponseToCache(url, returnValue);
+                return value;
             }
+
+            var coreApiRequest = new CoreApiRequestParams
+            {
+                Path = coreApiRequestPath,
+                Method = "Get",
+            };
+            var content = new StringContent(JsonSerialization.Serialize(coreApiRequest), Encoding.UTF8, "application/json");
+            var response = await m_ServiceHttpClient.PostAsync(url, content);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var returnValue = JsonSerialization.Deserialize<IEnumerable<EntityJson>>(responseContent);
+
+            return m_GetRequestResponseCache.AddGetRequestResponseToCache(coreApiRequestPath, returnValue);
+#else
+            var internalServiceHostResolver = m_ServiceHostResolver.CreateCopyWithDomainResolverOverride(new UnityServicesDomainResolver(true));
+            var url = internalServiceHostResolver.GetResolvedRequestUri($"/api/access/legacy/v1/users/{m_UserId}/entities?entityType={entityType}&entityId={entityId}&filterByEntityType[]={entityType}");
+            if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(url, out IEnumerable<EntityJson> value))
+            {
+                return value;
+            }
+
+            // First time, or time to refresh if cached result has expired
+            var response = await m_ServiceHttpClient.GetAsync(url);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var returnValue = JsonSerialization.Deserialize<IEnumerable<EntityJson>>(responseContent);
+
+            return m_GetRequestResponseCache.AddGetRequestResponseToCache(url, returnValue);
+#endif
         }
 
         public async Task<IEnumerable<Role>> ListEntityRolesAsync(string entityId, string entityType)

@@ -18,13 +18,23 @@ namespace Unity.Cloud.Identity.Editor
 
         public Task<string> GetAccessTokenAsync()
         {
-            // CloudProjectSettings can only be reach from main thread
+            PostAccessTokenOnMainThread();
+            return Task.FromResult(m_AccessToken);
+        }
+
+        // CloudProjectSettings can only be reach from main thread
+        void PostAccessTokenOnMainThread()
+        {
             m_SynchronizationContext.Post( _ =>
             {
                 m_AccessToken = CloudProjectSettings.accessToken;
             }, null);
+        }
 
-            return Task.FromResult(m_AccessToken);
+        public string GetAccessToken()
+        {
+            PostAccessTokenOnMainThread();
+            return m_AccessToken;
         }
     }
 }
