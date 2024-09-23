@@ -48,3 +48,7 @@ The recommended best practice is to fetch the credentials from an external servi
 
 >[!IMPORTANT]
 >The recommended best practice is to never release to the public any app that contains hard-coded service account credentials. Service account credentials should be managed as secrets in QA and automation cycles. Always assign the minimal RBAC required on a limited set of Unity Project.
+
+## Security concerns when hosting a third-party WebGL application
+
+A WebGL application can access sensitive information stored in client-side cookies and local storage of the host domain. Make sure you only host WebGL application from trusted third-parties or use risk mitigation strategies like embedding the WebGL application inside a sandboxed IFrame to prevent security holes.

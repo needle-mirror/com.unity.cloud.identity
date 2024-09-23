@@ -45,7 +45,7 @@ namespace Unity.Cloud.Identity.Editor
         readonly IAccessTokenExchanger<TargetClientIdToken, UnityServicesToken> m_TargetClientIdTokenToUnityServicesTokenExchanger;
         UnityServicesToken m_UnityServicesToken;
 
-        readonly AuthenticatedUserSession m_AuthenticatedUserSession;
+        AuthenticatedUserSession m_AuthenticatedUserSession;
 
         readonly IUnityEditorAccessTokenProvider m_UnityEditorAccessTokenProvider;
 
@@ -76,17 +76,22 @@ namespace Unity.Cloud.Identity.Editor
             m_TargetClientIdTokenToUnityServicesTokenExchanger = accessTokenExchanger;
             m_UnityEditorAccessTokenProvider = unityEditorAccessTokenProvider;
 
-            var httpClient = new UnityHttpClient();
-            var playerSettings = UnityCloudPlayerSettings.Instance;
-            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
-
-            m_AuthenticatedUserSession = new AuthenticatedUserSession(
-                new ServiceHttpClient(httpClient, this,
-                    playerSettings), serviceHostResolver);
+            m_AuthenticatedUserSession = RefreshAuthenticatedUserSession();
 
 #if !UNITY_EDITOR
             s_Logger.LogWarning(k_InvalidOperationMessage);
 #endif
+        }
+
+        AuthenticatedUserSession RefreshAuthenticatedUserSession(string userId = null)
+        {
+            var httpClient = new UnityHttpClient();
+            var playerSettings = UnityCloudPlayerSettings.Instance;
+            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
+
+            return new AuthenticatedUserSession(userId,
+                new ServiceHttpClient(httpClient, this,
+                    playerSettings), serviceHostResolver);
         }
 
         async void Update()
@@ -109,6 +114,10 @@ namespace Unity.Cloud.Identity.Editor
                     var targetClientIdToken = new TargetClientIdToken() { token = m_EditorAccessToken};
                     m_UnityServicesToken =
                         await m_TargetClientIdTokenToUnityServicesTokenExchanger.ExchangeAsync(targetClientIdToken);
+
+                    var userId = new JwtDecoder().Decode(m_UnityServicesToken.AccessToken).sub;
+
+                    m_AuthenticatedUserSession = RefreshAuthenticatedUserSession(userId);
                 }
 
                 AuthenticationState = AuthenticationState.LoggedIn;
