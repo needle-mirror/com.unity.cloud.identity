@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Unity.Cloud.Common;
 
-[assembly: ApiSourceVersion("com.unity.cloud.identity", "1.3.0")]
+[assembly: ApiSourceVersion("com.unity.cloud.identity", "1.3.1")]
 #if !(UC_NUGET)
 [assembly: InternalsVisibleTo("Unity.Cloud.Identity.Tests")]
 [assembly: InternalsVisibleTo("Unity.Cloud.Identity.Editor")]

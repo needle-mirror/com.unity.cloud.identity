@@ -1,19 +1,19 @@
 # Cloud Storage Usage and Metered Billing Information
 
-Unity Cloud Identity package exposes methods to fetch the Cloud storage usage and billing information for a single organization.
+Use the following methods of the Unity Cloud Identity package to fetch Cloud storage usage and check billing information for a single organization:
 
-## Fetching an organization Cloud storage usage
+## Fetch an organization's Cloud storage usage
 
-The `IOrganization` inherits the `ICloudStorageInfoProvider` interface `GetCloudStorageUsageAsync()` method to fetch the total usage bytes and the total storage quota bytes available.
+The `IOrganization` interface inherits the `GetCloudStorageUsageAsync()` method from the `ICloudStorageInfoProvider interface to fetch the total usage bytes and the total storage quota bytes that are available for that organization.
 
 >[!NOTE]
->When metered billing is activated for an organization, the usage bytes may exceed the total storage quota bytes.
+>When metered billing is activated for an organization, the usage bytes can exceed the total storage quota bytes.
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/CloudStorageExample.cs#GetOrganizationStorageUsage)]
 
-## Knowing if an organization has activated metered billing
+## Check whether an organization has activated metered billing
 
-The `IOrganization` inherits the `ICloudStorageInfoProvider` interface `HasMeteredBillingActivatedAsync()` method to fetch if it has metered billing activated.
+The `IOrganization` interface inherits the `HasMeteredBillingActivatedAsync()` method from the `ICloudStorageInfoProvider` interface to check whether metered billing is activated for the organization.
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/CloudStorageExample.cs#GetOrganizationMeteredBilling)]
 

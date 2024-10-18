@@ -1,15 +1,15 @@
 # Sample: UnityEditorServiceAuthorizer sample
 
-The UnityEditorServiceAuthorizer sample outlines how to use the `UnityEditorServiceAuthorizer.instance` in an `EditorWindow` to retrieve information about the current user logged in the Unity Editor.
+The UnityEditorServiceAuthorizer sample demonstrates how you can use the `UnityEditorServiceAuthorizer.instance` in an `EditorWindow` to fetch information about the user currently signed in to the Unity Editor.
 
-See [Unity Editor Service Authorizer](unity-editor-service-authorizer.md) for more information about this class.
+Read more about the [`UnityEditorServiceAuthorizer` class](unity-editor-service-authorizer.md).
 
 ## Before you start
 
-To use the sample, you must have the following:
+Before you can use the UnityEditorServiceAuthorizer sample, make sure you have the following:
 
-* Installed [Identity](installation.md) package
-* A valid [Unity ID](https://id.unity.com/)
+* An installed [Identity](installation.md) package.
+* A valid [Unity ID Account](https://id.unity.com/).
 
 ## Install the sample
 
@@ -21,26 +21,26 @@ To install the sample, follow these steps:
 
    ![Screenshot of the Package Manager's Identity samples](images/import-samples.png)
 
-   After the import process completes, you can view the imported assets under the `Assets/Samples/Unity Cloud Identity` folder.
+ 4.  After the import process completes, you can view the imported assets under the `Assets/Samples/Unity Cloud Identity` folder.
 
 ## Run the sample
 
 To run the sample, follow these steps:
 
-1. In your Unity Editor Project, go to **Unity Cloud** > **Samples** and click on the **UnityEditorServiceAuthorizer Sample** menu item.
-2. Your username is displayed in a Label GUILayout element inside a custom EditorWindow.
+1. In your Unity Editor Project, go to **Unity Cloud** > **Samples** and select the **UnityEditorServiceAuthorizer Sample** menu item.
+2. Your username displays in a Label GUILayout element inside a custom `EditorWindow`.
 
 #### UnityCloudIdentityWindow script
 
-The `UnityCloudIdentityWindow` class uses the `UnityEditorServiceAuthorizer.instance` as an `IUserInfoProvider` to retrieve information about the current user logged in the Unity Editor.
+The `UnityCloudIdentityWindow` class uses the `UnityEditorServiceAuthorizer.instance` as an `IUserInfoProvider` to retrieve information about the user currently signed in to the Unity Editor.
 
-The `AuthenticationStateChanged` event of the `UnityEditorServiceAuthorizer.instance` is registered in the `OnEnable` method and unregistered in the `OnDisable` method. In the `AuthenticationStateChanged` event handler, when the user is logged in, the `IUserInfoProvider.GetUserInfoAsync()` method is called to retrieve the username of the current logged in user in the Unity Editor.
+The `AuthenticationStateChanged` event of the `UnityEditorServiceAuthorizer.instance` is registered in the `OnEnable` method and unregistered in the `OnDisable` method of the script. When a user signs in, the `AuthenticationStateChanged` event handler triggers the `IUserInfoProvider.GetUserInfoAsync()` method to fetch the username of the user currently signed in to the Unity Editor.
 
 >[!NOTE]
->The `AuthenticationState` is updated when the Unity Editor is launched and when a user logs in or out from the Unity Editor.
+>The `AuthenticationState` class updates when the Unity Editor launches and whenever a user signs in or out from the Unity Editor.
 
 To open the UnityCloudIdentityWindow script, go to the `Assets/Samples/Unity Cloud Identity/<package-version>/UnityEditorServiceAuthorizer/Scripts/UnityCloudIdentityWindow.cs` file.
 
 ## Troubleshooting
 
-Refer to the [troubleshooting](troubleshooting.md#samples-issues) section for help with the UnityEditorServiceAuthorizer sample.
+In case of issues with the UnityEditorServiceAuthorizer sample, refer to [troubleshooting](troubleshooting.md#samples-issues).
