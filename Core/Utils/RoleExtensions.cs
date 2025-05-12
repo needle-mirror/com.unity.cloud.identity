@@ -15,6 +15,7 @@ namespace Unity.Cloud.Identity
         /// </summary>
         /// <param name="roles">An <see cref="IEnumerable{Role}"/>.</param>
         /// <param name="role">The <see cref="Role"/> to look for.</param>
+        /// <returns>If an <see cref="IEnumerable{Role}"/> contains any <see cref="Role"/>.</returns>
         public static bool HasRole(this IEnumerable<Role> roles, Role role)
         {
             return roles.Any(enumRole => enumRole.Equals(role));

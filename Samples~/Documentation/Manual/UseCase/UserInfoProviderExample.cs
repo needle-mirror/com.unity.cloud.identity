@@ -34,17 +34,13 @@ namespace Unity.Cloud.Identity.Documentation
 
             public PlatformServicesExample()
             {
+                var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
                 var httpClient = new UnityHttpClient();
                 var playerSettings = UnityCloudPlayerSettings.Instance;
-                var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
-                var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
-                var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, platformSupport, serviceHostResolver, playerSettings)
-                    .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings)
-                    .AddDefaultPkceAuthenticator(playerSettings)
-                    .Build();
+                var serviceConnector = ServiceConnectorFactory.Create(platformSupport, httpClient, playerSettings, playerSettings);
 
-                m_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);
+                m_CompositeAuthenticator = serviceConnector.CompositeAuthenticator;
             }
 
             void UsePlatformServicesExample()

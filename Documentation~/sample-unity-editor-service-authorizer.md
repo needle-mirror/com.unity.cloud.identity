@@ -15,9 +15,9 @@ Before you can use the UnityEditorServiceAuthorizer sample, make sure you have t
 
 To install the sample, follow these steps:
 
-1. In your Unity Editor Project, go to **Window** > **Package Manager** > **Unity Cloud Identity**.
+1. In the Unity Editor, go to **Window** > **Package Manager** > **Unity Cloud Identity**.
 2. Expand the **Samples** section.
-3. On the right of the UnityEditorServiceAuthorizer sample, select **Import**.
+3. Select **Import** next to `UnityEditorServiceAuthorizer`.
 
    ![Screenshot of the Package Manager's Identity samples](images/import-samples.png)
 
@@ -27,7 +27,7 @@ To install the sample, follow these steps:
 
 To run the sample, follow these steps:
 
-1. In your Unity Editor Project, go to **Unity Cloud** > **Samples** and select the **UnityEditorServiceAuthorizer Sample** menu item.
+1. In the Unity Editor, go to **Unity Cloud** > **Samples** and select the **UnityEditorServiceAuthorizer Sample** menu item.
 2. Your username displays in a Label GUILayout element inside a custom `EditorWindow`.
 
 #### UnityCloudIdentityWindow script
@@ -43,4 +43,4 @@ To open the UnityCloudIdentityWindow script, go to the `Assets/Samples/Unity Clo
 
 ## Troubleshooting
 
-In case of issues with the UnityEditorServiceAuthorizer sample, refer to [troubleshooting](troubleshooting.md#samples-issues).
+In case of issues with the UnityEditorServiceAuthorizer sample, refer to [troubleshooting](troubleshooting.md#sample-issues).

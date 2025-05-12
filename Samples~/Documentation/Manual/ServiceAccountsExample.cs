@@ -10,25 +10,34 @@ namespace Unity.Cloud.Identity.Documentation
 {
     public class ServiceAccountExample
     {
-        readonly IServiceAuthorizer m_ServiceAccountAuthorizer;
+        readonly ServiceAccountAuthenticator m_ServiceAccountAuthenticator;
         readonly IServiceHttpClient m_ServiceHttpClient;
 
         ServiceAccountExample()
         {
-            #region ServiceAuthorizer
-            m_ServiceAccountAuthorizer = new ServiceAccountAuthorizer(PlatformSupportFactory.GetAuthenticationPlatformSupport());
+            #region ServiceAccountAuthenticator
 
+            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
             var httpClient = new UnityHttpClient();
             var playerSettings = UnityCloudPlayerSettings.Instance;
+            var serviceHostResolver = ServiceHostResolverFactory.Create();
 
-            m_ServiceHttpClient = new ServiceHttpClient(httpClient, m_ServiceAccountAuthorizer, playerSettings);
+            var serviceAccountAuthenticatorSettingsBuilder = new ServiceAccountAuthenticatorSettingsBuilder();
+            serviceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport(platformSupport)
+                .AddServiceHostResolver(serviceHostResolver)
+                .AddHttpClient(httpClient)
+                .AddAppIdProvider(playerSettings);
+
+            m_ServiceAccountAuthenticator = new ServiceAccountAuthenticator(serviceAccountAuthenticatorSettingsBuilder.Build());
+
+            m_ServiceHttpClient = new ServiceHttpClient(httpClient, m_ServiceAccountAuthenticator, playerSettings);
             #endregion
         }
 
         void UseServiceHttpClient()
         {
             var isServiceHttpClientNull = m_ServiceHttpClient == null;
-            var isServiceAccountAuthorizerNull = m_ServiceAccountAuthorizer == null;
+            var isServiceAccountAuthenticatorNull = m_ServiceAccountAuthenticator == null;
             var serviceAccountExample = new ServiceAccountExample();
         }
     }

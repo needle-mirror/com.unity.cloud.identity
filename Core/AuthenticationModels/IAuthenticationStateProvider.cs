@@ -17,7 +17,7 @@ namespace Unity.Cloud.Identity
         /// Triggers when the <see cref="AuthenticationState"/> of the current user changes.
         /// </summary>
         /// <example>
-        /// <code source="../Samples/Documentation/Scripting/AuthenticationStateProviderExample.cs" region="AuthenticationStateChanged"/>
+        /// <code source="../../Samples/Documentation/Scripting/AuthenticationStateProviderExample.cs" region="AuthenticationStateChanged"/>
         /// </example>
         /// <remarks>
         /// Subscribers of this event should restrict or allow access to available resources and features based on the returned value.

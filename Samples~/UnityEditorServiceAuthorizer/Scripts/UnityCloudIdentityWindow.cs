@@ -13,6 +13,8 @@ namespace Unity.Cloud.Identity.Editor.Samples
 
         string UserInfoName;
 
+        bool canUseSample;
+
         // Add menu named "UnityEditorServiceAuthorizer Sample" to the Window menu
         [MenuItem("Unity Cloud/Samples/UnityEditorServiceAuthorizer Sample")]
         static void Init()
@@ -25,12 +27,16 @@ namespace Unity.Cloud.Identity.Editor.Samples
 
         void OnEnable()
         {
+            canUseSample = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("UNITY_CLOUD_SERVICES_FQDN"));
+
+            if (!canUseSample) return;
             UnityEditorServiceAuthorizer.instance.AuthenticationStateChanged += OnAuthenticationStateChanged;
             OnAuthenticationStateChanged(UnityEditorServiceAuthorizer.instance.AuthenticationState);
         }
 
         private void OnDisable()
         {
+            if (!canUseSample) return;
             UnityEditorServiceAuthorizer.instance.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         }
 
@@ -56,6 +62,12 @@ namespace Unity.Cloud.Identity.Editor.Samples
 
         void OnGUI()
         {
+            if (!canUseSample)
+            {
+                GUILayout.Label( $"Service Provider\n'{Environment.GetEnvironmentVariable("UNITY_CLOUD_SERVICES_FQDN")}'\nis not compatible with this sample.");
+                return;
+            }
+
             switch (m_AuthenticationState)
             {
                 case AuthenticationState.AwaitingInitialization:

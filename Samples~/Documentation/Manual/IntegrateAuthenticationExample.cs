@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Cloud.AppLinking.Runtime;
@@ -16,30 +17,26 @@ namespace Unity.Cloud.Identity.Documentation
         #region PlatformServices
     public static class PlatformServices
     {
-        static CompositeAuthenticator s_CompositeAuthenticator;
+        static ICompositeAuthenticator s_CompositeAuthenticator;
 
         public static ICompositeAuthenticator CompositeAuthenticator => s_CompositeAuthenticator;
 
-        public static IServiceAuthorizer serviceAuthorizer => s_CompositeAuthenticator;
-
         public static async Task InitializeAsync()
         {
-            var playerSettings = UnityCloudPlayerSettings.Instance;
+            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
             var httpClient = new UnityHttpClient();
-            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
+            var playerSettings = UnityCloudPlayerSettings.Instance;
 
-            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, PlatformSupportFactory.GetAuthenticationPlatformSupport(), serviceHostResolver, playerSettings)
-                .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings)
-                .AddDefaultPkceAuthenticator(playerSettings)
-                .Build();
+            var serviceConnector = ServiceConnectorFactory.Create(platformSupport, httpClient, playerSettings, playerSettings);
 
-            s_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);
+            s_CompositeAuthenticator = serviceConnector.CompositeAuthenticator;
 
             await s_CompositeAuthenticator.InitializeAsync();
         }
 
         public static void Shutdown()
         {
+            (s_CompositeAuthenticator as IDisposable)?.Dispose();
             s_CompositeAuthenticator = null;
         }
 
@@ -54,7 +51,6 @@ namespace Unity.Cloud.Identity.Documentation
 
             [SerializeField]
             Button m_LogoutButton;
-
 
             ICompositeAuthenticator m_CompositeAuthenticator;
 

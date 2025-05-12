@@ -9,7 +9,7 @@ namespace Unity.Cloud.Identity
     /// An <see cref="IServiceAuthorizer"/> implementation that expects service account credentials from a provided launch argument or environment variable.
     /// </summary>
     /// <example>
-    /// <code source="../Samples/Documentation/Scripting/ServiceAccountAuthorizerExample.cs" region="ServiceAccountAuthorizer"/>
+    /// <code source="../../Samples/Documentation/Scripting/ServiceAccountAuthorizerExample.cs" region="ServiceAccountAuthorizer"/>
     /// </example>
     public class ServiceAccountAuthorizer : IServiceAuthorizer
     {
@@ -32,6 +32,7 @@ namespace Unity.Cloud.Identity
         /// </remarks>
         /// <param name="authenticationPlatformSupport">The <see cref="IAuthenticationPlatformSupport"/> that handles credential injection.</param>
         /// <exception cref="InvalidOperationException">Thrown if no service account credentials are provided as a launch argument or environment variable.</exception>
+        [Obsolete("Deprecated in favour of ServiceAccountAuthenticator.")]
         public ServiceAccountAuthorizer(IAuthenticationPlatformSupport authenticationPlatformSupport)
         {
             m_AuthenticationPlatformSupport = authenticationPlatformSupport;
@@ -68,7 +69,7 @@ namespace Unity.Cloud.Identity
             }
         }
 
-        /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
+        /// <inheritdoc cref="Unity.Cloud.Common.IServiceAuthorizer.AddAuthorization"/>
         public Task AddAuthorization(HttpHeaders headers)
         {
             headers.AddAuthorization(m_AccountCredentials, ServiceHeaderUtils.k_BasicScheme);

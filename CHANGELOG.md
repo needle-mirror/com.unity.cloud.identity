@@ -5,6 +5,31 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.4.0-exp.2] - 2025-05-12
+
+### Changed
+- Introducing documentation for VPC support
+- Cleaned up documentation
+- Rename FQDN path prefix env var name
+
+### Fixed
+- WebGL plaform missing method in ServiceHostResolverFactory
+- Prevent UnityEditorAuthorizerSample to run when using Private Services config
+
+## [1.4.0-exp.1] - 2024-12-12
+
+### Added
+- `PkceConfigurationProviderFactory`, `ServiceAccountAuthenticator`, `ServiceAccountAuthenticatorSettings`, `ServiceAccountAuthenticatorSettingsBuilder`, `ServiceAccountBase64EncodedCredentials`, `ServiceConnector`, `ServiceConnectorFactory` classes. 
+
+### Changed
+- Improve the package directory structure to regroup related classes in `Core`.
+
+### Fixed
+- Improve the UnityEditorServiceAuthorizer resilience to domain reloads.
+
+### Deprecated
+- `PkceConfiguration`, `PkceConfigurationProvider` and `ServiceAccountAuthorizer` classes.
+
 ## [1.3.1] - 2024-10-18
 
 ### Changed

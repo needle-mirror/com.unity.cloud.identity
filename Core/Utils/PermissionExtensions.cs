@@ -15,6 +15,7 @@ namespace Unity.Cloud.Identity
         /// </summary>
         /// <param name="permissions">An <see cref="IEnumerable{Permission}"/>.</param>
         /// <param name="permission">The <see cref="Permission"/> to look for.</param>
+        /// <returns>If an <see cref="IEnumerable{Permission}"/> contains any <see cref="Permission"/>.</returns>
         public static bool HasPermission(this IEnumerable<Permission> permissions, Permission permission)
         {
             return permissions.Any(enumPermission => enumPermission.Equals(permission));

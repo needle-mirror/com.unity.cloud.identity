@@ -164,7 +164,7 @@ namespace Unity.Cloud.Identity.Samples
                     UpdateButton(m_LoginButton, false);
                     UpdateButton(m_LogoutButton, m_CompositeAuthenticator.RequiresGUI);
                     UpdateButton(m_SignOutButton, m_CompositeAuthenticator.RequiresGUI);
-                    m_UserInfo = await m_UserInfoProvider.GetUserInfoAsync();
+                    await GetUserInfoAsync();
                     var organizationsAsyncEnumerable = m_OrganizationRepository.ListOrganizationsAsync(Range.All);
                     await foreach (var organization in organizationsAsyncEnumerable)
                     {
@@ -191,6 +191,18 @@ namespace Unity.Cloud.Identity.Samples
                 m_OrganizationDropdownValue.Clear();
                 m_OrganizationsDropdown.ClearOptions();
                 m_OrganizationsDropdown.enabled = false;
+            }
+        }
+
+        async Task GetUserInfoAsync()
+        {
+            try
+            {
+                m_UserInfo = await m_UserInfoProvider.GetUserInfoAsync();
+            }
+            catch (NotImplementedException)
+            {
+                // Not implemented
             }
         }
 
@@ -247,7 +259,7 @@ namespace Unity.Cloud.Identity.Samples
 
         void OnSelectOrganization()
         {
-            var username = m_UserInfo.Name;
+            var username = m_UserInfo == null ? "service account": m_UserInfo.Name;
             m_UserNameText.text = !string.IsNullOrEmpty(username) ? $"{username}" : "No User";
         }
 

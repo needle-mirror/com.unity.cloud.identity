@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Cloud.AppLinking.Runtime;
-using Unity.Cloud.Common;
 using Unity.Cloud.Common.Runtime;
 using Unity.Cloud.Identity.Runtime;
 
@@ -13,7 +11,7 @@ namespace Unity.Cloud.Identity.Samples
     /// </summary>
     public static class PlatformServices
     {
-        static CompositeAuthenticator s_CompositeAuthenticator;
+        static ICompositeAuthenticator s_CompositeAuthenticator;
 
         /// <summary>
         /// Returns a <see cref="ICompositeAuthenticator"/>.
@@ -25,17 +23,15 @@ namespace Unity.Cloud.Identity.Samples
         /// </summary>
         public static void Create()
         {
+            // Create platform implementations to inject in factory
+            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
             var httpClient = new UnityHttpClient();
             var playerSettings = UnityCloudPlayerSettings.Instance;
-            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
-            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
 
-            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, platformSupport, serviceHostResolver, playerSettings)
-                .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings)
-                .AddDefaultPkceAuthenticator(playerSettings)
-                .Build();
+            // Create the required set of classes to handle access to the cloud API
+            var serviceConnector = ServiceConnectorFactory.Create(platformSupport, httpClient, playerSettings, playerSettings);
 
-            s_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);
+            s_CompositeAuthenticator = serviceConnector.CompositeAuthenticator;
         }
 
         /// <summary>
@@ -44,7 +40,7 @@ namespace Unity.Cloud.Identity.Samples
         /// <returns>A Task.</returns>
         public static async Task InitializeAsync()
         {
-            await s_CompositeAuthenticator.InitializeAsync();
+            await CompositeAuthenticator.InitializeAsync();
         }
 
         /// <summary>
@@ -52,7 +48,7 @@ namespace Unity.Cloud.Identity.Samples
         /// </summary>
         public static void ShutDownServices()
         {
-            s_CompositeAuthenticator.Dispose();
+            (s_CompositeAuthenticator as IDisposable)?.Dispose();
             s_CompositeAuthenticator = null;
         }
     }

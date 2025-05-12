@@ -7,18 +7,18 @@ Unity Identity supports the following flows to retrieve an access token:
 |  Flow                  | Description                                                                                      |
 |----------------------- |------------------------------------------------------------------------------------------------- |
 | Interactive login flow | A flow where the user must manually fill a login form through a UI in a browser.                 |                      |
-| Pre-authenticated flow | A flow that can be used when a hosting context already manages user authentication and can relay an access token to the application. |
-| Composite flow         | A prioritized list of authentication flows that decides, based the execution context, which authentication flow to activate for the application session lifecycle. This flow offers flexibility for application built and delivered across multiple platforms (PC/MacOS/iOS/Android) and execution contexts (CICD Automation, Tests runner).   |
+| Service account flow | A flow that uses service account credentials injection to override the interactive flow. |
+| Composite flow         | A prioritized list of authentication flows that decides, based on the execution context, which authentication flow to activate for the application session lifecycle. This flow offers flexibility for application that are built and delivered across multiple platforms (PC/MacOS/iOS/Android), and execution contexts (CICD Automation, Tests runner) that want to leverage both the interactive flow and the service account flow.   |
 
 ## CompositeAuthenticator main class
 
-The `CompositeAuthenticator` is the main class supporting the <b>composite flow</b>.
+The `CompositeAuthenticator` is the main class that supports the **composite flow**.
 
 With the help of the `CompositeAuthenticatorSettingsBuilder`, you build a `CompositeAuthenticatorSettings` instance that holds, in a prioritized order, all `IAuthenticator` instances that are expected to be used in the application.
 
 In its initialize phase, the `CompositeAuthenticator` iterates over each `IAuthenticator` added to the `CompositeAuthenticatorSettings` and calls its `HasValidPreconditions()` method. The first `IAuthenticator` to return true is activated for the rest of the application session lifecycle.
 
-This section lists the main `IAuthenticator` classes for each flow and their corresponding pre-conditions.
+This section lists the main `IAuthenticator` classes for each flow along with their corresponding pre-conditions.
 
 ### Interactive login flow
 
@@ -28,9 +28,11 @@ The `PkceAuthenticator` implements the 0Auth 2.0 PKCE standard flow to retrieve 
 
 It has no required pre-condition.
 
-### Pre-authenticated flow
+### Service Account flow
 
-This non-interactive flow is for workflows where authentication takes place before launching the application: for example, when an application is hosted on a web page that already requires authentication.
-This flow is supported by the `BrowserAuthenticatedAccessTokenProvider` class and retrieves an access token value from the local storage of the running browser.
+This non-interactive flow is supported by the `ServiceAccountAuthenticator` class and either uses the service account credentials with basic authentication to directly reach the Unity Cloud services or exchanges those credentials for an expiring token to use with bearer authentication.
 
-This class pre-conditions are the combined detection of an hosted execution context, and the detection of an expected key name and non-null value in the local storage of the running browser.
+The name of the expected environment variable that holds service account credentials is `UNITY_SERVICE_ACCOUNT_CREDENTIALS`. The format of the provided string value is `username`:`password` using the `:` character as a separator between the service account username and password.
+
+The `ServiceAccountAuthenticator` class meets the required pre-conditions when service account credentials are injected in the running process using environment variables.
+

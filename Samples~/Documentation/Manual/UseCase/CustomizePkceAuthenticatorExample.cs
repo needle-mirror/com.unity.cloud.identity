@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Unity.Cloud.AppLinking.Runtime;
+using Unity.Cloud.Common;
 using Unity.Cloud.Common.Runtime;
 using Unity.Cloud.Identity.Runtime;
 
@@ -25,9 +26,9 @@ namespace Unity.Cloud.Identity.Documentation
                     ProxyLoginCompletedRoute = "https://services.api.unity.com/app-linking/v1/login/completed/",
                     ProxySignOutCompletedRoute = "https://services.api.unity.com/app-linking/v1/signout/completed/",
                     LoginUrl = "https://api.unity.com/v1/oauth2/authorize",
-                    TokenUrl = "https://api.unity.com/v1/oauth2/token",
-                    RefreshTokenUrl = "https://api.unity.com/v1/oauth2/token",
-                    LogoutUrl = "https://api.unity.com/v1/oauth2/revoke",
+                    TokenUrl = "https://services.api.unity.com/app-linking/v1/token",
+                    RefreshTokenUrl = "https://services.api.unity.com/app-linking/v1/token",
+                    LogoutUrl = "https://services.api.unity.com/app-linking/v1/token/revoke",
                     SignOutUrl = "https://api.unity.com/v1/oauth2/end-session?post_logout_redirect_uri=",
                     UserInfoUrl = "https://api.unity.com/v1/users/current/openid",
                     CustomLoginParams = ""
@@ -43,7 +44,7 @@ namespace Unity.Cloud.Identity.Documentation
                 var httpClient = new UnityHttpClient();
                 var playerSettings = UnityCloudPlayerSettings.Instance;
                 var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
-                var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
+                var serviceHostResolver = ServiceHostResolverFactory.Create();
 
                 // Create new instance of CustomPkceConfigurationProvider
                 var customPkceConfigurationProvider = new CustomPkceConfigurationProvider();

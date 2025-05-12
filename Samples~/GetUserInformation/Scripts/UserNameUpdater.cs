@@ -78,7 +78,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
                     m_UserInfoText.text = "Awaiting completion of a user initiated manual login operation...";
                     break;
                 case AuthenticationState.LoggedIn:
-                    m_UserInfo = await m_UserInfoProvider.GetUserInfoAsync();
+                    await GetUserInfoAsync();
                     BuildUserInfoText();
                     break;
             }
@@ -87,6 +87,18 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
         async void OnOrganizationSelectionChanged(IOrganization organization)
         {
             await ApplyOrganizationSelectionChanged(organization);
+        }
+
+        async Task GetUserInfoAsync()
+        {
+            try
+            {
+                m_UserInfo = await m_UserInfoProvider.GetUserInfoAsync();
+            }
+            catch (NotImplementedException)
+            {
+               // Not implemented
+            }
         }
 
         async Task ApplyOrganizationSelectionChanged(IOrganization organization)
@@ -129,7 +141,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
         void BuildUserInfoText(bool withProjects = false)
         {
             var sb = new StringBuilder();
-            sb.Append(m_UserInfo.Name);
+            sb.Append(m_UserInfo == null ? "service account" : m_UserInfo.Name);
             if (m_CompositeAuthenticator.RequiresGUI)
             {
                 sb.Append(" is logged in with an access token issued after a successful user initiated login operation.");

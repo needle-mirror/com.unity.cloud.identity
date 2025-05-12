@@ -31,4 +31,13 @@ namespace Unity.Cloud.Identity
         /// </summary>
         public IEnumerable<OrganizationJson> Organizations { get; set; }
     }
+
+    [Serializable]
+    internal class UnityUserContextJson
+    {
+        /// <summary>
+        /// The UnityUserInfoJson of the user.
+        /// </summary>
+        public UnityUserInfoJson User { get; set; }
+    }
 }

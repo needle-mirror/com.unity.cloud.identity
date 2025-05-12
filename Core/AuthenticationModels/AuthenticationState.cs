@@ -8,7 +8,7 @@ namespace Unity.Cloud.Identity
     /// Indicates the current authentication state in an application's lifetime.
     /// </summary>
     /// <example>
-    /// <code source="../Samples/Documentation/Scripting/AuthenticationStateExample.cs" region="AuthenticationState"/>
+    /// <code source="../../Samples/Documentation/Scripting/AuthenticationStateExample.cs" region="AuthenticationState"/>
     /// </example>
     public enum AuthenticationState
     {

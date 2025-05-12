@@ -26,6 +26,11 @@ namespace Unity.Cloud.Identity
         public string access_token { get; set; }
     }
 
+    internal class ExchangeServiceAcountAccessTokenResponse
+    {
+        public string accessToken { get; set; }
+    }
+
     internal class ExchangeTargetClientIdTokenResponse
     {
         public string token { get; set; }

@@ -6,7 +6,7 @@ using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {
-    /// <inheritdoc/>
+    /// <inheritdoc cref="BasePkcePlatformSupport"/>
     public class ChannelPkcePlatformSupport : BasePkcePlatformSupport
     {
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<ChannelPkcePlatformSupport>();

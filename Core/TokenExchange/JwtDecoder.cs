@@ -13,8 +13,9 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// A function to decode a <see cref="JwtToken"/> from a string.
         /// </summary>
+        /// <returns>The decoded <see cref="JwtToken"/>.</returns>
         /// <param name="jwtToken">The JWT token string to decode.</param>
-        /// <exception cref="InvalidCredentialException">Thrown if the string does not match expected JWT format.</exception>
+        /// <exception cref="System.Security.Authentication.InvalidCredentialException">Thrown if the string does not match expected JWT format.</exception>
         JwtToken Decode(string jwtToken);
     }
 

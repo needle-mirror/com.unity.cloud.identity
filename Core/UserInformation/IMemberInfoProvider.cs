@@ -6,6 +6,9 @@ using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {
+    /// <summary>
+    /// An interface that provides <see cref="IMemberInfo"/>.
+    /// </summary>
     public interface IMemberInfoProvider
     {
         /// <summary>

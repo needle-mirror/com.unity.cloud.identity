@@ -32,29 +32,30 @@ namespace Unity.Cloud.Identity.Documentation
     // - /Documentation~/use-case-getting-user-information.md
     public class ServiceAuthorizerExample
     {
-        readonly ICompositeAuthenticator m_CompositeAuthenticator;
         readonly IAssetRepositoryFactory m_AssetRepository;
+        readonly ServiceAccountAuthenticator m_ServiceAccountAuthenticator;
+        readonly IServiceHttpClient m_ServiceHttpClient;
 
         ServiceAuthorizerExample()
         {
             #region ServiceAuthorizer
+            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
             var httpClient = new UnityHttpClient();
             var playerSettings = UnityCloudPlayerSettings.Instance;
-            var platformSupport = PlatformSupportFactory.GetAuthenticationPlatformSupport();
-            var serviceHostResolver = UnityRuntimeServiceHostResolverFactory.Create();
-            var compositeAuthenticatorSettings = new CompositeAuthenticatorSettingsBuilder(httpClient, platformSupport, serviceHostResolver, playerSettings)
-                .AddDefaultBrowserAuthenticatedAccessTokenProvider(playerSettings)
-                .AddDefaultPkceAuthenticator(playerSettings)
-                .Build();
+            var serviceHostResolver = ServiceHostResolverFactory.Create();
 
-            // Create m_CompositeAuthenticator from compositeAuthenticatorSettings
-            m_CompositeAuthenticator = new CompositeAuthenticator(compositeAuthenticatorSettings);
+            var serviceAccountAuthenticatorSettingsBuilder = new ServiceAccountAuthenticatorSettingsBuilder();
+            serviceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport(platformSupport)
+                .AddServiceHostResolver(serviceHostResolver)
+                .AddHttpClient(httpClient)
+                .AddAppIdProvider(playerSettings);
 
-            // Injecting the CompositeAuthenticator as an IServiceAuthorizer to build the ServiceHttpClient
-            var serviceHttpClient = new ServiceHttpClient(httpClient, m_CompositeAuthenticator, playerSettings);
+            m_ServiceAccountAuthenticator = new ServiceAccountAuthenticator(serviceAccountAuthenticatorSettingsBuilder.Build());
 
-            // Injecting the serviceHttpClient to build an authorized IAssetRepository to retrieve IAsset, IDataset, ... from Unity Cloud.
-            m_AssetRepository = AssetRepositoryFactory.Create(serviceHttpClient, serviceHostResolver);
+            m_ServiceHttpClient = new ServiceHttpClient(httpClient, m_ServiceAccountAuthenticator, playerSettings);
+
+            // Injecting the ServiceHttpClient to build an authorized IAssetRepository to retrieve IAsset, IDataset, ... from Unity Cloud.
+            m_AssetRepository = AssetRepositoryFactory.Create(m_ServiceHttpClient, serviceHostResolver);
             #endregion
         }
 
@@ -62,7 +63,8 @@ namespace Unity.Cloud.Identity.Documentation
         {
             var serviceAuthorizerExample = new ServiceAuthorizerExample();
             var isAssetRepositoryNull = m_AssetRepository == null;
-            var isCompositeAuthenticatorNull = m_CompositeAuthenticator == null;
+            var isCompositeAuthenticatorNull = m_ServiceAccountAuthenticator == null;
+            var isServiceHttpClientNull = m_ServiceHttpClient == null;
         }
 
     }

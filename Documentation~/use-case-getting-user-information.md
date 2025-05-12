@@ -2,17 +2,17 @@
 
 This section explains how to set up your scene to get information about your application's user.
 
-Getting user information is an example of a Unity Cloud service that you can call after authenticating the user in your application. This service needs an Access Token to identify the user and authorize the call.
+Getting user information is an example of a Unity Cloud service that you can call after authenticating the user in your application. This service needs an access token to identify the user and authorize the call.
 
 ## Before you start
 
-To use this sample, you must first [Integrate authentication in your scene](use-case-integrating-authentication-in-your-scene.md).
+Before you use this sample, [integrate authentication in your scene](use-case-integrating-authentication-in-your-scene.md).
 
 ## How do I...?
 
-### Create references to IAuthenticator inherited interfaces
+### Create references to IAuthenticator-inherited interfaces
 
-The `CompositeAuthenticator`, like all `IAuthenticator`, inherits `IServiceAuthorizer`, `IAuthenticationStateProvider`, `IUserInfoProvider` and `IOrganizationRepository` interfaces.
+The `CompositeAuthenticator` class, like all `IAuthenticator` implementations, inherits the `IServiceAuthorizer`, `IAuthenticationStateProvider`, `IUserInfoProvider`, and `IOrganizationRepository` interfaces.
 Create an instance of the `CompositeAuthenticator` and use it to reference all inherited interfaces.
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#PlatformServices)]
@@ -30,7 +30,7 @@ To leverage the `IUserInfoProvider` in your scene, follow these steps:
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#UserInfoProvider)]
 
-4. The `Awake` and `Destroy` method should manage `PlatformServices` references and events. The async `Start` method should apply the initial authentication state.
+4. The `Awake` and `Destroy` method manages `PlatformServices` references and events. The async `Start` method applies the initial authentication state.
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/UseCase/UserInfoProviderExample.cs#AwakeStartDestroy)]
 
@@ -42,9 +42,9 @@ To leverage the `IUserInfoProvider` in your scene, follow these steps:
 
 ### Inject an IServiceAuthorizer in ServiceHttpClient to access resources on Unity Cloud
 
-Since all `IAuthenticator` inherits the `IServiceAuthorizer` interface, you can inject a reference from any
-`IAuthenticator` class implementation, like the `CompositeAuthenticator`, into the `ServiceHttpClient` constructor method as a valid `IServiceAuthorizer`.
+Because all `IAuthenticator` implentations inherit the `IServiceAuthorizer` interface, you can inject a reference from any
+`IAuthenticator` class implementation, like the `ServiceAccountAuthenticator`, into the `ServiceHttpClient` constructor method as a valid `IServiceAuthorizer`.
 
-The `ServiceHttpClient` can then be injected in any class of other `Unity.Cloud` Unity packages to access resources on Unity Cloud.
+You can inject the `ServiceHttpClient` then in any class of other `Unity.Cloud` Unity packages to access resources on Unity Cloud.
 
 [!code-cs [behaviour-script](../Samples/Documentation/Manual/ServiceAuthorizerExample.cs#ServiceAuthorizer)]

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Unity.Cloud.AppLinking;
+using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {

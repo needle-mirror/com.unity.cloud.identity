@@ -16,7 +16,7 @@ namespace Unity.Cloud.Identity
     /// Depending on the validated <see cref="IAuthenticator"/>, the authentication flow can require manual interaction with a UI. Use the <see cref="ICompositeAuthenticator.RequiresGUI"/> value to decide if you need to enable manual login features.
     /// </remarks>
     /// <example>
-    /// <code source="../Samples/Documentation/Scripting/CompositeAuthenticatorExample.cs" region="InitializeAndShutdown"/>
+    /// <code source="../../Samples/Documentation/Scripting/CompositeAuthenticatorExample.cs" region="InitializeAndShutdown"/>
     /// </example>
     public class CompositeAuthenticator : ICompositeAuthenticator, IDisposable
     {
@@ -118,7 +118,7 @@ namespace Unity.Cloud.Identity
             await m_Authenticator.InitializeAsync();
         }
 
-        /// <inheritdoc cref="IServiceAuthorizer.AddAuthorization"/>
+        /// <inheritdoc cref="Unity.Cloud.Common.IServiceAuthorizer.AddAuthorization"/>
         public Task AddAuthorization(HttpHeaders headers)
         {
             return m_Authenticator.AddAuthorization(headers);

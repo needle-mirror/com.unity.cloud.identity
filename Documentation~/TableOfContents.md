@@ -17,5 +17,6 @@
   * [Unity entities Roles and Permissions](entities-rbac.md)
   * [Cloud Storage usage and metered billing information](cloud-storage.md)
   * [Customize the PKCE authentication flow](use-case-customize-pkce-authentication.md)
+  * [Private Cloud and Fully Qualified Domain Name](use-case-fqdn.md)
 * [Troubleshooting](troubleshooting.md)
 * [Apple privacy manifest](apple-privacy-manifest.md)
