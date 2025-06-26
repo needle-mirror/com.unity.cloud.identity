@@ -45,7 +45,7 @@ namespace Unity.Cloud.Identity
         /// </summary>
         /// <param name="serviceHostResolver">The service host resolver for the service Url.</param>
         /// <returns>The created <see cref="IPkceConfigurationProvider"/>.</returns>
-        public static IPkceConfigurationProvider CreateForUnityServicesGateway(
+        static IPkceConfigurationProvider CreateForUnityServicesGateway(
             IServiceHostResolver serviceHostResolver)
         {
 #pragma warning disable CS0618 // Type or member is obsolete

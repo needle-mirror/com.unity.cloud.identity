@@ -257,7 +257,7 @@ namespace Unity.Cloud.Identity.Editor
                 if (!m_UseOverride)
                 {
                     var httpClient = new UnityHttpClient();
-                    var serviceHostResolver = ServiceHostResolverFactory.CreateForUnityServicesGateway();
+                    var serviceHostResolver = ServiceHostResolverFactory.Create();
                     m_TargetClientIdTokenToUnityServicesTokenExchanger = new TargetClientIdTokenToUnityServicesTokenExchanger(httpClient, serviceHostResolver);
                 }
                 InitAuthenticatedUserSession();

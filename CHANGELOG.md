@@ -5,6 +5,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-06-26
+
+### Changed
+- Documentation to reference WebGL support
+- `PkceConfigurationProviderFactory`, `ServiceAccountAuthenticator`, `ServiceAccountAuthenticatorSettings`, `ServiceAccountAuthenticatorSettingsBuilder`, `ServiceConnector` and `ServiceConnectorFactory` classes are no longer experimental.
+- Experimental `ServiceAccountBase64EncodedCredentials` struct is no longer experimental, is renamed to `ServiceAccountCredentials` and is not `readonly` anymore.
+- `ServiceAccountAuthenticatorSettingsBuilder` ctor requires `IHttpClient`, `IServiceHostResolver`, and `IAuthenticationPlatformSupport` parameters.
+- `ServiceAccountAuthenticatorSettingsBuilder.AddAppIdProvider` renamed to `ServiceAccountAuthenticatorSettingsBuilder.SetAppIdProvider`.
+- `ServiceAccountAuthenticatorSettingsBuilder.AddServiceAccountCredentialsExchanger` renamed to `ServiceAccountAuthenticatorSettingsBuilder.SetServiceAccountCredentialsExchanger`.
+- `ServiceAccountAuthenticatorSettingsBuilder.AddDefaultServiceAccountCredentialsExchanger` renamed to `ServiceAccountAuthenticatorSettingsBuilder.SetServiceAccountCredentialsExchanger`.
+
+### Removed
+- Experimental `ServiceConnectorFactory.CreateForUnityServicesGateway` method.
+- Experimental `PkceConfigurationProviderFactory.CreateForUnityServicesGateway` method.
+- Experimental `ServiceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport` method.
+- Experimental `ServiceAccountAuthenticatorSettingsBuilder.AddHttpClient` method.
+- Experimental `ServiceAccountAuthenticatorSettingsBuilder.AddServiceHostResolver` method.
+
 ## [1.4.0-exp.2] - 2025-05-12
 
 ### Changed

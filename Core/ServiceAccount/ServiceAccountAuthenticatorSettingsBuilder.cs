@@ -11,62 +11,50 @@ namespace Unity.Cloud.Identity
         IAuthenticationPlatformSupport m_AuthenticationPlatformSupport;
         IServiceHostResolver m_ServiceHostResolver;
         IHttpClient m_HttpClient;
-        IAccessTokenExchanger<ServiceAccountBase64EncodedCredentials, UnityServicesToken> m_AccessTokenExchanger;
+        IAccessTokenExchanger<ServiceAccountCredentials, UnityServicesToken> m_AccessTokenExchanger;
         IAppIdProvider m_AppIdProvider;
         IJwtDecoder m_JwtDecoder;
 
         /// <summary>
-        /// Adds an <see cref="IAuthenticationPlatformSupport"/> to the authenticator settings.
+        /// Constructor for the <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.
         /// </summary>
-        /// <param name="authenticationPlatformSupport">The <see cref="IAuthenticationPlatformSupport"/> ionstance.</param>
-        /// <returns>The modified <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public ServiceAccountAuthenticatorSettingsBuilder AddAuthenticationPlatformSupport(IAuthenticationPlatformSupport authenticationPlatformSupport)
-        {
-            ThrowIfNull(authenticationPlatformSupport, nameof(authenticationPlatformSupport));
-            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
-            return this;
-        }
-
-        /// <summary>
-        /// Adds an <see cref="IServiceHostResolver"/> to the authenticator settings.
-        /// </summary>
+        /// <param name="httpClient">The <see cref="IHttpClient"/> to add to the authenticator settings.</param>
         /// <param name="serviceHostResolver">The <see cref="IServiceHostResolver"/> ionstance.</param>
-        /// <returns>The modified <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public ServiceAccountAuthenticatorSettingsBuilder AddServiceHostResolver(IServiceHostResolver serviceHostResolver)
+        /// <param name="authenticationPlatformSupport">The <see cref="IAuthenticationPlatformSupport"/> ionstance.</param>
+        public ServiceAccountAuthenticatorSettingsBuilder(IHttpClient httpClient, IServiceHostResolver serviceHostResolver, IAuthenticationPlatformSupport authenticationPlatformSupport)
         {
+            ThrowIfNull(httpClient, nameof(httpClient));
             ThrowIfNull(serviceHostResolver, nameof(serviceHostResolver));
+            ThrowIfNull(authenticationPlatformSupport, nameof(authenticationPlatformSupport));
+
+            m_HttpClient = httpClient;
             m_ServiceHostResolver = serviceHostResolver;
-            return this;
+            m_AuthenticationPlatformSupport = authenticationPlatformSupport;
         }
 
         /// <summary>
-        /// Adds the default Service Account credentials exchanger to the authenticator settings.
+        /// Sets the Service Account credentials exchanger to the authenticator settings.
         /// </summary>
-        /// <param name="httpClient">The <see cref="IHttpClient"/> to inject in the Service Account credentials exchanger.</param>
         /// <param name="pkceConfigurationProvider">The <see cref="IPkceConfigurationProvider"/> to inject in the Service Account credentials exchanger.</param>
         /// <returns>The modified <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public ServiceAccountAuthenticatorSettingsBuilder AddDefaultServiceAccountCredentialsExchanger(
-            IHttpClient httpClient,
+        public ServiceAccountAuthenticatorSettingsBuilder SetServiceAccountCredentialsExchanger(
             IPkceConfigurationProvider pkceConfigurationProvider)
         {
-            ThrowIfNull(httpClient, nameof(httpClient));
             ThrowIfNull(pkceConfigurationProvider, nameof(pkceConfigurationProvider));
 
-            m_AccessTokenExchanger = new ServiceAccountCredentialsToUnityServicesTokenExchanger(httpClient, pkceConfigurationProvider);
+            m_AccessTokenExchanger = new ServiceAccountCredentialsToUnityServicesTokenExchanger(m_HttpClient, pkceConfigurationProvider);
             return this;
         }
 
         /// <summary>
-        /// Adds a Service Account credentials exchanger to the authenticator settings.
+        /// Sets a Service Account credentials exchanger to the authenticator settings.
         /// </summary>
         /// <param name="accessTokenExchanger">The <see cref="IAccessTokenExchanger{T, T}"/> to add to the authenticator settings.</param>
         /// <returns>The modified <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public ServiceAccountAuthenticatorSettingsBuilder AddServiceAccountCredentialsExchanger(
-            IAccessTokenExchanger<ServiceAccountBase64EncodedCredentials, UnityServicesToken> accessTokenExchanger)
+        public ServiceAccountAuthenticatorSettingsBuilder SetServiceAccountCredentialsExchanger(
+            IAccessTokenExchanger<ServiceAccountCredentials, UnityServicesToken> accessTokenExchanger)
         {
             ThrowIfNull(accessTokenExchanger, nameof(accessTokenExchanger));
 
@@ -75,12 +63,12 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Adds an <see cref="IAppIdProvider"/> to the authenticator settings.
+        /// Sets an <see cref="IAppIdProvider"/> to the authenticator settings.
         /// </summary>
         /// <param name="appIdProvider">The <see cref="IAppIdProvider"/> to provide with the app Id.</param>
         /// <returns>The modified <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public ServiceAccountAuthenticatorSettingsBuilder AddAppIdProvider(IAppIdProvider appIdProvider)
+        public ServiceAccountAuthenticatorSettingsBuilder SetAppIdProvider(IAppIdProvider appIdProvider)
         {
             ThrowIfNull(appIdProvider, nameof(appIdProvider));
             m_AppIdProvider = appIdProvider;
@@ -88,26 +76,12 @@ namespace Unity.Cloud.Identity
         }
 
         /// <summary>
-        /// Adds a <see cref="IHttpClient"/> to the authenticator settings.
-        /// </summary>
-        /// <param name="httpClient">The <see cref="IHttpClient"/> to add to the authenticator settings.</param>
-        /// <returns>The modified <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        public ServiceAccountAuthenticatorSettingsBuilder AddHttpClient(IHttpClient httpClient)
-        {
-            ThrowIfNull(httpClient, nameof(httpClient));
-
-            m_HttpClient = httpClient;
-            return this;
-        }
-
-        /// <summary>
-        /// Adds a <see cref="IJwtDecoder"/> to the authenticator settings.
+        /// Sets a <see cref="IJwtDecoder"/> to the authenticator settings.
         /// </summary>
         /// <param name="jwtDecoder">The <see cref="IJwtDecoder"/> to add to the authenticator settings.</param>
         /// <returns>The modified <see cref="ServiceAccountAuthenticatorSettingsBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-        internal ServiceAccountAuthenticatorSettingsBuilder AddJwtDecoder(IJwtDecoder jwtDecoder)
+        internal ServiceAccountAuthenticatorSettingsBuilder SetJwtDecoder(IJwtDecoder jwtDecoder)
         {
             ThrowIfNull(jwtDecoder, nameof(jwtDecoder));
 

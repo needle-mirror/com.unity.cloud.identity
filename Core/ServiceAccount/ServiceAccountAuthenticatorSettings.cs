@@ -5,7 +5,7 @@ namespace Unity.Cloud.Identity
     /// <summary>
     /// Creates the <see cref="ServiceAccountAuthenticatorSettings"/> required to inject in a <see cref="ServiceAccountAuthenticator"/>.
     /// </summary>
-    public readonly struct ServiceAccountAuthenticatorSettings
+    public struct ServiceAccountAuthenticatorSettings
     {
         /// <summary>
         /// The <see cref="IAuthenticationPlatformSupport"/> to use to intercept activation url.
@@ -20,7 +20,7 @@ namespace Unity.Cloud.Identity
         /// <summary>
         /// The <see cref="IAccessTokenExchanger{TInput,TOutput}"/> to use to exchange the Service Account Credentials for a JWT.
         /// </summary>
-        internal readonly IAccessTokenExchanger<ServiceAccountBase64EncodedCredentials, UnityServicesToken> AccessTokenExchanger;
+        internal readonly IAccessTokenExchanger<ServiceAccountCredentials, UnityServicesToken> AccessTokenExchanger;
 
         /// <summary>
         /// The <see cref="IHttpClient"/> to use for HTTP requests.
@@ -43,7 +43,7 @@ namespace Unity.Cloud.Identity
         internal ServiceAccountAuthenticatorSettings(
 
             IAuthenticationPlatformSupport authenticationPlatformSupport,
-            IAccessTokenExchanger<ServiceAccountBase64EncodedCredentials, UnityServicesToken> accessTokenExchanger,
+            IAccessTokenExchanger<ServiceAccountCredentials, UnityServicesToken> accessTokenExchanger,
             IServiceHostResolver serviceHostResolver,
             IHttpClient httpClient,
             IAppIdProvider appIdProvider,

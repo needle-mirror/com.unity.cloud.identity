@@ -105,7 +105,7 @@ namespace Unity.Cloud.Identity
 
         AuthenticationState m_AuthenticationState = AuthenticationState.AwaitingInitialization;
 
-        readonly IAccessTokenExchanger<ServiceAccountBase64EncodedCredentials, UnityServicesToken> m_UnityServicesTokenExchanger;
+        readonly IAccessTokenExchanger<ServiceAccountCredentials, UnityServicesToken> m_UnityServicesTokenExchanger;
         UnityServicesToken m_UnityServicesToken;
 
         /// <inheritdoc/>
@@ -148,9 +148,8 @@ namespace Unity.Cloud.Identity
         string m_ServiceAccountProjectName { get; set; } = Environment.GetEnvironmentVariable(s_SystemOverrideServiceAccountProjectNameVariableName, EnvironmentVariableTarget.Process);
 
         // supports ServiceAccountAuthorizer key:secret formatted string as fallback
-        string m_ServiceAccountCredentials { get; set; } = Environment.GetEnvironmentVariable(s_ServiceAccountKeyName, EnvironmentVariableTarget.Process);
+        ServiceAccountCredentials m_ServiceAccountCredentials { get; set; } = new (Environment.GetEnvironmentVariable(s_ServiceAccountKeyName, EnvironmentVariableTarget.Process));
 
-        ServiceAccountBase64EncodedCredentials m_ServiceAccountBase64EncodedCredentials;
         DateTime? m_TokenExpiry;
 
         /// <summary>
@@ -190,9 +189,9 @@ namespace Unity.Cloud.Identity
             if (m_AuthenticationPlatformSupport != null && m_AuthenticationPlatformSupport.ActivationKeyValue.Count > 0 && m_AuthenticationPlatformSupport.ActivationKeyValue.TryGetValue(s_ServiceAccountKeyName, out var value))
             {
                 s_Logger.LogDebug($"Service account credentials provided from CLI -{s_ServiceAccountKeyName} key value pair");
-                m_ServiceAccountCredentials = value;
+                m_ServiceAccountCredentials = new (value);
                 // Set the environment variable value for the process
-                Environment.SetEnvironmentVariable(s_ServiceAccountKeyName, m_ServiceAccountCredentials, EnvironmentVariableTarget.Process);
+                Environment.SetEnvironmentVariable(s_ServiceAccountKeyName, m_ServiceAccountCredentials.ToString(), EnvironmentVariableTarget.Process);
             }
 
             m_RefreshAccessTokenSemaphore = new SemaphoreSlim(1, 1);
@@ -201,7 +200,7 @@ namespace Unity.Cloud.Identity
         /// <inheritdoc/>
         public async Task<bool> HasValidPreconditionsAsync()
         {
-            return await Task.FromResult(!string.IsNullOrEmpty(m_ServiceAccountCredentials));
+            return await Task.FromResult(m_ServiceAccountCredentials != ServiceAccountCredentials.None);
         }
 
         /// <inheritdoc/>
@@ -214,10 +213,6 @@ namespace Unity.Cloud.Identity
                 throw new InvalidOperationException("Missing environment variables credentials values for the service account.");
             }
 
-            m_ServiceAccountBase64EncodedCredentials = new ServiceAccountBase64EncodedCredentials(
-                Convert.ToBase64String(
-                    System.Text.Encoding.UTF8.GetBytes($"{m_ServiceAccountCredentials}")));
-
             if (m_UnityServicesTokenExchanger != null)
             {
                 await RefreshUnityServicesTokenAsync();
@@ -226,7 +221,7 @@ namespace Unity.Cloud.Identity
             {
                 m_UnityServicesToken = new UnityServicesToken()
                 {
-                    AccessToken = m_ServiceAccountBase64EncodedCredentials.ToString(),
+                    AccessToken = m_ServiceAccountCredentials.ToBase64String(),
                 };
             }
 
@@ -289,7 +284,7 @@ namespace Unity.Cloud.Identity
 
         async Task ExchangeCredentialsForToken()
         {
-            m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(m_ServiceAccountBase64EncodedCredentials);
+            m_UnityServicesToken = await m_UnityServicesTokenExchanger.ExchangeAsync(m_ServiceAccountCredentials);
             var decodedToken = m_JwtDecoder.Decode(m_UnityServicesToken.AccessToken);
             var tokenExpiry = decodedToken.exp;
             m_TokenExpiry = ConvertTimestamp(tokenExpiry);

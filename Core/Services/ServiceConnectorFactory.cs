@@ -33,54 +33,15 @@ namespace Unity.Cloud.Identity
                 .AddHttpClient(httpClient);
 
             // Build settings for ServiceAccountAuthenticator
-            var serviceAccountAuthenticatorSettingsBuilder = new ServiceAccountAuthenticatorSettingsBuilder();
-            serviceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport(platformSupport)
-                .AddServiceHostResolver(serviceHostResolver)
-                .AddHttpClient(httpClient)
-                .AddAppIdProvider(appIdProvider);
+            var serviceAccountAuthenticatorSettingsBuilder =
+                new ServiceAccountAuthenticatorSettingsBuilder(httpClient, serviceHostResolver, platformSupport)
+                    .SetAppIdProvider(appIdProvider);
 
             // Inject an access token exchanger if service host resolver targets non-unity service
             if (serviceHostResolver is not ServiceHostResolver)
             {
-                serviceAccountAuthenticatorSettingsBuilder.AddDefaultServiceAccountCredentialsExchanger(httpClient, pkceConfigurationProvider);
+                serviceAccountAuthenticatorSettingsBuilder.SetServiceAccountCredentialsExchanger(pkceConfigurationProvider);
             }
-
-            // Build settings for CompositeAuthenticator
-            var compositeAuthenticatorSettings = BuildCompositeAuthenticatorSettings(
-                platformSupport, httpClient, serviceHostResolver, appIdProvider,
-                pkceAuthenticatorSettingsBuilder, serviceAccountAuthenticatorSettingsBuilder);
-
-            return new ServiceConnector(compositeAuthenticatorSettings, serviceHostResolver, httpClient, appIdProvider);
-        }
-
-        /// <summary>
-        /// Creates the <see cref="ServiceConnector"/> for the Unity services gateway.
-        /// </summary>
-        /// <param name="platformSupport">An <see cref="IAuthenticationPlatformSupport"/> instance.</param>
-        /// <param name="httpClient">An <see cref="IHttpClient"/> instance.</param>
-        /// <param name="appIdProvider">An <see cref="IAppIdProvider"/> instance.</param>
-        /// <param name="appNamespaceProvider">An <see cref="IAppNamespaceProvider"/> instance.</param>
-        /// <returns>The <see cref="ServiceConnector"/> instance.</returns>
-        public static ServiceConnector CreateForUnityServicesGateway(
-            IAuthenticationPlatformSupport platformSupport, IHttpClient httpClient, IAppIdProvider appIdProvider, IAppNamespaceProvider appNamespaceProvider)
-        {
-            var serviceHostResolver = ServiceHostResolverFactory.CreateForUnityServicesGateway();
-            var pkceConfigurationProvider = PkceConfigurationProviderFactory.CreateForUnityServicesGateway(serviceHostResolver);
-
-            // Build settings for PkceAuthenticator
-            var pkceAuthenticatorSettingsBuilder =
-                new PkceAuthenticatorSettingsBuilder(platformSupport, serviceHostResolver);
-            pkceAuthenticatorSettingsBuilder.AddConfigurationProvider(pkceConfigurationProvider)
-                .AddAppIdProvider(appIdProvider)
-                .AddAppNamespaceProvider(appNamespaceProvider)
-                .AddHttpClient(httpClient);
-
-            // Build settings for ServiceAccountAuthenticator
-            var serviceAccountAuthenticatorSettingsBuilder = new ServiceAccountAuthenticatorSettingsBuilder();
-            serviceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport(platformSupport)
-                .AddServiceHostResolver(serviceHostResolver)
-                .AddHttpClient(httpClient)
-                .AddAppIdProvider(appIdProvider);
 
             // Build settings for CompositeAuthenticator
             var compositeAuthenticatorSettings = BuildCompositeAuthenticatorSettings(
@@ -117,13 +78,10 @@ namespace Unity.Cloud.Identity
                 .AddHttpClient(httpClient);
 
             // Build settings for ServiceAccountAuthenticator
-            var serviceAccountAuthenticatorSettingsBuilder = new ServiceAccountAuthenticatorSettingsBuilder();
-            serviceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport(platformSupport)
-                .AddServiceHostResolver(serviceHostResolver)
-                .AddHttpClient(httpClient)
-                .AddAppIdProvider(appIdProvider)
-                .AddDefaultServiceAccountCredentialsExchanger(httpClient, pkceConfigurationProvider);
-
+            var serviceAccountAuthenticatorSettingsBuilder =
+                new ServiceAccountAuthenticatorSettingsBuilder(httpClient, serviceHostResolver, platformSupport)
+                    .SetAppIdProvider(appIdProvider)
+                    .SetServiceAccountCredentialsExchanger(pkceConfigurationProvider);
 
             // Build settings for CompositeAuthenticator
             var compositeAuthenticatorSettings = BuildCompositeAuthenticatorSettings(
@@ -158,12 +116,10 @@ namespace Unity.Cloud.Identity
                 .AddHttpClient(httpClient);
 
             // Build settings for ServiceAccountAuthenticator
-            var serviceAccountAuthenticatorSettingsBuilder = new ServiceAccountAuthenticatorSettingsBuilder();
-            serviceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport(platformSupport)
-                .AddServiceHostResolver(serviceHostResolver)
-                .AddHttpClient(httpClient)
-                .AddAppIdProvider(appIdProvider)
-                .AddDefaultServiceAccountCredentialsExchanger(httpClient, pkceConfigurationProvider);
+            var serviceAccountAuthenticatorSettingsBuilder =
+                    new ServiceAccountAuthenticatorSettingsBuilder(httpClient, serviceHostResolver, platformSupport)
+                        .SetAppIdProvider(appIdProvider)
+                        .SetServiceAccountCredentialsExchanger(pkceConfigurationProvider);
 
             // Build settings for CompositeAuthenticator
             var compositeAuthenticatorSettings = BuildCompositeAuthenticatorSettings(

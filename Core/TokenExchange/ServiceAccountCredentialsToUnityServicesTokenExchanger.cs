@@ -7,7 +7,7 @@ using Unity.Cloud.Common;
 
 namespace Unity.Cloud.Identity
 {
-    internal class ServiceAccountCredentialsToUnityServicesTokenExchanger : IAccessTokenExchanger<ServiceAccountBase64EncodedCredentials, UnityServicesToken>
+    internal class ServiceAccountCredentialsToUnityServicesTokenExchanger : IAccessTokenExchanger<ServiceAccountCredentials, UnityServicesToken>
     {
         readonly IHttpClient m_HttpClient;
         readonly IPkceConfigurationProvider m_IPkceConfigurationProvider;
@@ -22,7 +22,7 @@ namespace Unity.Cloud.Identity
             m_IPkceConfigurationProvider = pkceConfigurationProvider;
         }
 
-        public async Task<UnityServicesToken> ExchangeAsync(ServiceAccountBase64EncodedCredentials serviceAccountBase64EncodedCredentials)
+        public async Task<UnityServicesToken> ExchangeAsync(ServiceAccountCredentials serviceAccountCredentials)
         {
             var pkceConfiguration = await m_IPkceConfigurationProvider.GetPkceConfigurationAsync();
 
@@ -35,7 +35,7 @@ namespace Unity.Cloud.Identity
                 RequestUri = new Uri(url),
                 Content = stringContent
             };
-            httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(ServiceHeaderUtils.k_BasicScheme, serviceAccountBase64EncodedCredentials.ToString());
+            httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(ServiceHeaderUtils.k_BasicScheme, serviceAccountCredentials.ToBase64String());
 
             var response = await m_HttpClient.SendAsync(httpRequestMessage);
             var unityServicesToken = await response.JsonDeserializeAsync<ExchangeGenesisAccessTokenResponse>();

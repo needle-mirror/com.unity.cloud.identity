@@ -22,11 +22,9 @@ namespace Unity.Cloud.Identity.Documentation
             var playerSettings = UnityCloudPlayerSettings.Instance;
             var serviceHostResolver = ServiceHostResolverFactory.Create();
 
-            var serviceAccountAuthenticatorSettingsBuilder = new ServiceAccountAuthenticatorSettingsBuilder();
-            serviceAccountAuthenticatorSettingsBuilder.AddAuthenticationPlatformSupport(platformSupport)
-                .AddServiceHostResolver(serviceHostResolver)
-                .AddHttpClient(httpClient)
-                .AddAppIdProvider(playerSettings);
+            var serviceAccountAuthenticatorSettingsBuilder =
+                new ServiceAccountAuthenticatorSettingsBuilder(httpClient, serviceHostResolver, platformSupport)
+                    .SetAppIdProvider(playerSettings);
 
             m_ServiceAccountAuthenticator = new ServiceAccountAuthenticator(serviceAccountAuthenticatorSettingsBuilder.Build());
 
