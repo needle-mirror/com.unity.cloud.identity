@@ -41,7 +41,9 @@ namespace Unity.Cloud.Identity
             var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
             var response = await m_HttpClient.PostAsync(pkceConfiguration.TokenUrl, new StringContent(tokenEndPointParams, Encoding.UTF8, "application/x-www-form-urlencoded"));
             var exchangeCodeToken = await response.JsonDeserializeAsync<ExchangeCodeToken>();
-            m_DeviceToken = new DeviceToken(exchangeCodeToken.access_token, exchangeCodeToken.refresh_token, exchangeCodeToken.expires_in);
+            m_DeviceToken = !string.IsNullOrEmpty(exchangeCodeToken.id_token) ?
+                new DeviceToken(exchangeCodeToken.access_token, exchangeCodeToken.refresh_token, exchangeCodeToken.id_token, exchangeCodeToken.expires_in) :
+                new DeviceToken(exchangeCodeToken.access_token, exchangeCodeToken.refresh_token, exchangeCodeToken.expires_in);
             m_PkceUserInfoClaims = null;
             return m_DeviceToken;
         }
@@ -59,7 +61,9 @@ namespace Unity.Cloud.Identity
             var pkceConfiguration = await m_PkceConfigurationProvider.GetPkceConfigurationAsync();
             var response = await m_HttpClient.PostAsync(pkceConfiguration.RefreshTokenUrl, new StringContent(tokenEndPointParams, Encoding.UTF8, "application/x-www-form-urlencoded"));
             var refreshDeviceToken = await response.JsonDeserializeAsync<RefreshDeviceToken>();
-            m_DeviceToken = new DeviceToken(refreshDeviceToken.access_token, refreshDeviceToken.refresh_token, refreshDeviceToken.expires_in, refreshToken);
+            m_DeviceToken = refreshDeviceToken.id_token != null ?
+                new DeviceToken(refreshDeviceToken.access_token, refreshDeviceToken.refresh_token, refreshDeviceToken.id_token, refreshDeviceToken.expires_in, refreshToken) :
+                new DeviceToken(refreshDeviceToken.access_token, refreshDeviceToken.refresh_token, refreshDeviceToken.expires_in, refreshToken);
             m_PkceUserInfoClaims = null;
             return m_DeviceToken;
         }
