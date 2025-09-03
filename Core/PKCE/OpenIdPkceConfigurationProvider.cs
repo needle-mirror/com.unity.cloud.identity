@@ -43,7 +43,7 @@ namespace Unity.Cloud.Identity
             // Only fetch the openid configuration once per session
             if (m_OpenIdConfigurationJson == null)
             {
-                var result = await m_HttpClient.GetAsync(m_OpenIdConfigurationUrl);
+                using var result = await m_HttpClient.GetAsync(m_OpenIdConfigurationUrl);
                 m_OpenIdConfigurationJson = await result.JsonDeserializeAsync<OpenIdConfigurationJson>();
                 m_OpenIdConfigurationJson = ReplaceUnsecureProtocol(m_OpenIdConfigurationJson);
             }

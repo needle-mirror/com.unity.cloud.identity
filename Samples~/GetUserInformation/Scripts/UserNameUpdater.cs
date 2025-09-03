@@ -32,6 +32,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
         IOrganization SelectedOrganization;
         IEnumerable<Role> m_OrganizationRoles;
         IUserInfo m_UserInfo;
+        IEntitlements m_Entitlements;
 
         void Awake()
         {
@@ -108,6 +109,8 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
 
             SelectedOrganization = organization;
 
+            m_Entitlements = await organization.GetEntitlementsAsync();
+
             m_Members.Clear();
 
             var membersAsyncEnumerable = SelectedOrganization.ListMembersAsync(Range.All);
@@ -115,7 +118,7 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
             {
                 m_Members.Add(member);
             }
-            
+
             m_OrganizationRoles = await SelectedOrganization.ListRolesAsync();
 
             m_Projects.Clear();
@@ -153,6 +156,32 @@ namespace Unity.Cloud.Identity.Samples.GetUserInfo
             if (withProjects)
             {
                 sb.Append($"\n\n User has access to {m_Projects.Count} projects in '{SelectedOrganization.Name}' that has {m_Members.Count} members.");
+                var organizationEntitlementsList = m_Entitlements.OrganizationEntitlements.ToList();
+                var userSeatsList = m_Entitlements.UserSeats.ToList();
+                var hasOrganizationEntitlements = organizationEntitlementsList.Count > 0;
+                var hasUserSeats = userSeatsList.Count > 0;
+                if (hasOrganizationEntitlements)
+                {
+                    var organizationEntitlementsListString = String.Join(", ", organizationEntitlementsList);
+                    sb.Append($"\n\n Organization has {organizationEntitlementsList.Count} entitlements in organization '{SelectedOrganization.Name}'");
+                    sb.Append($"\n\n {organizationEntitlementsListString}");
+                }
+                else
+                {
+                    sb.Append($"\n\n Organization has no entitlements in organization: '{SelectedOrganization.Name}'");
+                }
+
+                if (hasUserSeats)
+                {
+                    var userSeatsListString = String.Join(", ", userSeatsList);
+                    sb.Append($"\n\n User has {userSeatsList.Count} seats in organization: '{SelectedOrganization.Name}'");
+                    sb.Append($"\n\n {userSeatsListString}");
+                }
+                else
+                {
+                    sb.Append($"\n\n User has no seats in organization: '{SelectedOrganization.Name}'");
+                }
+
                 if (m_FirstProjectMembers.Count > 0)
                 {
                     sb.Append($"\n\n The first project has {m_FirstProjectMembers.Count} member(s).");

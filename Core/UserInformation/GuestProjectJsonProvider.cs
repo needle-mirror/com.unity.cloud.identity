@@ -59,7 +59,7 @@ namespace Unity.Cloud.Identity
                 return value;
             }
 
-            var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken: cancellationToken);
+            using var response = await m_ServiceHttpClient.GetAsync(url, cancellationToken: cancellationToken);
             var deserializedResponse = await response.JsonDeserializeAsync<RangeResultsJson<ProjectJson>>();
             return m_GetGuestProjectRequestResponseCache.AddGetRequestResponseToCache(url, deserializedResponse);
         }

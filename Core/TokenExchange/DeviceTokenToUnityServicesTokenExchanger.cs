@@ -63,7 +63,7 @@ namespace Unity.Cloud.Identity
             var stringContent = new StringContent(JsonSerialization.Serialize(exchangeGenesisTokenRequest), Encoding.UTF8,
                     "application/json");
 
-            var clientTargetIdTokenResponse = await m_HttpClient.PostAsync(url, stringContent);
+            using var clientTargetIdTokenResponse = await m_HttpClient.PostAsync(url, stringContent);
             var unityServicesToken = await clientTargetIdTokenResponse.JsonDeserializeAsync<ExchangeTargetClientIdTokenResponse>();
 
             return new UnityServicesToken{ AccessToken = unityServicesToken.token};
