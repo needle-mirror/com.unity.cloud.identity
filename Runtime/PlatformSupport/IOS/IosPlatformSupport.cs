@@ -16,9 +16,9 @@ namespace Unity.Cloud.Identity.Runtime
     {
 #if UNITY_IOS && !UNITY_EDITOR
         [DllImport("__Internal")]
-        static extern void LaunchCaptiveSafariWebViewUrl(string url);
-        [DllImport("__Internal")]
-        static extern void DismissCaptiveSafariWebView();
+        private static extern void LaunchWebAuthenticationServiceSession(string url, string redirectionScheme);
+#else
+        static void LaunchWebAuthenticationServiceSession(string url, string redirectionScheme) { }
 #endif
         static readonly UCLogger s_Logger = LoggerProvider.GetLogger<IosPkcePlatformSupport>();
 
@@ -41,15 +41,17 @@ namespace Unity.Cloud.Identity.Runtime
             m_LoginUrl = url;
             s_Logger.LogDebug($"Awaiting redirect on url: {url}");
 #if UNITY_IOS && !UNITY_EDITOR
-            // Append extra parameters to remove cookie banner in Genesis login page and avoid App Tracking Authorization requirements from Apple.
-            LaunchCaptiveSafariWebViewUrl($"{url}&extra_hide_cookie=true&extra_hide_onetrust=true");
+            var urlWithoutCookie = url;
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Host.EndsWith("unity.com"))
+            {
+                // Append extra parameters to remove cookie banner in Genesis login page and avoid App Tracking Authorization requirements from Apple.
+                urlWithoutCookie = $"{url}&extra_hide_cookie=true&extra_hide_onetrust=true";
+            }
+            var appNamespace = m_AppNamespaceProvider.GetAppNamespace();
+            LaunchWebAuthenticationServiceSession(urlWithoutCookie, appNamespace);
 #endif
             await Task.Delay(50);
             var result = await UrlRedirectionInterceptor.AwaitRedirectAsync(awaitedQueryArguments);
-
-#if UNITY_IOS && !UNITY_EDITOR
-            DismissCaptiveSafariWebView();
-#endif
 
             return result;
         }

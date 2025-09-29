@@ -46,7 +46,11 @@ namespace Unity.Cloud.Identity
         /// </summary>
         protected readonly IUrlProcessor m_UrlProcessor;
         readonly IAppIdProvider m_AppIdProvider;
-        readonly IAppNamespaceProvider m_AppNamespaceProvider;
+
+        /// <summary>
+        /// The <see cref="IAppNamespaceProvider"/> that provides the application namespace.
+        /// </summary>
+        protected readonly IAppNamespaceProvider m_AppNamespaceProvider;
 
         /// <summary>
         /// Creates a BasePkcePlatformSupport that handles app activation from an url or key value pairs.

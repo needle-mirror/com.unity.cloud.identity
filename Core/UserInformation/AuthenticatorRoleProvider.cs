@@ -114,7 +114,7 @@ namespace Unity.Cloud.Identity
             {
                 return m_EntityJsonProvider.GetEntityJsonAsync(entityId, entityType);
             }
-            var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/access/legacy/v1/users/{m_UserId}/entities?entityType={entityType}&entityId={entityId}&filterByEntityType[]={entityType}");
+            var url = m_ServiceHostResolver.GetResolvedRequestUri($"/api/access/legacy/v1/users/{m_UserId}/entities?entityType={entityType}&entityId={entityId}&filterByEntityType%5B%5D={entityType}");
             if (m_GetRequestResponseCache.TryGetRequestResponseFromCache(url, out IEnumerable<EntityJson> value))
             {
                 return value;
